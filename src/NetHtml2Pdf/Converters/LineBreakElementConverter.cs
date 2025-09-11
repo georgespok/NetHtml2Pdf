@@ -13,7 +13,8 @@ namespace NetHtml2Pdf.Converters
 
         public override void Convert(HtmlElement element, IContainer container)
         {
-            container.LineVertical(1);
+            // Create a line break by adding vertical space
+            container.Text(string.Empty);
         }
     }
 }
