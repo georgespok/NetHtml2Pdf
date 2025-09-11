@@ -2,7 +2,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using System.Text.Json;
 using System.Web;
 
 namespace NetHtml2Pdf.TestAzureFunction;
@@ -10,64 +9,33 @@ namespace NetHtml2Pdf.TestAzureFunction;
 public class HtmlConverterFunction(ILogger<HtmlConverterFunction> logger)
 {
     [Function("ConvertToPdf")]
-    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
     {
         try
         {
-            string? html = null;
+            // Read raw HTML from request body
+            using var reader = new StreamReader(req.Body);
+            var html = await reader.ReadToEndAsync();
 
+            // Validate that HTML content is provided
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return await BadRequest(req, "HTML content is required in the request body.");
+            }
+
+            // Get optional title from query parameter
             var query = HttpUtility.ParseQueryString(req.Url.Query);
-            bool inline = bool.TryParse(query["inline"], out var inl) && inl;
-
-            // Optional inputs
-            string title = query["title"] ?? "Azure Functions + QuestPDF";
-            string? bodyText = null;
-            
-
-            // If POST, read JSON body like { "text":"...", "html":"..." }
-            if (req.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))
-            {
-                using var reader = new StreamReader(req.Body);
-                var raw = await reader.ReadToEndAsync();
-                if (!string.IsNullOrWhiteSpace(raw))
-                {
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(raw);
-                        var root = doc.RootElement;
-                        if (root.TryGetProperty("text", out var t) && t.ValueKind == JsonValueKind.String)
-                        {
-                            bodyText = t.GetString();
-                            html = $"<p>{bodyText}</p>";
-                        }
-
-                        if (root.TryGetProperty("html", out var h) && h.ValueKind == JsonValueKind.String)
-                            html = h.GetString();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogWarning(ex, "Ignoring invalid JSON payload.");
-                    }
-                }
-            }
-
-            if (html == null)
-            {
-                throw new ApplicationException("Content is empty. Nothing to convert");
-            }
+            string title = query["title"] ?? "HTML to PDF";
 
             var converter = new HtmlConverter();
-            var bytes = await converter.Convert(html);
+            var bytes = await converter.ConvertToPdfBytes(html);
 
             var fileName = $"{SanitizeFileName(title)}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.pdf";
             var res = req.CreateResponse(HttpStatusCode.OK);
 
-            // Headers for inline view or forced download
+            // Headers for PDF download
             res.Headers.Add("Content-Type", "application/pdf");
-            res.Headers.Add(
-                "Content-Disposition",
-                inline ? $"inline; filename=\"{fileName}\"" : $"attachment; filename=\"{fileName}\""
-            );
+            res.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
 
             // Write bytes
             await res.WriteBytesAsync(bytes);

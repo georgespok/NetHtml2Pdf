@@ -23,7 +23,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -53,7 +53,7 @@ namespace NetHtml2Pdf.Test
             var html = "<table></table>";
 
             // Act & Assert
-            await Assert.ThrowsAsync<QuestPDF.Drawing.Exceptions.DocumentComposeException>(() => _converter.Convert(html));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _converter.ConvertToPdfBytes(html));
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act & Assert
-            await Assert.ThrowsAsync<QuestPDF.Drawing.Exceptions.DocumentComposeException>(() => _converter.Convert(html));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _converter.ConvertToPdfBytes(html));
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -110,7 +110,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -133,7 +133,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -141,20 +141,24 @@ namespace NetHtml2Pdf.Test
         }
 
         [Fact]
-        public async Task Convert_InvalidHtml_ThrowsException()
+        public async Task Convert_InvalidHtml_ReturnsPdfBytes()
         {
             // Arrange
             var html = "invalid html";
 
-            // Act & Assert
-            await Assert.ThrowsAsync<System.NullReferenceException>(() => _converter.Convert(html));
+            // Act
+            var result = await _converter.ConvertToPdfBytes(html);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.Length > 0);
         }
 
         [Fact]
         public async Task Convert_NullHtml_ThrowsException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _converter.Convert(null!));
+            await Assert.ThrowsAsync<ArgumentException>(() => _converter.ConvertToPdfBytes(null!));
         }
 
         [Fact]
@@ -173,7 +177,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -202,7 +206,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var result = await _converter.Convert(html);
+            var result = await _converter.ConvertToPdfBytes(html);
 
             // Assert
             Assert.NotNull(result);
@@ -234,7 +238,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var pdfBytes = await _converter.Convert(originalHtml);
+            var pdfBytes = await _converter.ConvertToPdfBytes(originalHtml);
 
             // Assert
             Assert.NotNull(pdfBytes);
@@ -275,7 +279,7 @@ namespace NetHtml2Pdf.Test
                 </table>";
 
             // Act
-            var pdfBytes = await _converter.Convert(originalHtml);
+            var pdfBytes = await _converter.ConvertToPdfBytes(originalHtml);
 
             // Assert
             Assert.NotNull(pdfBytes);
