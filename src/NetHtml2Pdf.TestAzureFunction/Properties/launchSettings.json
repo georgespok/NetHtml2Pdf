@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "NetHtml2Pdf.TestAzureFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7242",
+      "launchBrowser": false
+    }
+  }
+}

@@ -3,6 +3,7 @@ using AngleSharp.Dom;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using static QuestPDF.Helpers.Colors;
 using Document = QuestPDF.Fluent.Document;
 
 namespace NetHtml2Pdf
@@ -17,6 +18,13 @@ namespace NetHtml2Pdf
             var table = document.QuerySelector("table");
 
             QuestPDF.Settings.License = LicenseType.Community;
+            var fontPath = Path.Combine(AppContext.BaseDirectory, "fonts", "Inter-Regular.ttf");
+            if (!File.Exists(fontPath))
+                throw new ApplicationException($"Missing font at {fontPath}. Ensure it's copied to output.");
+
+            QuestPDF.Settings.UseEnvironmentFonts = false;
+            QuestPDF.Settings.License = LicenseType.Community;
+            QuestPDF.Drawing.FontManager.RegisterFont(File.OpenRead(fontPath));
 
             return Document.Create(container =>
             {
