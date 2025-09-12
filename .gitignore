@@ -55,3 +55,4 @@ nunit-*.xml
 *.user
 **/.vs/
 **/NetHtml2Pdf.TestAzureFunction/Properties
+.cursor

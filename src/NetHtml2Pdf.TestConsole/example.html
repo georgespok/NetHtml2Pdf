@@ -1,100 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HTML to PDF Example</title>
+    <title>HTML to PDF Test - Supported Features Only</title>
 </head>
 <body>
-    <!-- Section element -->
-    <section>
-        <h1>Company Report</h1>
-        <p>This is a comprehensive report demonstrating various HTML elements that can be converted to PDF.</p>
-    </section>
+    <!-- Headings test -->
+    <h1>Main Heading</h1>
+    <h2>Secondary Heading</h2>
+    <h3>Tertiary Heading</h3>
 
-    <!-- Div element with content -->
-    <div>
-        <p>This paragraph is inside a div element. Div elements are commonly used for layout and grouping content.</p>
-        <p>Here's another paragraph in the same div, showing how multiple elements can be nested.</p>
-    </div>
+    <!-- Paragraphs with formatting -->
+    <p>This is a regular paragraph with <strong>bold text</strong> and <em>italic text</em>.</p>
+    
+    <p>This paragraph contains a <span style="color: red;">colored span</span> and demonstrates inline styles.</p>
 
-    <!-- Line break example -->
-    <p>This paragraph demonstrates line breaks.<br>This text appears on a new line after the br tag.<br>And here's another line break for spacing.<br><br></p>
+    <!-- Line breaks -->
+    <p>This paragraph has line breaks.<br>This is on a new line.<br>And another line break.</p>
 
-    <!-- Table element -->
+    <!-- Lists -->
+    <ul>
+        <li>First unordered item</li>
+        <li>Second unordered item</li>
+        <li>Third unordered item</li>
+    </ul>
+
+    <ol>
+        <li>First ordered item</li>
+        <li>Second ordered item</li>
+        <li>Third ordered item</li>
+    </ol>
+
+    <!-- Table -->
     <table>
         <thead>
             <tr>
-                <th>Employee ID</th>
                 <th>Name</th>
+                <th>Age</th>
                 <th>Department</th>
-                <th>Salary</th>
-                <th>Status</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>001</td>
                 <td>John Smith</td>
+                <td>30</td>
                 <td>Engineering</td>
-                <td>$75,000</td>
-                <td>Active</td>
             </tr>
             <tr>
-                <td>002</td>
                 <td>Sarah Johnson</td>
+                <td>25</td>
                 <td>Marketing</td>
-                <td>$65,000</td>
-                <td>Active</td>
-            </tr>
-            <tr>
-                <td>003</td>
-                <td>Mike Brown</td>
-                <td>Sales</td>
-                <td>$70,000</td>
-                <td>On Leave</td>
-            </tr>
-            <tr>
-                <td>004</td>
-                <td>Emily Davis</td>
-                <td>HR</td>
-                <td>$60,000</td>
-                <td>Active</td>
             </tr>
         </tbody>
     </table>
 
-    <!-- Another section -->
-    <section>
-        <p>This is another section with additional information.</p>
-        <div>
-            <p>Nested div within a section:</p>
-            <p>• Point 1: Important note<br>• Point 2: Another important note<br>• Point 3: Final note</p>
-        </div>
-    </section>
+    <!-- Image placeholder -->
+    <p>Image test: <img src="placeholder.jpg" alt="Test Image" width="100" height="50"></p>
 
-    <!-- Mixed content example -->
-    <div>
-        <p>Mixed content example:</p>
-        <p>This div contains various elements:<br>Tables, paragraphs, line breaks, and sections all work together.</p>
-        
-        <!-- Simple table within a div -->
-        <table>
-            <thead>
-                <tr><th>Category</th><th>Count</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>Active Users</td><td>1,250</td></tr>
-                <tr><td>Total Orders</td><td>5,430</td></tr>
-                <tr><td>Revenue</td><td>$125,000</td></tr>
-            </tbody>
-        </table>
-        
-        <p>End of mixed content section.</p>
-    </div>
+    <!-- Inline styles test -->
+    <p style="text-align: center;">Centered text</p>
+    <p style="text-align: right;">Right-aligned text</p>
+    <p style="margin: 10px; padding: 5px;">Text with margin and padding</p>
 
-    <!-- Final section -->
-    <section>
-        <p>This concludes our example HTML document.</p>
-        <p>All supported elements (table, p, br, div, section) have been demonstrated.</p>
-    </section>
+    <!-- Font styles -->
+    <p style="font-weight: bold;">Bold text via CSS</p>
+    <p style="font-style: italic;">Italic text via CSS</p>
+    <p style="color: blue;">Blue text</p>
 </body>
 </html>
