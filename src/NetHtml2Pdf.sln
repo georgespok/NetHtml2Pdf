@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{02EA681E-C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.TestAzureFunction", "NetHtml2Pdf.TestAzureFunction\NetHtml2Pdf.TestAzureFunction.csproj", "{1FB8E9A5-DA2D-4402-8366-A09BB631084A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.Core", "NetHtml2Pdf.Core\NetHtml2Pdf.Core.csproj", "{4E66B4E1-0FBA-4A79-B845-2D98D4C77CEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.Parsing", "NetHtml2Pdf.Parsing\NetHtml2Pdf.Parsing.csproj", "{4AC98DDD-2265-421C-9571-F820346768F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +39,14 @@ Global
 		{1FB8E9A5-DA2D-4402-8366-A09BB631084A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FB8E9A5-DA2D-4402-8366-A09BB631084A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FB8E9A5-DA2D-4402-8366-A09BB631084A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E66B4E1-0FBA-4A79-B845-2D98D4C77CEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E66B4E1-0FBA-4A79-B845-2D98D4C77CEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E66B4E1-0FBA-4A79-B845-2D98D4C77CEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E66B4E1-0FBA-4A79-B845-2D98D4C77CEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AC98DDD-2265-421C-9571-F820346768F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AC98DDD-2265-421C-9571-F820346768F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AC98DDD-2265-421C-9571-F820346768F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AC98DDD-2265-421C-9571-F820346768F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

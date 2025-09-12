@@ -1,7 +1,6 @@
 ﻿using QuestPDF.Infrastructure;
-using NetHtml2Pdf.HtmlParsing;
-using NetHtml2Pdf.PdfRendering;
-using NetHtml2Pdf.RenderModel;
+using NetHtml2Pdf.Parsing;
+using NetHtml2Pdf.Rendering;
 
 namespace NetHtml2Pdf
 {
@@ -26,7 +25,7 @@ namespace NetHtml2Pdf
 
         /// <summary>
         /// Converts HTML content to PDF bytes using the three-layer architecture:
-        /// HTML → Render Model → QuestPDF
+        /// HTML → Document Model → QuestPDF
         /// </summary>
         /// <param name="html">The HTML content to convert</param>
         /// <returns>PDF bytes</returns>
@@ -37,11 +36,11 @@ namespace NetHtml2Pdf
 
             SetupQuestPdf();
 
-            // Layer 1: Parse HTML into intermediate render model
-            var renderNodes = await _htmlParser.ParseAsync(html);
+            // Layer 1: Parse HTML into intermediate document model
+            var documentNodes = await _htmlParser.ParseAsync(html);
 
-            // Layer 2: Convert render model to QuestPDF elements
-            return _pdfRenderer.RenderToPdf(renderNodes);
+            // Layer 2: Convert document model to QuestPDF elements
+            return _pdfRenderer.RenderToPdf(documentNodes);
         }
 
         /// <summary>

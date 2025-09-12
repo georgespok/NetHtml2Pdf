@@ -7,18 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="fonts\Inter-Regular.ttf" />
+    <Compile Remove="PdfRendering\**" />
+    <EmbeddedResource Remove="PdfRendering\**" />
+    <None Remove="PdfRendering\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="fonts\Inter-Regular.ttf">
+    <None Remove="Fonts\Inter-Regular.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Fonts\Inter-Regular.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.3.0" />
     <PackageReference Include="QuestPDF" Version="2025.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetHtml2Pdf.Parsing\NetHtml2Pdf.Parsing.csproj" />
   </ItemGroup>
 
 </Project>

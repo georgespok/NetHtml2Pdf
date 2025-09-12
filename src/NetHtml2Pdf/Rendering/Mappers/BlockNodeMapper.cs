@@ -1,0 +1,59 @@
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
+using NetHtml2Pdf.Core.Models;
+using NetHtml2Pdf.Rendering.Interfaces;
+
+namespace NetHtml2Pdf.Rendering.Mappers
+{
+    /// <summary>
+    /// Maps BlockNode to QuestPDF elements
+    /// </summary>
+    public class BlockNodeMapper(IDocumentNodeMapperFactory mapperFactory) : IDocumentNodeMapper<BlockNode>
+    {
+        private readonly IDocumentNodeMapperFactory _mapperFactory = mapperFactory ?? throw new ArgumentNullException(nameof(mapperFactory));
+
+        public void Map(BlockNode blockNode, IContainer container)
+        {
+            container.Column(column =>
+            {
+                foreach (var child in blockNode.Children)
+                {
+                    column.Item().Element(childContainer =>
+                    {
+                        var styledContainer = ApplyBlockStyling(blockNode, childContainer);
+                        var mapper = _mapperFactory.GetMapper(child);
+                        mapper.Map(child, styledContainer);
+                    });
+                }
+            });
+        }
+
+        private static IContainer ApplyBlockStyling(BlockNode blockNode, IContainer container)
+        {
+            var styledContainer = container;
+
+            if (blockNode.Margins > 0)
+            {
+                styledContainer = styledContainer.Padding(blockNode.Margins);
+            }
+
+            if (blockNode.Padding > 0)
+            {
+                styledContainer = styledContainer.Padding(blockNode.Padding);
+            }
+
+            if (!string.IsNullOrEmpty(blockNode.BackgroundColor))
+            {
+                // Background color would be applied here
+                // styledContainer = styledContainer.BackgroundColor(blockNode.BackgroundColor);
+            }
+
+            if (blockNode.BorderWidth > 0 && !string.IsNullOrEmpty(blockNode.BorderColor))
+            {
+                styledContainer = styledContainer.Border(blockNode.BorderWidth).BorderColor(blockNode.BorderColor);
+            }
+
+            return styledContainer;
+        }
+    }
+}

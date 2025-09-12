@@ -1,12 +1,10 @@
-using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
-
-namespace NetHtml2Pdf.RenderModel
+namespace NetHtml2Pdf.Core.Models
 {
     /// <summary>
     /// Represents an image element
+    /// Pure POCO with no external dependencies
     /// </summary>
-    public class ImageNode : RenderNode
+    public class ImageNode : DocumentNode
     {
         /// <summary>
         /// Image source (URL or base64 data)
@@ -32,13 +30,6 @@ namespace NetHtml2Pdf.RenderModel
         /// How the image should fit within its bounds
         /// </summary>
         public ImageFitMode FitMode { get; set; } = ImageFitMode.FitWidth;
-
-        public override void Render(IContainer container)
-        {
-            // For now, just render a placeholder text for images
-            // In a real implementation, you would need to handle image loading
-            container.Text($"Image: {AltText ?? "Image"}");
-        }
     }
 
     /// <summary>
