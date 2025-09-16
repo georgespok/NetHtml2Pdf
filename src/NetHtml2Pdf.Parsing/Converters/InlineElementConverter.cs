@@ -22,7 +22,7 @@ namespace NetHtml2Pdf.Parsing.Converters
             {
                 if (child.NodeType == NodeType.Text)
                 {
-                    var text = child.TextContent.Trim();
+                    var text = child.TextContent;
                     if (!string.IsNullOrEmpty(text))
                     {
                         var textRun = new TextRunNode { Text = text };
@@ -51,7 +51,7 @@ namespace NetHtml2Pdf.Parsing.Converters
             return paragraph;
         }
         
-        private void ApplyFormatting(IElement element, TextRunNode textRun)
+        private static void ApplyFormatting(IElement element, TextRunNode textRun)
         {
             var tagName = element.TagName.ToLowerInvariant();
             switch (tagName)

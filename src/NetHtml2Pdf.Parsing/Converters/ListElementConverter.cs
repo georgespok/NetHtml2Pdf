@@ -26,22 +26,36 @@ namespace NetHtml2Pdf.Parsing.Converters
             {
                 var listItem = new ListItemNode();
                 
-                foreach (var child in item.Children)
+                // Check if the li element has direct text content (no child elements)
+                if (item.Children.Length == 0 && !string.IsNullOrWhiteSpace(item.TextContent))
                 {
-                    var converter = _converterFactory.GetConverter(child);
-                    var childNode = converter.Convert(child);
-                    if (childNode != null)
+                    var text = item.TextContent.Trim();
+                    if (!string.IsNullOrEmpty(text))
                     {
-                        listItem.Content.Add(childNode);
+                        listItem.Content.Add(new TextRunNode { Text = text });
                     }
-                    else if (child.NodeType == NodeType.Text)
+                }
+                else
+                {
+                    // Process child nodes for mixed content or nested elements
+                    foreach (var child in item.ChildNodes)
                     {
-                        var text = child.TextContent.Trim();
-                        if (!string.IsNullOrEmpty(text))
+                        if (child.NodeType == NodeType.Text)
                         {
-                            var paragraph = new ParagraphNode();
-                            paragraph.TextRuns.Add(new TextRunNode { Text = text });
-                            listItem.Content.Add(paragraph);
+                            var text = child.TextContent.Trim();
+                            if (!string.IsNullOrEmpty(text))
+                            {
+                                listItem.Content.Add(new TextRunNode { Text = text });
+                            }
+                        }
+                        else if (child is IElement childElement)
+                        {
+                            var converter = _converterFactory.GetConverter(childElement);
+                            var childNode = converter.Convert(childElement);
+                            if (childNode != null)
+                            {
+                                listItem.Content.Add(childNode);
+                            }
                         }
                     }
                 }

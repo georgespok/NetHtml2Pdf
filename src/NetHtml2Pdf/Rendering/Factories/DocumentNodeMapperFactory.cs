@@ -52,6 +52,7 @@ namespace NetHtml2Pdf.Rendering.Factories
             RegisterMapper(new TypedNodeMapperWrapper<TableNode>(new TableNodeMapper(this)));
             RegisterMapper(new TypedNodeMapperWrapper<ListNode>(new ListNodeMapper(this)));
             RegisterMapper(new TypedNodeMapperWrapper<ImageNode>(new ImageNodeMapper()));
+            RegisterMapper(new TypedNodeMapperWrapper<TextRunNode>(new TextRunNodeMapper()));
         }
     }
 }

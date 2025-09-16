@@ -21,12 +21,15 @@ namespace NetHtml2Pdf.Rendering.Mappers
                     var item = listNode.Items[i];
                     column.Item().Row(row =>
                     {
-                        // Add bullet or number
+                        // Add bullet or number with minimal width
                         var bulletText = listNode.IsOrdered ? $"{i + 1}." : listNode.BulletCharacter;
-                        row.RelativeItem(0.1f).Text(bulletText).FontSize(12);
+                        row.AutoItem().Text(bulletText).FontSize(12);
                         
-                        // Add content
-                        row.RelativeItem(0.9f).Element(contentContainer =>
+                        // Add small spacing
+                        row.ConstantItem(8).Text(" ");
+                        
+                        // Add content with remaining space
+                        row.RelativeItem().Element(contentContainer =>
                         {
                             MapListItem(item, contentContainer);
                         });

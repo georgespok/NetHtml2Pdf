@@ -1,3 +1,4 @@
+using FluentAssertions;
 using HtmlAgilityPack;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
@@ -236,7 +237,38 @@ namespace NetHtml2Pdf.Test
 
             // Verify words are on different lines (line breaks create separate lines)
             var words = GetPdfWords(pdfBytes);
-            Assert.False(WordsInOneLine(words, true)); // Should NOT be in one line
+            words[0].Text.Should().Be("Line1");
+            words[1].Text.Should().Be("Line2");
+            words[2].Text.Should().Be("Line3");
+            Assert.True(WordsInOneLine(words, false)); // Should NOT be in one line
+        }
+
+        [Fact]
+        public async Task Convert_ListItems_RendersItemTexts()
+        {
+            // Arrange
+            var html = "<ol><li>Item1</li><li>Item2</li><li>Item3</li></ol>";
+
+            // Act
+            var pdfBytes = await ConvertToPdfAsync(html);
+
+            // Assert
+            AssertValidPdf(pdfBytes);
+            
+            // Save PDF for manual inspection
+            var tempPath = Path.Combine(Path.GetTempPath(), "ListItems-test.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            output.WriteLine($"PDF saved to: {tempPath}");
+
+            // Verify list items are rendered correctly
+            var words = GetPdfWords(pdfBytes);
+            words.Should().HaveCount(6); // 3 bullets + 3 items
+            words[0].Text.Should().Be("1.");
+            words[1].Text.Should().Be("Item1");
+            words[2].Text.Should().Be("2.");
+            words[3].Text.Should().Be("Item2");
+            words[4].Text.Should().Be("3.");
+            words[5].Text.Should().Be("Item3");
         }
 
         #endregion
@@ -312,7 +344,7 @@ namespace NetHtml2Pdf.Test
             var headerCells = doc.DocumentNode.SelectNodes("//thead//th");
             if (headerCells != null)
             {
-                headers.AddRange(headerCells.Select(th => th.InnerText.Trim()));
+                headers.AddRange(headerCells.Select(th => th.InnerText));
             }
             
             // Extract data rows
@@ -324,7 +356,7 @@ namespace NetHtml2Pdf.Test
                     var cells = row.SelectNodes(".//td");
                     if (cells != null)
                     {
-                        var rowData = cells.Select(td => td.InnerText.Trim()).ToList();
+                        var rowData = cells.Select(td => td.InnerText).ToList();
                         rows.Add(rowData);
                     }
                 }

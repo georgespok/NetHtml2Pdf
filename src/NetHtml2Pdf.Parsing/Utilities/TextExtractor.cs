@@ -21,7 +21,7 @@ namespace NetHtml2Pdf.Parsing.Utilities
             {
                 if (child.NodeType == NodeType.Text)
                 {
-                    var text = child.TextContent.Trim();
+                    var text = child.TextContent;
                     if (!string.IsNullOrEmpty(text))
                     {
                         textRuns.Add(new TextRunNode { Text = text });
@@ -33,7 +33,7 @@ namespace NetHtml2Pdf.Parsing.Utilities
                     var textRun = new TextRunNode();
                     
                     // Extract text content from child element
-                    var childText = childElement.TextContent.Trim();
+                    var childText = childElement.TextContent;
                     if (!string.IsNullOrEmpty(childText))
                     {
                         textRun.Text = childText;

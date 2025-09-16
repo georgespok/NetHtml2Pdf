@@ -8,12 +8,7 @@ namespace NetHtml2Pdf.Test
     /// </summary>
     public class HtmlParserTests
     {
-        private readonly HtmlParser _htmlParser;
-
-        public HtmlParserTests()
-        {
-            _htmlParser = new HtmlParser();
-        }
+        private readonly HtmlParser _htmlParser = new();
 
         /// <summary>
         /// Helper method to parse HTML and return the first paragraph node
@@ -33,7 +28,6 @@ namespace NetHtml2Pdf.Test
             return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic };
         }
 
-        /// <summary>
         /// Helper method to assert text run properties
         /// </summary>
         private static void AssertTextRun(TextRunNode textRun, string expectedText, bool expectedBold = false, bool expectedItalic = false)
@@ -49,7 +43,7 @@ namespace NetHtml2Pdf.Test
         private static void AssertTextRuns(List<TextRunNode> actualRuns, params TextRunNode[] expectedRuns)
         {
             Assert.Equal(expectedRuns.Length, actualRuns.Count);
-            for (int i = 0; i < expectedRuns.Length; i++)
+            for (var i = 0; i < expectedRuns.Length; i++)
             {
                 AssertTextRun(actualRuns[i], expectedRuns[i].Text, expectedRuns[i].IsBold, expectedRuns[i].IsItalic);
             }
@@ -59,7 +53,7 @@ namespace NetHtml2Pdf.Test
         public async Task ParseAsync_WithLineBreaks_CreatesParagraphWithLineBreakElements()
         {
             // Arrange
-            var html = "<p>Line1<br>Line2</p>";
+            const string html = "<p>Line1<br>Line2</p>";
             var expectedRuns = new[]
             {
                 CreateTextRun("Line1"),
@@ -71,23 +65,59 @@ namespace NetHtml2Pdf.Test
             var paragraphNode = await ParseParagraphAsync(html);
 
             // Assert
-            // NEW BEHAVIOR: The paragraph now contains 3 text runs including the <br> tag
-            // The enhanced ParagraphElementConverter now properly handles nested elements
             AssertTextRuns(paragraphNode.TextRuns, expectedRuns);
+        }
+
+        [Fact]
+        public async Task ParseAsync_WithListItems_CreatesListNodeElements()
+        {
+            // Arrange
+            const string html = "<ol><li>Line1</li><li>Line2</li></ol>";
+            var expectedRuns = new[]
+            {
+                CreateListItem("Line1"),
+                CreateListItem("Line2")
+            };
+
+            // Act
+            var listItemNodes = await _htmlParser.ParseAsync(html);
+
+            // Assert
+            AssertListItems(listItemNodes, expectedRuns);
+        }
+
+        private void AssertListItems(List<DocumentNode> documentNodes, ListItemNode[] expectedRuns)
+        {
+            Assert.Equal(1, documentNodes.Count);
+
+            for (var i = 0; i < expectedRuns.Length; i++)
+            {
+                var listItem = ((ListNode)documentNodes[0]).Items[i];
+                var listItemNode = Assert.IsType<ListItemNode>(listItem);
+                
+                var textRuns = listItemNode.Content.OfType<TextRunNode>().ToList();
+                
+                AssertTextRuns(textRuns, expectedRuns[i].Content.OfType<TextRunNode>().ToArray());
+            }
+        }
+
+        private static ListItemNode CreateListItem(string text)
+        {
+            return new ListItemNode { Content = new List<DocumentNode> { new TextRunNode { Text = text } } };
         }
 
         [Fact]
         public async Task ParseAsync_WithMixedInlineElements_CreatesParagraphWithAllElements()
         {
             // Arrange
-            var html = "<p>Start <strong>bold</strong> and <em>italic</em> with <br>line break</p>";
+            const string html = "<p>Start <strong>bold</strong> and <em>italic</em> with <br>line break</p>";
             var expectedRuns = new[]
             {
-                CreateTextRun("Start"),
+                CreateTextRun("Start "),
                 CreateTextRun("bold", isBold: true),
-                CreateTextRun("and"),
+                CreateTextRun(" and "),
                 CreateTextRun("italic", isItalic: true),
-                CreateTextRun("with"),
+                CreateTextRun(" with "),
                 CreateTextRun("\n"),
                 CreateTextRun("line break")
             };
@@ -96,7 +126,6 @@ namespace NetHtml2Pdf.Test
             var paragraphNode = await ParseParagraphAsync(html);
 
             // Assert
-            // The text extraction trims whitespace, so we get: "Start", "bold", "and", "italic", "with", "\n", "line break"
             AssertTextRuns(paragraphNode.TextRuns, expectedRuns);
         }
 
@@ -117,7 +146,6 @@ namespace NetHtml2Pdf.Test
 
         [Theory]
         [InlineData("<p></p>")]
-        [InlineData("<p>   </p>")]
         [InlineData("<p><span></span></p>")]
         public async Task ParseAsync_WithEmptyContent_ReturnsEmptyTextRuns(string html)
         {

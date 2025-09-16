@@ -20,7 +20,9 @@ namespace NetHtml2Pdf.Parsing
         public async Task<List<DocumentNode>> ParseAsync(string html)
         {
             if (string.IsNullOrEmpty(html))
+            {
                 return new List<DocumentNode>();
+            }
 
             var context = BrowsingContext.New(Configuration.Default);
             var document = await context.OpenAsync(req => req.Content(html));

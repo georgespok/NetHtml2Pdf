@@ -22,7 +22,7 @@ namespace NetHtml2Pdf.Parsing.Converters
             var headerRow = element.QuerySelector("thead tr") ?? element.QuerySelector("tr");
             if (headerRow != null)
             {
-                var headers = headerRow.QuerySelectorAll("th, td").Select(cell => cell.TextContent.Trim()).ToList();
+                var headers = headerRow.QuerySelectorAll("th, td").Select(cell => cell.TextContent).ToList();
                 
                 // Define columns
                 foreach (var _ in headers)

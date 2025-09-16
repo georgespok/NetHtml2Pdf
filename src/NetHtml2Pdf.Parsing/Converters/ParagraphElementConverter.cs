@@ -23,7 +23,7 @@ namespace NetHtml2Pdf.Parsing.Converters
                 if (child.NodeType == NodeType.Text)
                 {
                     // Handle text nodes directly
-                    var text = child.TextContent.Trim();
+                    var text = child.TextContent;
                     if (!string.IsNullOrEmpty(text))
                     {
                         paragraph.TextRuns.Add(new TextRunNode { Text = text });
