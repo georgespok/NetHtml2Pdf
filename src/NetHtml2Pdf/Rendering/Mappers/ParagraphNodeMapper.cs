@@ -10,8 +10,6 @@ namespace NetHtml2Pdf.Rendering.Mappers
     /// </summary>
     public class ParagraphNodeMapper(IDocumentNodeMapperFactory mapperFactory) : IDocumentNodeMapper<ParagraphNode>
     {
-        private readonly IDocumentNodeMapperFactory _mapperFactory = mapperFactory ?? throw new ArgumentNullException(nameof(mapperFactory));
-
         public void Map(ParagraphNode paragraphNode, IContainer container)
         {
             if (paragraphNode.TextRuns.Count == 0)
@@ -33,7 +31,7 @@ namespace NetHtml2Pdf.Rendering.Mappers
             });
         }
 
-        private static void MapTextRun(TextRunNode textRun, QuestPDF.Fluent.TextDescriptor textDescriptor)
+        private static void MapTextRun(TextRunNode textRun, TextDescriptor textDescriptor)
         {
             var styledText = textDescriptor.Span(textRun.Text);
 

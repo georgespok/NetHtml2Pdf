@@ -1,287 +1,250 @@
-using UglyToad.PdfPig;
 using HtmlAgilityPack;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
+using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test
 {
-    public class HtmlConverterTests
+    public class HtmlConverterTests(ITestOutputHelper output)
     {
         private readonly HtmlConverter _converter = new();
 
+        #region Helper Methods
+
+        /// <summary>
+        /// Converts HTML to PDF and returns the PDF bytes
+        /// </summary>
+        private async Task<byte[]> ConvertToPdfAsync(string html)
+        {
+            return await _converter.ConvertToPdfBytes(html);
+        }
+
+        /// <summary>
+        /// Asserts that PDF bytes are valid and not empty
+        /// </summary>
+        private static void AssertValidPdf(byte[] pdfBytes)
+        {
+            Assert.NotNull(pdfBytes);
+            Assert.True(pdfBytes.Length > 0);
+            Assert.Equal(0x25, pdfBytes[0]); // PDF file starts with %PDF
+            Assert.Equal(0x50, pdfBytes[1]); // P
+            Assert.Equal(0x44, pdfBytes[2]); // D
+            Assert.Equal(0x46, pdfBytes[3]); // F
+        }
+
+        /// <summary>
+        /// Asserts that PDF contains all specified text content
+        /// </summary>
+        private void AssertPdfContainsText(byte[] pdfBytes, params string[] expectedTexts)
+        {
+            var extractedText = ExtractTextFromPdf(pdfBytes);
+            foreach (var expectedText in expectedTexts)
+            {
+                Assert.Contains(expectedText, extractedText);
+            }
+        }
+
+        /// <summary>
+        /// Creates a simple table HTML with headers and data
+        /// </summary>
+        private static string CreateTableHtml(string[] headers, params string[][] rows)
+        {
+            var html = new System.Text.StringBuilder();
+            html.AppendLine("<table>");
+            html.AppendLine("<thead>");
+            html.AppendLine("<tr>");
+            foreach (var header in headers)
+            {
+                html.AppendLine($"<th>{header}</th>");
+            }
+            html.AppendLine("</tr>");
+            html.AppendLine("</thead>");
+            html.AppendLine("<tbody>");
+            foreach (var row in rows)
+            {
+                html.AppendLine("<tr>");
+                foreach (var cell in row)
+                {
+                    html.AppendLine($"<td>{cell}</td>");
+                }
+                html.AppendLine("</tr>");
+            }
+            html.AppendLine("</tbody>");
+            html.AppendLine("</table>");
+            return html.ToString();
+        }
+
+        #endregion
+        
+        #region Basic Conversion Tests
+
         [Fact]
-        public async Task Convert_ValidTable_ReturnsPdfBytes()
+        public async Task Convert_ValidTable_ReturnsValidPdfWithContent()
         {
             // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th><th>Age</th><th>City</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td><td>30</td><td>New York</td></tr>
-                        <tr><td>Bob</td><td>25</td><td>London</td></tr>
-                    </tbody>
-                </table>";
+            var html = CreateTableHtml(
+                ["Name", "Age", "City"],
+                ["Alice", "30", "New York"],
+                ["Bob", "25", "London"]
+            );
 
             // Act
-            var result = await _converter.ConvertToPdfBytes(html);
+            var result = await ConvertToPdfAsync(html);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-            Assert.Equal(0x25, result[0]); // PDF file starts with %PDF
-            Assert.Equal(0x50, result[1]); // P
-            Assert.Equal(0x44, result[2]); // D
-            Assert.Equal(0x46, result[3]); // F
+            AssertValidPdf(result);
+            AssertPdfContainsText(result, "Name", "Age", "City", "Alice", "30", "New York", "Bob", "25", "London");
+        }
 
-            // Verify PDF content by extracting text
-            var extractedText = ExtractTextFromPdf(result);
-            Assert.Contains("Name", extractedText);
-            Assert.Contains("Age", extractedText);
-            Assert.Contains("City", extractedText);
-            Assert.Contains("Alice", extractedText);
-            Assert.Contains("30", extractedText);
-            Assert.Contains("New York", extractedText);
-            Assert.Contains("Bob", extractedText);
-            Assert.Contains("25", extractedText);
-            Assert.Contains("London", extractedText);
+        [Theory]
+        [InlineData(new[] { "Name" }, new[] { "Alice" }, new[] { "Bob" })]
+        [InlineData(new[] { "ID", "Name", "Age", "City", "Country", "Salary" }, 
+                   new[] { "1", "Alice", "30", "New York", "USA", "50000" }, 
+                   new[] { "2", "Bob", "25", "London", "UK", "45000" })]
+        [InlineData(new[] { "Name", "Age", "City" }, 
+                   new[] { "Alice", "", "New York" }, 
+                   new[] { "", "25", "" })]
+        public async Task Convert_TableVariations_ReturnsValidPdf(string[] headers, params string[][] rows)
+        {
+            // Arrange
+            var html = CreateTableHtml(headers, rows);
+
+            // Act
+            var result = await ConvertToPdfAsync(html);
+
+            // Assert
+            AssertValidPdf(result);
+        }
+
+        #endregion
+
+        #region Error Handling Tests
+
+        [Theory]
+        [InlineData("invalid html")]
+        [InlineData("<p>Unclosed tag")]
+        public async Task Convert_InvalidHtml_ReturnsValidPdf(string html)
+        {
+            // Act
+            var result = await ConvertToPdfAsync(html);
+
+            // Assert
+            AssertValidPdf(result);
         }
 
         [Fact]
-        public async Task Convert_TableWithSingleColumn_ReturnsPdfBytes()
-        {
-            // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td></tr>
-                        <tr><td>Bob</td></tr>
-                    </tbody>
-                </table>";
-
-            // Act
-            var result = await _converter.ConvertToPdfBytes(html);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-        }
-
-        [Fact]
-        public async Task Convert_TableWithManyColumns_ReturnsPdfBytes()
-        {
-            // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Name</th><th>Age</th><th>City</th><th>Country</th><th>Salary</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>1</td><td>Alice</td><td>30</td><td>New York</td><td>USA</td><td>50000</td></tr>
-                        <tr><td>2</td><td>Bob</td><td>25</td><td>London</td><td>UK</td><td>45000</td></tr>
-                    </tbody>
-                </table>";
-
-            // Act
-            var result = await _converter.ConvertToPdfBytes(html);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-        }
-
-        [Fact]
-        public async Task Convert_TableWithEmptyCells_ReturnsPdfBytes()
-        {
-            // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th><th>Age</th><th>City</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td><td></td><td>New York</td></tr>
-                        <tr><td></td><td>25</td><td></td></tr>
-                    </tbody>
-                </table>";
-
-            // Act
-            var result = await _converter.ConvertToPdfBytes(html);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-        }
-
-        [Fact]
-        public async Task Convert_InvalidHtml_ReturnsPdfBytes()
-        {
-            // Arrange
-            var html = "invalid html";
-
-            // Act
-            var result = await _converter.ConvertToPdfBytes(html);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-        }
-
-        [Fact]
-        public async Task Convert_NullHtml_ThrowsException()
+        public async Task Convert_NullHtml_ThrowsArgumentException()
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _converter.ConvertToPdfBytes(null!));
         }
 
+        #endregion
+
+        #region Content Verification Tests
+
         [Fact]
-        public async Task Convert_TableWithSingleColumn_ReturnsPdfWithCorrectContent()
+        public async Task Convert_TableWithSingleColumn_ContainsExpectedContent()
         {
             // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td></tr>
-                        <tr><td>Bob</td></tr>
-                    </tbody>
-                </table>";
+            var html = CreateTableHtml(["Name"], ["Alice"], ["Bob"]);
 
             // Act
-            var result = await _converter.ConvertToPdfBytes(html);
+            var result = await ConvertToPdfAsync(html);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-
-            // Verify PDF content
-            var extractedText = ExtractTextFromPdf(result);
-            Assert.Contains("Name", extractedText);
-            Assert.Contains("Alice", extractedText);
-            Assert.Contains("Bob", extractedText);
+            AssertValidPdf(result);
+            AssertPdfContainsText(result, "Name", "Alice", "Bob");
         }
 
         [Fact]
         public async Task Convert_TableWithEmptyCells_HandlesEmptyContent()
         {
             // Arrange
-            var html = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th><th>Age</th><th>City</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td><td></td><td>New York</td></tr>
-                        <tr><td></td><td>25</td><td></td></tr>
-                    </tbody>
-                </table>";
+            var html = CreateTableHtml(
+                ["Name", "Age", "City"],
+                ["Alice", "", "New York"],
+                ["", "25", ""]
+            );
 
             // Act
-            var result = await _converter.ConvertToPdfBytes(html);
+            var result = await ConvertToPdfAsync(html);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Length > 0);
-
-            // Verify PDF content - should contain headers and non-empty cells
-            var extractedText = ExtractTextFromPdf(result);
-            Assert.Contains("Name", extractedText);
-            Assert.Contains("Age", extractedText);
-            Assert.Contains("City", extractedText);
-            Assert.Contains("Alice", extractedText);
-            Assert.Contains("New York", extractedText);
-            Assert.Contains("25", extractedText);
+            AssertValidPdf(result);
+            AssertPdfContainsText(result, "Name", "Age", "City", "Alice", "New York", "25");
         }
+
+        #endregion
+
+        #region Complex Integration Tests
 
         [Fact]
         public async Task Convert_ValidTable_PreservesContentStructure()
         {
             // Arrange
-            var originalHtml = @"
-                <table>
-                    <thead>
-                        <tr><th>Name</th><th>Age</th><th>City</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Alice</td><td>30</td><td>New York</td></tr>
-                        <tr><td>Bob</td><td>25</td><td>London</td></tr>
-                    </tbody>
-                </table>";
+            var originalHtml = CreateTableHtml(
+                ["Name", "Age", "City"],
+                ["Alice", "30", "New York"],
+                ["Bob", "25", "London"]
+            );
 
             // Act
-            var pdfBytes = await _converter.ConvertToPdfBytes(originalHtml);
+            var pdfBytes = await ConvertToPdfAsync(originalHtml);
 
             // Assert
-            Assert.NotNull(pdfBytes);
-            Assert.True(pdfBytes.Length > 0);
-
-            // Convert PDF back to HTML and verify content is preserved
-            var convertedHtml = ConvertPdfToHtml(pdfBytes);
-            var originalTableData = ExtractTableData(originalHtml);
-            var convertedTableData = ExtractTableData(convertedHtml);
-
-            // Verify content is preserved in the converted HTML
-            Assert.True(convertedTableData.Rows.Count > 0, "Should have at least one row in converted data");
-            
-            // Check that key content from original is present in converted
-            var allOriginalText = string.Join(" ", originalTableData.Headers.Concat(originalTableData.Rows.SelectMany(r => r)));
-            var allConvertedText = string.Join(" ", convertedTableData.Rows.SelectMany(r => r));
-            
-            // Verify key words are preserved
-            Assert.Contains("Name", allConvertedText);
-            Assert.Contains("Alice", allConvertedText);
-            Assert.Contains("Bob", allConvertedText);
+            AssertValidPdf(pdfBytes);
+            AssertPdfContainsText(pdfBytes, "Name", "Alice", "Bob");
         }
 
         [Fact]
         public async Task Convert_ComplexTable_MaintainsDataIntegrity()
         {
             // Arrange
-            var originalHtml = @"
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Name</th><th>Age</th><th>City</th><th>Country</th><th>Salary</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>1</td><td>Alice Johnson</td><td>30</td><td>New York</td><td>USA</td><td>$50,000</td></tr>
-                        <tr><td>2</td><td>Bob Smith</td><td>25</td><td>London</td><td>UK</td><td>£45,000</td></tr>
-                        <tr><td>3</td><td>Charlie Brown</td><td>28</td><td>Berlin</td><td>Germany</td><td>€55,000</td></tr>
-                    </tbody>
-                </table>";
+            var originalHtml = CreateTableHtml(
+                ["ID", "Name", "Age", "City", "Country", "Salary"],
+                ["1", "Alice Johnson", "30", "New York", "USA", "$50,000"],
+                ["2", "Bob Smith", "25", "London", "UK", "£45,000"],
+                ["3", "Charlie Brown", "28", "Berlin", "Germany", "€55,000"]
+            );
 
             // Act
-            var pdfBytes = await _converter.ConvertToPdfBytes(originalHtml);
+            var pdfBytes = await ConvertToPdfAsync(originalHtml);
 
             // Assert
-            Assert.NotNull(pdfBytes);
-            Assert.True(pdfBytes.Length > 0);
-
-            // Convert PDF back to HTML and verify content preservation
-            var convertedHtml = ConvertPdfToHtml(pdfBytes);
-            var originalData = ExtractTableData(originalHtml);
-            var convertedData = ExtractTableData(convertedHtml);
-
-            // Verify content is preserved
-            Assert.True(convertedData.Rows.Count > 0, "Should have at least one row in converted data");
-            
-            // Check that key content from original is present in converted
-            var allConvertedText = string.Join(" ", convertedData.Rows.SelectMany(r => r));
-            
-            // Verify key data is preserved
-            Assert.Contains("Alice", allConvertedText);
-            Assert.Contains("Bob", allConvertedText);
-            Assert.Contains("Charlie", allConvertedText);
-            Assert.Contains("New York", allConvertedText);
-            Assert.Contains("London", allConvertedText);
-            Assert.Contains("Berlin", allConvertedText);
+            AssertValidPdf(pdfBytes);
+            AssertPdfContainsText(pdfBytes, "Alice", "Bob", "Charlie", "New York", "London", "Berlin");
         }
 
+        [Fact]
+        public async Task Convert_LineBreaks_PreservesLineBreakStructure()
+        {
+            // Arrange
+            var html = "<p>Line1<br>Line2<br>Line3</p>";
+
+            // Act
+            var pdfBytes = await ConvertToPdfAsync(html);
+
+            // Assert
+            AssertValidPdf(pdfBytes);
+            
+            // Save PDF for manual inspection
+            var tempPath = Path.Combine(Path.GetTempPath(), "linebreak-test.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            output.WriteLine($"PDF saved to: {tempPath}");
+
+            // Verify words are on different lines (line breaks create separate lines)
+            var words = GetPdfWords(pdfBytes);
+            Assert.False(WordsInOneLine(words, true)); // Should NOT be in one line
+        }
+
+        #endregion
+
+        #region Utility Methods
+
         /// <summary>
-        /// Helper method to extract text content from PDF bytes for verification
+        /// Extracts text content from PDF bytes for verification
         /// </summary>
         private static string ExtractTextFromPdf(byte[] pdfBytes)
         {
@@ -298,110 +261,41 @@ namespace NetHtml2Pdf.Test
         }
 
         /// <summary>
-        /// Converts PDF back to HTML using PdfPig to extract text and reconstruct HTML
+        /// Checks if words are positioned on the same line based on their bottom Y-coordinates
         /// </summary>
-        private static string ConvertPdfToHtml(byte[] pdfBytes)
+        private static bool WordsInOneLine(List<Word> words, bool shouldBeInOneLine)
         {
-            using var stream = new MemoryStream(pdfBytes);
-            using var document = PdfDocument.Open(stream);
-            
-            var html = new System.Text.StringBuilder();
-            html.AppendLine("<html><body>");
-            html.AppendLine("<table>");
-            
-            var allText = new List<string>();
-            foreach (var page in document.GetPages())
-            {
-                var pageText = page.Text.Trim();
-                if (!string.IsNullOrEmpty(pageText))
-                {
-                    allText.Add(pageText);
-                }
-            }
-            
-            if (allText.Count > 0)
-            {
-                // Get all text as one string and split by common delimiters
-                var fullText = string.Join(" ", allText);
-                
-                // Try to identify table structure by looking for patterns
-                // For now, create a simple structure with all extracted text
-                html.AppendLine("<thead>");
-                html.AppendLine("<tr>");
-                html.AppendLine("<th>Content</th>");
-                html.AppendLine("</tr>");
-                html.AppendLine("</thead>");
-                
-                html.AppendLine("<tbody>");
-                html.AppendLine("<tr>");
-                html.AppendLine($"<td>{fullText}</td>");
-                html.AppendLine("</tr>");
-                html.AppendLine("</tbody>");
-            }
-            
-            html.AppendLine("</table>");
-            html.AppendLine("</body></html>");
-            
-            return html.ToString();
+            if (words.Count == 0)
+                return true;
+
+            var distinctBottomPositions = words
+                .Select(word => word.BoundingBox.Bottom)
+                .Distinct()
+                .Count();
+
+            return shouldBeInOneLine 
+                ? distinctBottomPositions == 1 
+                : distinctBottomPositions == words.Count;
         }
 
-        [Fact]
-        public async Task Convert_LineBreaks_PreservesLineBreakStructure()
+        /// <summary>
+        /// Extracts all words from PDF pages for layout analysis
+        /// </summary>
+        private static List<Word> GetPdfWords(byte[] pdfBytes)
         {
-            // Arrange - HTML with text separated by line breaks
-            var originalHtml = @"
-                <p>Line1<br>Line2<br>Line3</p>
-            ";
+            using var document = PdfDocument.Open(pdfBytes);
+            
+            var words = new List<Word>();
+            
+            for (var pageNumber = 1; pageNumber <= document.NumberOfPages; pageNumber++)
+            {
+                var page = document.GetPage(pageNumber);
+                var pageWords = page.GetWords(NearestNeighbourWordExtractor.Instance);
+                words.AddRange(pageWords);
+            }
 
-            var converter = new HtmlConverter();
-
-            // Act
-            var pdfBytes = await converter.ConvertToPdfBytes(originalHtml);
-
-            // Assert
-            Assert.NotNull(pdfBytes);
-            Assert.True(pdfBytes.Length > 0);
-            
-            // Verify PDF header
-            var pdfHeader = System.Text.Encoding.ASCII.GetString(pdfBytes, 0, 4);
-            Assert.Equal("%PDF", pdfHeader);
-
-            // Save PDF to file for manual inspection
-            var tempPath = Path.Combine(Path.GetTempPath(), "linebreak-test.pdf");
-            await File.WriteAllBytesAsync(tempPath, pdfBytes);
-            Console.WriteLine($"PDF saved to: {tempPath}");
-
-            // Extract text from PDF to verify line breaks create separation
-            var extractedText = ExtractTextFromPdf(pdfBytes);
-            
-            // Verify that text content is preserved
-            Assert.Contains("Line1", extractedText);
-            Assert.Contains("Line2", extractedText);
-            Assert.Contains("Line3", extractedText);
-
-            // Verify that the PDF was generated successfully
-            Assert.True(pdfBytes.Length > 500, "PDF should contain substantial content indicating line breaks were processed");
-            
-            // Verify that the PDF contains all expected text content
-            Assert.Contains("Line1", extractedText);
-            Assert.Contains("Line2", extractedText);
-            Assert.Contains("Line3", extractedText);
-            
-            // Verify that the PDF has substantial content (indicating line breaks were processed)
-            Assert.True(pdfBytes.Length > 500, "PDF should contain substantial content indicating line breaks were processed");
-            
-            // Check if the text extraction shows line breaks (newlines)
-            var lines = extractedText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            
-            // Note: QuestPDF's text extraction doesn't preserve line breaks properly
-            // Even if the PDF visually shows text on different lines, text extraction may return it as one line
-            // The key verification is that the PDF is generated successfully and contains the expected content
-            
-            
-            
-            
+            return words;
         }
-
 
         /// <summary>
         /// Extracts table data from HTML for comparison
@@ -438,11 +332,17 @@ namespace NetHtml2Pdf.Test
             
             return new TableData { Headers = headers, Rows = rows };
         }
-        
+
+        #endregion
+
+        #region Helper Classes
+
         private class TableData
         {
             public List<string> Headers { get; set; } = new();
             public List<List<string>> Rows { get; set; } = new();
         }
+
+        #endregion
     }
 }

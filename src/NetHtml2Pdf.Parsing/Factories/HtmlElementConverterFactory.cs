@@ -53,7 +53,7 @@ namespace NetHtml2Pdf.Parsing.Factories
 
             // Paragraph converter
             RegisterConverter(new TypedElementConverterWrapper<ParagraphNode>(
-                new ParagraphElementConverter(styleParser), 
+                new ParagraphElementConverter(styleParser, this), 
                 ["p"]));
 
             // Heading converter
@@ -88,7 +88,7 @@ namespace NetHtml2Pdf.Parsing.Factories
 
             // Inline element converter
             RegisterConverter(new TypedElementConverterWrapper<ParagraphNode>(
-                new InlineElementConverter(styleParser), 
+                new InlineElementConverter(styleParser, this), 
                 ["strong", "b", "em", "i", "span"]));
         }
     }

@@ -13,7 +13,7 @@ namespace NetHtml2Pdf.Parsing.Converters
         {
             return new ParagraphNode
             {
-                TextRuns = new List<TextRunNode> { new TextRunNode { Text = "\n" } }
+                TextRuns = [new TextRunNode { Text = "\n" }]
             };
         }
     }
