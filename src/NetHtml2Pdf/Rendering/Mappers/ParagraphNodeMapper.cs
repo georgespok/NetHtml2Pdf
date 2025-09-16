@@ -2,6 +2,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using NetHtml2Pdf.Core.Models;
 using NetHtml2Pdf.Rendering.Interfaces;
+using NetHtml2Pdf.Rendering.Utilities;
 
 namespace NetHtml2Pdf.Rendering.Mappers
 {
@@ -33,19 +34,16 @@ namespace NetHtml2Pdf.Rendering.Mappers
 
         private static void MapTextRun(TextRunNode textRun, TextDescriptor textDescriptor)
         {
-            var styledText = textDescriptor.Span(textRun.Text);
+            // Handle line breaks specially - they should create new lines in the text flow
+            if (textRun.Text == "\n")
+            {
+                textDescriptor.Span(Environment.NewLine);
+                return;
+            }
 
-            if (textRun.IsBold)
-                styledText = styledText.Bold();
-
-            if (textRun.IsItalic)
-                styledText = styledText.Italic();
-
-            if (!string.IsNullOrEmpty(textRun.Color))
-                styledText = styledText.FontColor(textRun.Color);
-
-            if (textRun.FontSize.HasValue)
-                styledText = styledText.FontSize(textRun.FontSize.Value);
+            // Use the common styling helper to eliminate code duplication
+            TextStylingHelper.ApplyTextRunStyling(textRun, textDescriptor);
         }
+
     }
 }

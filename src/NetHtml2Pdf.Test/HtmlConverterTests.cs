@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using HtmlAgilityPack;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
@@ -237,9 +237,9 @@ namespace NetHtml2Pdf.Test
 
             // Verify words are on different lines (line breaks create separate lines)
             var words = GetPdfWords(pdfBytes);
-            words[0].Text.Should().Be("Line1");
-            words[1].Text.Should().Be("Line2");
-            words[2].Text.Should().Be("Line3");
+            words[0].Text.ShouldBe("Line1");
+            words[1].Text.ShouldBe("Line2");
+            words[2].Text.ShouldBe("Line3");
             Assert.True(WordsInOneLine(words, false)); // Should NOT be in one line
         }
 
@@ -262,13 +262,13 @@ namespace NetHtml2Pdf.Test
 
             // Verify list items are rendered correctly
             var words = GetPdfWords(pdfBytes);
-            words.Should().HaveCount(6); // 3 bullets + 3 items
-            words[0].Text.Should().Be("1.");
-            words[1].Text.Should().Be("Item1");
-            words[2].Text.Should().Be("2.");
-            words[3].Text.Should().Be("Item2");
-            words[4].Text.Should().Be("3.");
-            words[5].Text.Should().Be("Item3");
+            words.Count.ShouldBe(6); // 3 bullets + 3 items
+            words[0].Text.ShouldBe("1.");
+            words[1].Text.ShouldBe("Item1");
+            words[2].Text.ShouldBe("2.");
+            words[3].Text.ShouldBe("Item2");
+            words[4].Text.ShouldBe("3.");
+            words[5].Text.ShouldBe("Item3");
         }
 
         #endregion

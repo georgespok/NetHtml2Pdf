@@ -1,5 +1,6 @@
 using NetHtml2Pdf.Core.Models;
 using NetHtml2Pdf.Parsing;
+using Shouldly;
 
 namespace NetHtml2Pdf.Test
 {
@@ -23,18 +24,20 @@ namespace NetHtml2Pdf.Test
         /// <summary>
         /// Helper method to create a text run with specified properties
         /// </summary>
-        private static TextRunNode CreateTextRun(string text, bool isBold = false, bool isItalic = false)
+        private static TextRunNode CreateTextRun(string text, bool isBold = false, bool isItalic = false, string color = null, float? fontSize = null)
         {
-            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic };
+            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize };
         }
 
         /// Helper method to assert text run properties
         /// </summary>
-        private static void AssertTextRun(TextRunNode textRun, string expectedText, bool expectedBold = false, bool expectedItalic = false)
+        private static void AssertTextRun(TextRunNode textRun, TextRunNode expectedTextRun)
         {
-            Assert.Equal(expectedText, textRun.Text);
-            Assert.Equal(expectedBold, textRun.IsBold);
-            Assert.Equal(expectedItalic, textRun.IsItalic);
+            textRun.Text.ShouldBe(expectedTextRun.Text);
+            textRun.IsBold.ShouldBe(expectedTextRun.IsBold);
+            textRun.IsItalic.ShouldBe(expectedTextRun.IsItalic);
+            textRun.Color.ShouldBe(expectedTextRun.Color);
+            textRun.FontSize.ShouldBe(expectedTextRun.FontSize);
         }
 
         /// <summary>
@@ -45,7 +48,7 @@ namespace NetHtml2Pdf.Test
             Assert.Equal(expectedRuns.Length, actualRuns.Count);
             for (var i = 0; i < expectedRuns.Length; i++)
             {
-                AssertTextRun(actualRuns[i], expectedRuns[i].Text, expectedRuns[i].IsBold, expectedRuns[i].IsItalic);
+                AssertTextRun(actualRuns[i], expectedRuns[i]);
             }
         }
 
@@ -101,9 +104,9 @@ namespace NetHtml2Pdf.Test
             }
         }
 
-        private static ListItemNode CreateListItem(string text)
+        private static ListItemNode CreateListItem(string text, bool isBold = false, bool isItalic = false, string color = null, float? fontSize = null)
         {
-            return new ListItemNode { Content = new List<DocumentNode> { new TextRunNode { Text = text } } };
+            return new ListItemNode { Content = new List<DocumentNode> { new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize } } };
         }
 
         [Fact]
@@ -141,7 +144,7 @@ namespace NetHtml2Pdf.Test
 
             // Assert
             Assert.Single(paragraphNode.TextRuns);
-            AssertTextRun(paragraphNode.TextRuns[0], expectedText, expectedBold, expectedItalic);
+            AssertTextRun(paragraphNode.TextRuns[0], new TextRunNode { Text = expectedText, IsBold = expectedBold, IsItalic = expectedItalic });
         }
 
         [Theory]
@@ -154,6 +157,23 @@ namespace NetHtml2Pdf.Test
 
             // Assert
             Assert.Empty(paragraphNode.TextRuns);
+        }
+
+        [Fact]
+        public async Task ParseAsync_WithStyleAttributes_CreatesParagraphWithStyleAttributes()
+        {
+            // Arrange
+            const string html = "<p style='color: red; font-size: 16px;'>Red text</p>";
+            var expectedRuns = new[]
+            {
+                CreateTextRun("Red text", color: "#FF0000", fontSize: 16)
+            };
+
+            // Act
+            var paragraphNode = await ParseParagraphAsync(html);
+
+            // Assert
+            AssertTextRuns(paragraphNode.TextRuns, expectedRuns);
         }
     }
 }

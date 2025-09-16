@@ -48,6 +48,12 @@ namespace NetHtml2Pdf.Parsing.Utilities
                     node.Padding = paddingValue.Value;
                 }
             }
+
+            // Apply text-level styles to paragraph text runs
+            if (node is ParagraphNode paragraphNode)
+            {
+                ApplyTextStylesToParagraph(styles, paragraphNode);
+            }
         }
 
         public float? ParseSize(string size)
@@ -62,6 +68,107 @@ namespace NetHtml2Pdf.Parsing.Utilities
             }
             
             return null;
+        }
+
+        private void ApplyTextStylesToParagraph(Dictionary<string, string> styles, ParagraphNode paragraphNode)
+        {
+            // Apply color to all text runs
+            if (styles.TryGetValue("color", out var color))
+            {
+                var hexColor = ConvertColorToHex(color);
+                foreach (var textRun in paragraphNode.TextRuns)
+                {
+                    textRun.Color = hexColor;
+                }
+            }
+
+            // Apply font-size to all text runs
+            if (styles.TryGetValue("font-size", out var fontSize))
+            {
+                var fontSizeValue = ParseSize(fontSize);
+                if (fontSizeValue.HasValue)
+                {
+                    foreach (var textRun in paragraphNode.TextRuns)
+                    {
+                        textRun.FontSize = fontSizeValue.Value;
+                    }
+                }
+            }
+
+            // Apply font-weight to all text runs
+            if (styles.TryGetValue("font-weight", out var fontWeight))
+            {
+                var isBold = fontWeight.ToLowerInvariant() switch
+                {
+                    "bold" or "bolder" or "700" or "800" or "900" => true,
+                    _ => false
+                };
+
+                foreach (var textRun in paragraphNode.TextRuns)
+                {
+                    textRun.IsBold = isBold;
+                }
+            }
+
+            // Apply font-style to all text runs
+            if (styles.TryGetValue("font-style", out var fontStyle))
+            {
+                var isItalic = fontStyle.ToLowerInvariant() switch
+                {
+                    "italic" or "oblique" => true,
+                    _ => false
+                };
+
+                foreach (var textRun in paragraphNode.TextRuns)
+                {
+                    textRun.IsItalic = isItalic;
+                }
+            }
+        }
+
+        private string ConvertColorToHex(string color)
+        {
+            if (string.IsNullOrEmpty(color))
+                return color;
+
+            // If it's already a hex color, return as-is
+            if (color.StartsWith("#") || IsHexColor(color))
+                return color;
+
+            // Convert CSS color names to hex values
+            var colorName = color.ToLowerInvariant().Trim();
+            return colorName switch
+            {
+                "red" => "#FF0000",
+                "green" => "#008000",
+                "blue" => "#0000FF",
+                "yellow" => "#FFFF00",
+                "orange" => "#FFA500",
+                "purple" => "#800080",
+                "pink" => "#FFC0CB",
+                "brown" => "#A52A2A",
+                "black" => "#000000",
+                "white" => "#FFFFFF",
+                "gray" or "grey" => "#808080",
+                "lightgray" or "lightgrey" => "#D3D3D3",
+                "darkgray" or "darkgrey" => "#A9A9A9",
+                "cyan" => "#00FFFF",
+                "magenta" => "#FF00FF",
+                "lime" => "#00FF00",
+                "navy" => "#000080",
+                "olive" => "#808000",
+                "teal" => "#008080",
+                "silver" => "#C0C0C0",
+                "maroon" => "#800000",
+                _ => color // Return original if not recognized
+            };
+        }
+
+        private bool IsHexColor(string color)
+        {
+            // Check if it's a valid hex color format (3, 4, 6, or 8 characters)
+            return color.Length is 3 or 4 or 6 or 8 && 
+                   color.All(c => char.IsDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
         }
 
         private Dictionary<string, string> ParseInlineStyles(string style)
