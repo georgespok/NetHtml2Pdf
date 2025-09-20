@@ -9,16 +9,6 @@ namespace NetHtml2Pdf.Core.Models
         /// <summary>
         /// Text runs that make up this paragraph
         /// </summary>
-        public List<TextRunNode> TextRuns { get; set; } = new List<TextRunNode>();
-
-        /// <summary>
-        /// Font size for this paragraph
-        /// </summary>
-        public float FontSize { get; set; } = 12;
-
-        /// <summary>
-        /// Line height for this paragraph
-        /// </summary>
-        public float LineHeight { get; set; } = 1.4f;
+        public List<TextRunNode> TextRuns { get; set; } = [];
     }
 }

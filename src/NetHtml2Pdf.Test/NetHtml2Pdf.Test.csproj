@@ -22,7 +22,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="PdfPig" Version="0.1.11" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
   </ItemGroup>
 
   <ItemGroup>

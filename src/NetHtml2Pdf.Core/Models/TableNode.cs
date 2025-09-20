@@ -9,81 +9,12 @@ namespace NetHtml2Pdf.Core.Models
         /// <summary>
         /// Table rows
         /// </summary>
-        public List<TableRowNode> Rows { get; set; } = new List<TableRowNode>();
+        public List<TableRowNode> Rows { get; } = [];
 
         /// <summary>
         /// Column definitions for this table
         /// </summary>
-        public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
+        public List<TableColumnDefinition> ColumnDefinitions { get; } = [];
 
-    }
-
-    /// <summary>
-    /// Represents a table row
-    /// Pure POCO with no external dependencies
-    /// </summary>
-    public class TableRowNode
-    {
-        /// <summary>
-        /// Cells in this row
-        /// </summary>
-        public List<TableCellNode> Cells { get; set; } = new List<TableCellNode>();
-
-        /// <summary>
-        /// Whether this is a header row
-        /// </summary>
-        public bool IsHeader { get; set; }
-    }
-
-    /// <summary>
-    /// Represents a table cell
-    /// Pure POCO with no external dependencies
-    /// </summary>
-    public class TableCellNode
-    {
-        /// <summary>
-        /// Content of this cell
-        /// </summary>
-        public List<DocumentNode> Content { get; set; } = new List<DocumentNode>();
-
-        /// <summary>
-        /// Common style attributes for this cell
-        /// </summary>
-        public NodeStyle Style { get; set; } = new NodeStyle();
-
-        // Backward-compatible passthroughs
-        public TextAlignment Alignment { get => Style.Alignment; set => Style.Alignment = value; }
-        public float? PaddingLeft { get => Style.PaddingLeft; set => Style.PaddingLeft = value ?? 0; }
-        public float? PaddingRight { get => Style.PaddingRight; set => Style.PaddingRight = value ?? 0; }
-        public float? PaddingTop { get => Style.PaddingTop; set => Style.PaddingTop = value ?? 0; }
-        public float? PaddingBottom { get => Style.PaddingBottom; set => Style.PaddingBottom = value ?? 0; }
-        public float? BorderWidth { get => Style.BorderWidth; set => Style.BorderWidth = value; }
-        public string? BorderColor { get => Style.BorderColor; set => Style.BorderColor = value; }
-    }
-
-    /// <summary>
-    /// Defines a table column
-    /// Pure POCO with no external dependencies
-    /// </summary>
-    public class TableColumnDefinition
-    {
-        /// <summary>
-        /// Column type
-        /// </summary>
-        public TableColumnType Type { get; set; } = TableColumnType.Relative;
-
-        /// <summary>
-        /// Fixed width for constant columns
-        /// </summary>
-        public float Width { get; set; }
-    }
-
-    /// <summary>
-    /// Defines the type of table column
-    /// </summary>
-    public enum TableColumnType
-    {
-        Relative,
-        Fixed
     }
 }

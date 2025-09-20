@@ -6,6 +6,13 @@ A .NET library for converting HTML content to PDF using QuestPDF with extensible
 
 NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports various HTML elements including tables, paragraphs, line breaks, divisions, and sections. The library is designed to ensure maintainability, testability, and extensibility. The goal is to create a pure .NET cross-platform library that runs on Windows and Linux without requiring GDI+ dependencies.
 
+## Defaults
+- Page size: Letter (8.5×11 in)
+- Margins: 1 inch on all sides
+- Font: Inter (bundled) for deterministic rendering
+- CSS: minimal inline subset (e.g., color, background-color, border width, padding/margin, font-size, font-weight); unsupported properties are ignored
+- Unsupported elements: ignored, inner text preserved
+- Pagination: explicit via builder (no auto-pagination)
 
 ## Quick Start
 
@@ -15,7 +22,7 @@ NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports
 dotnet add package NetHtml2Pdf
 ```
 
-### 2. Basic Usage
+### 2. Basic Usage (single page)
 
 ```csharp
 using NetHtml2Pdf;
@@ -42,8 +49,49 @@ var pdfBytes = await converter.ConvertToPdfBytes(html);
 await File.WriteAllBytesAsync("output.pdf", pdfBytes);
 ```
 
+### 3. Explicit Pagination (multi-page)
 
+```csharp
+using NetHtml2Pdf;
 
+var builder = new PdfDocumentBuilder();
+builder.AddPdfPage("<section><h1>Page 1</h1><p>Hello</p></section>");
+builder.AddPdfPage("<section><h1>Page 2</h1><p>World</p></section>");
+
+var pdf = await builder.RenderAsync();
+await File.WriteAllBytesAsync("multi-page.pdf", pdf);
+```
+
+### 4. Headers and Footers
+
+Render a header and footer on every page using HTML fragments (same supported subset as body):
+
+```csharp
+using NetHtml2Pdf;
+
+var builder = new PdfDocumentBuilder();
+builder.SetHeaderHtml("<div><strong>HeaderText</strong></div>");
+builder.SetFooterHtml("<div><em>FooterText</em></div>");
+
+builder.AddPdfPage("<section><h1>Page 1</h1><p>Alpha</p></section>");
+builder.AddPdfPage("<section><h1>Page 2</h1><p>Beta</p></section>");
+
+var pdf = await builder.RenderAsync();
+await File.WriteAllBytesAsync("with-header-footer.pdf", pdf);
+```
+
+#### Styling notes
+- Supported inline CSS in header/footer is the same minimal subset as body:
+  - text-align, padding, margin, color, font-size, font-weight/font-style
+- Use <strong>/<em> for bold/italic; unsupported properties (e.g., display, position) are ignored.
+- Height adapts to content; keep header/footer concise for predictable layout.
+
+Example (right-aligned header, centered footer):
+
+```csharp
+builder.SetHeaderHtml("<div style='text-align: right; padding: 8px; color: #333; font-size: 12px;'>My Company</div>");
+builder.SetFooterHtml("<div style='text-align: center; padding: 6px; color: #666; font-size: 10px;'><em>Confidential</em></div>");
+```
 
 ## Dependencies
 

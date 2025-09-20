@@ -4,14 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- NuGet metadata -->
+    <PackageId>NetHtml2Pdf</PackageId>
+    <Authors>NetHtml2Pdf Maintainers</Authors>
+    <Description>Cross-platform .NET library to convert HTML to PDF using AngleSharp and QuestPDF, with explicit pagination and deterministic defaults.</Description>
+    <PackageTags>pdf;html;converter;quests;AngleSharp;QuestPDF;cross-platform</PackageTags>
+    <RepositoryUrl>https://github.com/georgespok/NetHtml2Pdf</RepositoryUrl>
+    <RepositoryType>github</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="PdfRendering\**" />
-    <EmbeddedResource Remove="PdfRendering\**" />
-    <None Remove="PdfRendering\**" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <None Remove="Fonts\Inter-Regular.ttf" />
   </ItemGroup>
@@ -20,14 +28,13 @@
     <Content Include="Fonts\Inter-Regular.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <!-- Include README in the package root -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="QuestPDF" Version="2025.7.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NetHtml2Pdf.Parsing\NetHtml2Pdf.Parsing.csproj" />
+    <ProjectReference Include="..\NetHtml2Pdf.Parser\NetHtml2Pdf.Parser.csproj" />
+    <ProjectReference Include="..\NetHtml2Pdf.Renderer\NetHtml2Pdf.Renderer.csproj" />
   </ItemGroup>
 
 </Project>

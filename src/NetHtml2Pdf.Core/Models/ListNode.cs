@@ -9,7 +9,7 @@ namespace NetHtml2Pdf.Core.Models
         /// <summary>
         /// List items
         /// </summary>
-        public List<ListItemNode> Items { get; set; } = new List<ListItemNode>();
+        public List<ListItemNode> Items { get; } = [];
 
         /// <summary>
         /// Whether this is an ordered list
@@ -31,6 +31,6 @@ namespace NetHtml2Pdf.Core.Models
         /// <summary>
         /// Content of this list item
         /// </summary>
-        public List<DocumentNode> Content { get; set; } = new List<DocumentNode>();
+        public List<DocumentNode> Content { get; set; } = [];
     }
 }

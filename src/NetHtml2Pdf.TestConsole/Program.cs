@@ -1,5 +1,3 @@
-using NetHtml2Pdf;
-
 namespace NetHtml2Pdf.TestConsole
 {
     /// <summary>
@@ -64,7 +62,7 @@ namespace NetHtml2Pdf.TestConsole
                 // Write PDF to output file
                 await File.WriteAllBytesAsync(outputPath, pdfBytes);
                 
-                Console.WriteLine($"PDF created successfully!");
+                Console.WriteLine("PDF created successfully!");
                 Console.WriteLine($"Input file: {Path.GetFullPath(inputFile)}");
                 Console.WriteLine($"Output file: {Path.GetFullPath(outputPath)}");
                 Console.WriteLine($"File size: {pdfBytes.Length:N0} bytes");
