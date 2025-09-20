@@ -68,7 +68,7 @@ namespace NetHtml2Pdf.Parsing.Factories
 
             // Table converter
             RegisterConverter(new TypedElementConverterWrapper<TableNode>(
-                new TableElementConverter(styleParser, this), 
+                new TableElementConverter(styleParser), 
                 ["table"]));
 
             // List converter

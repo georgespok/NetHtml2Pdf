@@ -7,34 +7,46 @@ namespace NetHtml2Pdf.Core.Models
     public abstract class DocumentNode
     {
         /// <summary>
-        /// Margins for this node
+        /// Common style attributes for this node
         /// </summary>
-        public float Margins { get; set; } = 0;
+        public NodeStyle Style { get; set; } = new NodeStyle();
 
-        /// <summary>
-        /// Left padding for this node
-        /// </summary>
-        public float PaddingLeft { get; set; } = 0;
+        // Backwards-compatible convenience properties mapping to Style
+        public float Margins
+        {
+            get => Style.Margins;
+            set => Style.Margins = value;
+        }
 
-        /// <summary>
-        /// Right padding for this node
-        /// </summary>
-        public float PaddingRight { get; set; } = 0;
+        public float PaddingLeft
+        {
+            get => Style.PaddingLeft;
+            set => Style.PaddingLeft = value;
+        }
 
-        /// <summary>
-        /// Top padding for this node
-        /// </summary>
-        public float PaddingTop { get; set; } = 0;
+        public float PaddingRight
+        {
+            get => Style.PaddingRight;
+            set => Style.PaddingRight = value;
+        }
 
-        /// <summary>
-        /// Bottom padding for this node
-        /// </summary>
-        public float PaddingBottom { get; set; } = 0;
+        public float PaddingTop
+        {
+            get => Style.PaddingTop;
+            set => Style.PaddingTop = value;
+        }
 
-        /// <summary>
-        /// Text alignment for this node
-        /// </summary>
-        public TextAlignment Alignment { get; set; } = TextAlignment.Left;
+        public float PaddingBottom
+        {
+            get => Style.PaddingBottom;
+            set => Style.PaddingBottom = value;
+        }
+
+        public TextAlignment Alignment
+        {
+            get => Style.Alignment;
+            set => Style.Alignment = value;
+        }
 
         /// <summary>
         /// Child nodes of this document node

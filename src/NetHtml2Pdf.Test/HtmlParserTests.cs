@@ -212,5 +212,39 @@ namespace NetHtml2Pdf.Test
             paragraphNode.PaddingTop.ShouldBe(5);
             paragraphNode.PaddingBottom.ShouldBe(25);
         }
+
+        [Fact]
+        public async Task ParseAsync_WithTable_CreatesTableNode()
+        {
+            // Arrange
+            var html = "<table tyle=\"border-collapse: collapse; width: 100%;\">" +
+                       "<tr>" +
+                       "<td style=\"border: 1px solid black; padding: 8px; text-align: left;\">Cell1</td>" +
+                       "<td style=\"border: 1px solid black; padding: 8px; text-align: left;\">Cell2</td>" +
+                       "</tr>" +
+                       "</table>";
+
+            // Act
+            var tableNode = await ParseTableAsync(html);
+            // Assert
+            tableNode.Rows.Count.ShouldBe(1);
+            tableNode.Rows[0].Cells.Count.ShouldBe(2);
+            tableNode.Rows[0].Cells[0].Content.Count.ShouldBe(1);
+            tableNode.Rows[0].Cells[0].Content[0].ShouldBeOfType<TextRunNode>();
+            ((TextRunNode)tableNode.Rows[0].Cells[0].Content[0]).Text.ShouldBe("Cell1");
+            tableNode.Rows[0].Cells[1].Content.Count.ShouldBe(1);
+            tableNode.Rows[0].Cells[1].Content[0].ShouldBeOfType<TextRunNode>();
+            ((TextRunNode)tableNode.Rows[0].Cells[1].Content[0]).Text.ShouldBe("Cell2");
+
+        }
+
+        private async Task<TableNode> ParseTableAsync(string html)
+        {
+            var result = await _htmlParser.ParseAsync(html);
+            Assert.Single(result);
+            return Assert.IsType<TableNode>(result[0]);
+        }
+
+        
     }
 }

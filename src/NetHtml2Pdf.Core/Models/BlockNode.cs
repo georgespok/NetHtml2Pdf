@@ -6,19 +6,9 @@ namespace NetHtml2Pdf.Core.Models
     /// </summary>
     public class BlockNode : DocumentNode
     {
-        /// <summary>
-        /// Background color for this block
-        /// </summary>
-        public string? BackgroundColor { get; set; }
-
-        /// <summary>
-        /// Border width for this block
-        /// </summary>
-        public float BorderWidth { get; set; } = 0;
-
-        /// <summary>
-        /// Border color for this block
-        /// </summary>
-        public string? BorderColor { get; set; }
+        // Background and border now live in Style but keep passthroughs for compatibility
+        public string? BackgroundColor { get => Style.BackgroundColor; set => Style.BackgroundColor = value; }
+        public float BorderWidth { get => Style.BorderWidth ?? 0; set => Style.BorderWidth = value; }
+        public string? BorderColor { get => Style.BorderColor; set => Style.BorderColor = value; }
     }
 }

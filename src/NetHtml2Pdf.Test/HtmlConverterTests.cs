@@ -80,8 +80,48 @@ namespace NetHtml2Pdf.Test
         /// </summary>
         private static string CreateTableHtml(string[] headers, params string[][] rows)
         {
+            if (rows == null || rows.Length == 0)
+                throw new ArgumentException("At least one row is required", nameof(rows));
+
             var html = new System.Text.StringBuilder();
             html.AppendLine("<table>");
+            html.AppendLine("<thead>");
+            html.AppendLine("<tr>");
+            foreach (var header in headers)
+            {
+                html.AppendLine($"<th>{header}</th>");
+            }
+            html.AppendLine("</tr>");
+            html.AppendLine("</thead>");
+            html.AppendLine("<tbody>");
+            foreach (var row in rows)
+            {
+                html.AppendLine("<tr>");
+                foreach (var cell in row)
+                {
+                    html.AppendLine($"<td>{cell}</td>");
+                }
+                html.AppendLine("</tr>");
+            }
+            html.AppendLine("</tbody>");
+            html.AppendLine("</table>");
+            return html.ToString();
+        }
+
+        private static string CreateTableHtml(string[] headers, bool withBorders, params string[][] rows)
+        {
+            if (rows == null || rows.Length == 0)
+                throw new ArgumentException("At least one row is required", nameof(rows));
+
+            var html = new System.Text.StringBuilder();
+            html.AppendLine("<table>");
+            if (withBorders)
+            {
+                html.AppendLine("<style>");
+                html.AppendLine("table { border-collapse: collapse; }");
+                html.AppendLine("th, td { border: 1px solid black; padding: 5px; }");
+                html.AppendLine("</style>");
+            }
             html.AppendLine("<thead>");
             html.AppendLine("<tr>");
             foreach (var header in headers)
@@ -115,12 +155,14 @@ namespace NetHtml2Pdf.Test
             // Arrange
             var html = CreateTableHtml(
                 ["Name", "Age", "City"],
-                ["Alice", "30", "New York"],
-                ["Bob", "25", "London"]
+                [["Alice", "30", "New York"],
+                ["Bob", "25", "London"]]
             );
 
             // Act
             var result = await ConvertToPdfAsync(html);
+
+            await SavePdfForInspectionAsync(result);
 
             // Assert
             AssertValidPdf(result);
@@ -219,6 +261,24 @@ namespace NetHtml2Pdf.Test
                 ["Alice", "30", "New York"],
                 ["Bob", "25", "London"]
             );
+
+            // Act
+            var pdfBytes = await ConvertToPdfAsync(originalHtml);
+
+			await SavePdfForInspectionAsync(pdfBytes);
+
+            // Assert
+            AssertValidPdf(pdfBytes);
+            AssertPdfContainsText(pdfBytes, "Name", "Alice", "Bob");
+        }
+
+        [Fact]
+        public async Task Convert_ValidTable_WithBorders()
+        {
+            // Arrange
+            var originalHtml = CreateTableHtml(["Name", "Age", "City"], true,
+                ["Alice", "30", "New York"],
+                ["Bob", "25", "London"]);
 
             // Act
             var pdfBytes = await ConvertToPdfAsync(originalHtml);

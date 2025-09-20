@@ -1,7 +1,6 @@
 using AngleSharp.Dom;
 using NetHtml2Pdf.Core.Models;
 using NetHtml2Pdf.Parsing.Interfaces;
-using System.Xml.Linq;
 
 namespace NetHtml2Pdf.Parsing.Utilities
 {
@@ -96,6 +95,7 @@ namespace NetHtml2Pdf.Parsing.Utilities
             {
                 ApplyTextStylesToParagraph(styles, paragraphNode);
             }
+
         }
 
         public float? ParseSize(string size)
@@ -169,7 +169,7 @@ namespace NetHtml2Pdf.Parsing.Utilities
             
         }
 
-        private string ConvertColorToHex(string color)
+        public string ConvertColorToHex(string color)
         {
             if (string.IsNullOrEmpty(color))
                 return color;
@@ -231,6 +231,77 @@ namespace NetHtml2Pdf.Parsing.Utilities
             }
             
             return styles;
+        }
+
+        public void ApplyInlineStyles(IElement element, TableCellNode cell)
+        {
+            var style = element.GetAttribute("style");
+            if (string.IsNullOrEmpty(style))
+                return;
+
+            var styles = ParseInlineStyles(style);
+
+            // Alignment
+            if (styles.TryGetValue("text-align", out var textAlign))
+            {
+                cell.Alignment = textAlign.ToLowerInvariant() switch
+                {
+                    "center" => TextAlignment.Center,
+                    "right" => TextAlignment.Right,
+                    "justify" => TextAlignment.Justify,
+                    _ => TextAlignment.Left
+                };
+            }
+
+            // Padding
+            if (styles.TryGetValue("padding", out var padding))
+            {
+                var value = ParseSize(padding);
+                if (value.HasValue)
+                {
+                    cell.PaddingLeft = value.Value;
+                    cell.PaddingRight = value.Value;
+                    cell.PaddingTop = value.Value;
+                    cell.PaddingBottom = value.Value;
+                }
+            }
+            if (styles.TryGetValue("padding-left", out var cpl)) cell.PaddingLeft = ParseSize(cpl) ?? cell.PaddingLeft;
+            if (styles.TryGetValue("padding-right", out var cpr)) cell.PaddingRight = ParseSize(cpr) ?? cell.PaddingRight;
+            if (styles.TryGetValue("padding-top", out var cpt)) cell.PaddingTop = ParseSize(cpt) ?? cell.PaddingTop;
+            if (styles.TryGetValue("padding-bottom", out var cpb)) cell.PaddingBottom = ParseSize(cpb) ?? cell.PaddingBottom;
+
+            // Border
+            ParseBorder(styles, out var bw, out var bc);
+            if (bw.HasValue) cell.BorderWidth = bw.Value;
+            if (!string.IsNullOrEmpty(bc)) cell.BorderColor = ConvertColorToHex(bc);
+        }
+
+        public void ParseBorder(IDictionary<string, string> styles, out float? borderWidth, out string? borderColor)
+        {
+            borderWidth = null;
+            borderColor = null;
+
+            // border shorthand like: 1px solid black
+            if (styles.TryGetValue("border", out var border))
+            {
+                var parts = border.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var part in parts)
+                {
+                    var size = ParseSize(part);
+                    if (size.HasValue)
+                        borderWidth = size.Value;
+                    else if (!part.Equals("solid", StringComparison.OrdinalIgnoreCase) &&
+                             !part.Equals("dashed", StringComparison.OrdinalIgnoreCase) &&
+                             !part.Equals("dotted", StringComparison.OrdinalIgnoreCase))
+                        borderColor = part;
+                }
+            }
+
+            // explicit width or color
+            if (styles.TryGetValue("border-width", out var bw))
+                borderWidth = ParseSize(bw) ?? borderWidth;
+            if (styles.TryGetValue("border-color", out var bc))
+                borderColor = bc;
         }
     }
 }

@@ -16,15 +16,6 @@ namespace NetHtml2Pdf.Core.Models
         /// </summary>
         public List<TableColumnDefinition> ColumnDefinitions { get; set; } = new List<TableColumnDefinition>();
 
-        /// <summary>
-        /// Border width for table cells
-        /// </summary>
-        public float BorderWidth { get; set; } = 1;
-
-        /// <summary>
-        /// Border color for table cells
-        /// </summary>
-        public string BorderColor { get; set; } = "#CCCCCC";
     }
 
     /// <summary>
@@ -56,9 +47,18 @@ namespace NetHtml2Pdf.Core.Models
         public List<DocumentNode> Content { get; set; } = new List<DocumentNode>();
 
         /// <summary>
-        /// Text alignment for this cell
+        /// Common style attributes for this cell
         /// </summary>
-        public TextAlignment Alignment { get; set; } = TextAlignment.Left;
+        public NodeStyle Style { get; set; } = new NodeStyle();
+
+        // Backward-compatible passthroughs
+        public TextAlignment Alignment { get => Style.Alignment; set => Style.Alignment = value; }
+        public float? PaddingLeft { get => Style.PaddingLeft; set => Style.PaddingLeft = value ?? 0; }
+        public float? PaddingRight { get => Style.PaddingRight; set => Style.PaddingRight = value ?? 0; }
+        public float? PaddingTop { get => Style.PaddingTop; set => Style.PaddingTop = value ?? 0; }
+        public float? PaddingBottom { get => Style.PaddingBottom; set => Style.PaddingBottom = value ?? 0; }
+        public float? BorderWidth { get => Style.BorderWidth; set => Style.BorderWidth = value; }
+        public string? BorderColor { get => Style.BorderColor; set => Style.BorderColor = value; }
     }
 
     /// <summary>

@@ -42,7 +42,7 @@ namespace NetHtml2Pdf.Rendering.Mappers
 				for (var rowIndex = 0; rowIndex < totalRows; rowIndex++)
 				{
 					var row = tableNode.Rows[rowIndex];
-					MapTableRow(row, table, tableNode.BorderWidth, tableNode.BorderColor, rowIndex, totalRows, totalCols);
+					MapTableRow(row, table, tableNode.Style.BorderWidth ?? 0, tableNode.Style.BorderColor ?? "#CCCCCC", rowIndex, totalRows, totalCols);
 				}
             });
         }
@@ -57,21 +57,36 @@ namespace NetHtml2Pdf.Rendering.Mappers
 
 				table.Cell().Element(container =>
 				{
-					var styledContainer = container
-						// Draw internal borders in a collapsed manner:
-						// - use left and top borders for internal grid lines
-						// - draw right and bottom only on outer edges
-						.BorderLeft(borderWidth)
-						.BorderTop(borderWidth);
+                    var effectiveBorderWidth = cell.BorderWidth ?? 0;
+                    var effectiveBorderColor = string.IsNullOrWhiteSpace(cell.BorderColor) ? borderColor : cell.BorderColor;
 
-					if (isLastCol)
-						styledContainer = styledContainer.BorderRight(borderWidth);
-					if (isLastRow)
-						styledContainer = styledContainer.BorderBottom(borderWidth);
+                    var styledContainer = container;
+
+                    // Only draw borders when explicitly defined via inline styles on the cell
+                    if (effectiveBorderWidth > 0)
+                    {
+                        // Draw internal borders in a collapsed manner:
+                        // - use left and top borders for internal grid lines
+                        // - draw right and bottom only on outer edges
+                        styledContainer = styledContainer
+                            .BorderLeft(effectiveBorderWidth)
+                            .BorderTop(effectiveBorderWidth);
+                    }
+
+                    if (effectiveBorderWidth > 0)
+                    {
+                        if (isLastCol)
+                            styledContainer = styledContainer.BorderRight(effectiveBorderWidth);
+                        if (isLastRow)
+                            styledContainer = styledContainer.BorderBottom(effectiveBorderWidth);
+                    }
 
 					styledContainer = styledContainer
-						.BorderColor(borderColor)
-						.Padding(5);
+                        .BorderColor(effectiveBorderColor)
+                        .PaddingLeft(cell.PaddingLeft ?? 5)
+                        .PaddingRight(cell.PaddingRight ?? 5)
+                        .PaddingTop(cell.PaddingTop ?? 5)
+                        .PaddingBottom(cell.PaddingBottom ?? 5);
 
 					if (row.IsHeader)
 					{

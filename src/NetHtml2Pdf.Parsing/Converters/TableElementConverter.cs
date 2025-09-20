@@ -8,68 +8,192 @@ namespace NetHtml2Pdf.Parsing.Converters
     /// <summary>
     /// Converts HTML table elements to TableNode
     /// </summary>
-    public class TableElementConverter(IStyleParser styleParser, IHtmlElementConverterFactory converterFactory)
+    public class TableElementConverter(IStyleParser styleParser)
         : IHtmlElementConverter<TableNode>
     {
         private readonly IStyleParser _styleParser = styleParser ?? throw new ArgumentNullException(nameof(styleParser));
-        private readonly IHtmlElementConverterFactory _converterFactory = converterFactory ?? throw new ArgumentNullException(nameof(converterFactory));
 
-        public TableNode? Convert(IElement element)
+        public TableNode Convert(IElement element)
         {
             var table = new TableNode();
             
-            // Find header row
-            var headerRow = element.QuerySelector("thead tr") ?? element.QuerySelector("tr");
+            // Read simple <style> rules inside the table element for th/td defaults
+            var thDefaultStyles = new Dictionary<string, string>();
+            var tdDefaultStyles = new Dictionary<string, string>();
+            var styleElement = element.QuerySelector("style");
+            if (styleElement != null)
+            {
+                var css = styleElement.TextContent ?? string.Empty;
+                ExtractSelectors(css, out var thStyles, out var tdStyles, out var bothStyles);
+                MergeStyles(thDefaultStyles, bothStyles);
+                MergeStyles(tdDefaultStyles, bothStyles);
+                MergeStyles(thDefaultStyles, thStyles);
+                MergeStyles(tdDefaultStyles, tdStyles);
+            }
+
+            // Detect header row only if explicitly present or using <th> in first row
+            var explicitHeaderRow = element.QuerySelector("thead tr");
+            IElement? headerRow = explicitHeaderRow;
+            if (headerRow == null)
+            {
+                var firstRow = element.QuerySelector("tr");
+                if (firstRow != null && firstRow.QuerySelectorAll("th").Any())
+                    headerRow = firstRow;
+            }
+
+            // Determine number of columns
+            var referenceRow = headerRow ?? element.QuerySelector("tr");
+            var columnCount = referenceRow?.QuerySelectorAll("th, td").Length ?? 0;
+            for (var i = 0; i < columnCount; i++)
+                table.ColumnDefinitions.Add(new TableColumnDefinition { Type = TableColumnType.Relative });
+
+            // Add header row if present (use only <th> cells)
             if (headerRow != null)
             {
-                var headers = headerRow.QuerySelectorAll("th, td").Select(cell => cell.TextContent).ToList();
-                
-                // Define columns
-                foreach (var _ in headers)
+                var headerCells = headerRow.QuerySelectorAll("th");
+                if (headerCells.Length > 0)
                 {
-                    table.ColumnDefinitions.Add(new TableColumnDefinition { Type = TableColumnType.Relative });
+                    var headerRowNode = new TableRowNode { IsHeader = true };
+                    foreach (var cell in headerCells)
+                    {
+                        var cellNode = new TableCellNode();
+                        // Apply default header cell styles from <style>
+                        if (thDefaultStyles.Count > 0)
+                            ApplyStylesFromDictionary(thDefaultStyles, cellNode);
+                        // Add text runs directly as content, bolded
+                        var textRuns = TextExtractor.ExtractTextRuns(cell);
+                        foreach (var run in textRuns)
+                        {
+                            run.IsBold = true;
+                            cellNode.Content.Add(run);
+                        }
+                        headerRowNode.Cells.Add(cellNode);
+                    }
+                    table.Rows.Add(headerRowNode);
                 }
-                
-                // Add header row
-                var headerRowNode = new TableRowNode { IsHeader = true };
-                foreach (var header in headers)
-                {
-                    var cell = new TableCellNode();
-                    cell.Content.Add(new ParagraphNode 
-                    { 
-                        TextRuns = new List<TextRunNode> 
-                        { 
-                            new TextRunNode { Text = header, IsBold = true } 
-                        } 
-                    });
-                    headerRowNode.Cells.Add(cell);
-                }
-                table.Rows.Add(headerRowNode);
+            }
+
+            // Add data rows
+            var bodyRows = element.QuerySelectorAll("tbody tr");
+            IEnumerable<IElement> dataRows = bodyRows;
+            if (!dataRows.Any())
+            {
+                var allRows = element.QuerySelectorAll("tr");
+                dataRows = headerRow != null ? allRows.Where(r => r != headerRow) : allRows;
             }
             
-            // Add data rows
-            var dataRows = element.QuerySelectorAll("tbody tr").Concat(
-                element.QuerySelectorAll("tr").Skip(headerRow != null ? 1 : 0));
-                
             foreach (var row in dataRows)
             {
                 var rowNode = new TableRowNode();
                 var cells = row.QuerySelectorAll("td, th");
-                
                 foreach (var cell in cells)
                 {
                     var cellNode = new TableCellNode();
-                    var cellParagraph = new ParagraphNode();
-                    cellParagraph.TextRuns = TextExtractor.ExtractTextRuns(cell);
-                    cellNode.Content.Add(cellParagraph);
+                    // Apply inline styles to the cell itself (padding, border, alignment)
+                    _styleParser.ApplyInlineStyles(cell, cellNode);
+                    // Apply table-level default td styles when present and not set by inline
+                    if (tdDefaultStyles.Count > 0)
+                        ApplyStylesFromDictionary(tdDefaultStyles, cellNode);
+
+                    var textRuns = TextExtractor.ExtractTextRuns(cell);
+                    foreach (var run in textRuns)
+                        cellNode.Content.Add(run);
                     rowNode.Cells.Add(cellNode);
                 }
-                
                 table.Rows.Add(rowNode);
             }
             
             _styleParser.ApplyInlineStyles(element, table);
             return table;
+        }
+
+        private static void MergeStyles(Dictionary<string, string> target, Dictionary<string, string> source)
+        {
+            foreach (var kv in source)
+                target[kv.Key] = kv.Value;
+        }
+
+        private static void ExtractSelectors(string css, out Dictionary<string, string> th, out Dictionary<string, string> td, out Dictionary<string, string> both)
+        {
+            th = new();
+            td = new();
+            both = new();
+            if (string.IsNullOrWhiteSpace(css)) return;
+
+            // naive CSS block parser for rules like: th, td { ... }  | th { ... } | td { ... }
+            var blocks = css.Split('}', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var block in blocks)
+            {
+                var parts = block.Split('{', 2);
+                if (parts.Length != 2) continue;
+                var selectors = parts[0].Trim();
+                var declarations = parts[1].Trim();
+                var styles = ParseDeclarations(declarations);
+                var selectorList = selectors.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                            .Select(s => s.Trim().ToLowerInvariant());
+                var set = selectorList.ToHashSet();
+                var appliesTh = set.Contains("th");
+                var appliesTd = set.Contains("td");
+                if (appliesTh && appliesTd)
+                    MergeStyles(both, styles);
+                else if (appliesTh)
+                    MergeStyles(th, styles);
+                else if (appliesTd)
+                    MergeStyles(td, styles);
+            }
+        }
+
+        private static Dictionary<string, string> ParseDeclarations(string declarations)
+        {
+            var map = new Dictionary<string, string>();
+            var decls = declarations.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var d in decls)
+            {
+                var kv = d.Split(':', 2);
+                if (kv.Length != 2) continue;
+                var prop = kv[0].Trim().ToLowerInvariant();
+                var val = kv[1].Trim();
+                map[prop] = val;
+            }
+            return map;
+        }
+
+        private void ApplyStylesFromDictionary(Dictionary<string, string> styles, TableCellNode cell)
+        {
+            if (styles.Count == 0) return;
+            // text-align
+            if (styles.TryGetValue("text-align", out var ta))
+            {
+                cell.Alignment = ta.ToLowerInvariant() switch
+                {
+                    "center" => TextAlignment.Center,
+                    "right" => TextAlignment.Right,
+                    "justify" => TextAlignment.Justify,
+                    _ => TextAlignment.Left
+                };
+            }
+
+            // padding
+            if (styles.TryGetValue("padding", out var padding))
+            {
+                var pv = _styleParser.ParseSize(padding);
+                if (pv.HasValue)
+                {
+                    cell.PaddingLeft ??= pv.Value;
+                    cell.PaddingRight ??= pv.Value;
+                    cell.PaddingTop ??= pv.Value;
+                    cell.PaddingBottom ??= pv.Value;
+                }
+            }
+            if (styles.TryGetValue("padding-left", out var pl)) cell.PaddingLeft ??= _styleParser.ParseSize(pl);
+            if (styles.TryGetValue("padding-right", out var pr)) cell.PaddingRight ??= _styleParser.ParseSize(pr);
+            if (styles.TryGetValue("padding-top", out var pt)) cell.PaddingTop ??= _styleParser.ParseSize(pt);
+            if (styles.TryGetValue("padding-bottom", out var pb)) cell.PaddingBottom ??= _styleParser.ParseSize(pb);
+
+            // border
+            _styleParser.ParseBorder(styles, out var bw, out var bc);
+            if (bw.HasValue && !cell.BorderWidth.HasValue) cell.BorderWidth = bw.Value;
+            if (!string.IsNullOrEmpty(bc) && string.IsNullOrWhiteSpace(cell.BorderColor)) cell.BorderColor = _styleParser.ConvertColorToHex(bc);
         }
 
     }
