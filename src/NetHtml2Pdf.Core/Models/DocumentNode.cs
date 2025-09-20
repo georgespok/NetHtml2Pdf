@@ -12,9 +12,24 @@ namespace NetHtml2Pdf.Core.Models
         public float Margins { get; set; } = 0;
 
         /// <summary>
-        /// Padding for this node
+        /// Left padding for this node
         /// </summary>
-        public float Padding { get; set; } = 0;
+        public float PaddingLeft { get; set; } = 0;
+
+        /// <summary>
+        /// Right padding for this node
+        /// </summary>
+        public float PaddingRight { get; set; } = 0;
+
+        /// <summary>
+        /// Top padding for this node
+        /// </summary>
+        public float PaddingTop { get; set; } = 0;
+
+        /// <summary>
+        /// Bottom padding for this node
+        /// </summary>
+        public float PaddingBottom { get; set; } = 0;
 
         /// <summary>
         /// Text alignment for this node

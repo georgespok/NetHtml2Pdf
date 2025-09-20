@@ -37,9 +37,12 @@ namespace NetHtml2Pdf.Rendering.Mappers
                 styledContainer = styledContainer.Padding(blockNode.Margins);
             }
 
-            if (blockNode.Padding > 0)
+            if (blockNode.PaddingTop > 0 || blockNode.PaddingRight > 0 || blockNode.PaddingBottom > 0 || blockNode.PaddingLeft > 0)
             {
-                styledContainer = styledContainer.Padding(blockNode.Padding);
+                styledContainer = styledContainer.PaddingTop(blockNode.PaddingTop)
+                                                 .PaddingRight(blockNode.PaddingRight)
+                                                 .PaddingBottom(blockNode.PaddingBottom)
+                                                 .PaddingLeft(blockNode.PaddingLeft);
             }
 
             if (!string.IsNullOrEmpty(blockNode.BackgroundColor))

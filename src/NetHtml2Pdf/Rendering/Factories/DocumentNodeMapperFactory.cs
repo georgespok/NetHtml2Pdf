@@ -48,7 +48,7 @@ namespace NetHtml2Pdf.Rendering.Factories
         private void RegisterDefaultMappers()
         {
             RegisterMapper(new TypedNodeMapperWrapper<BlockNode>(new BlockNodeMapper(this)));
-            RegisterMapper(new TypedNodeMapperWrapper<ParagraphNode>(new ParagraphNodeMapper(this)));
+            RegisterMapper(new TypedNodeMapperWrapper<ParagraphNode>(new ParagraphNodeMapper()));
             RegisterMapper(new TypedNodeMapperWrapper<TableNode>(new TableNodeMapper(this)));
             RegisterMapper(new TypedNodeMapperWrapper<ListNode>(new ListNodeMapper(this)));
             RegisterMapper(new TypedNodeMapperWrapper<ImageNode>(new ImageNodeMapper()));

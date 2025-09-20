@@ -24,9 +24,9 @@ namespace NetHtml2Pdf.Test
         /// <summary>
         /// Helper method to create a text run with specified properties
         /// </summary>
-        private static TextRunNode CreateTextRun(string text, bool isBold = false, bool isItalic = false, string color = null, float? fontSize = null)
+        private static TextRunNode CreateTextRun(string text, bool isBold = false, bool isItalic = false, string color = null, float? fontSize = null, float? padding = null)
         {
-            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize };
+            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize};
         }
 
         /// Helper method to assert text run properties
@@ -38,6 +38,7 @@ namespace NetHtml2Pdf.Test
             textRun.IsItalic.ShouldBe(expectedTextRun.IsItalic);
             textRun.Color.ShouldBe(expectedTextRun.Color);
             textRun.FontSize.ShouldBe(expectedTextRun.FontSize);
+            // Padding is no longer a property of TextRunNode
         }
 
         /// <summary>
@@ -174,6 +175,42 @@ namespace NetHtml2Pdf.Test
 
             // Assert
             AssertTextRuns(paragraphNode.TextRuns, expectedRuns);
+        }
+
+        [Fact]
+        public async Task ParseAsync_WithStylePadding_CreatesParagraphWithStylePadding()
+        {
+            // Arrange
+            const string html = "<p style='padding: 10px;'>Padded text</p>";
+            var expectedRuns = new[]
+            {
+                CreateTextRun("Padded text", padding: 10)
+            };
+
+            // Act
+            var paragraphNode = await ParseParagraphAsync(html);
+
+            // Assert
+            paragraphNode.PaddingLeft.ShouldBe(10);
+            paragraphNode.PaddingRight.ShouldBe(10);
+            paragraphNode.PaddingTop.ShouldBe(10);
+            paragraphNode.PaddingBottom.ShouldBe(10);
+        }
+
+        [Fact]
+        public async Task ParseParagraph_WithIndividualPadding_ShouldSetCorrectValues()
+        {
+            // Arrange
+            var html = "<p style='padding-left: 15px; padding-right: 20px; padding-top: 5px; padding-bottom: 25px;'>Text with individual padding</p>";
+
+            // Act
+            var paragraphNode = await ParseParagraphAsync(html);
+
+            // Assert
+            paragraphNode.PaddingLeft.ShouldBe(15);
+            paragraphNode.PaddingRight.ShouldBe(20);
+            paragraphNode.PaddingTop.ShouldBe(5);
+            paragraphNode.PaddingBottom.ShouldBe(25);
         }
     }
 }

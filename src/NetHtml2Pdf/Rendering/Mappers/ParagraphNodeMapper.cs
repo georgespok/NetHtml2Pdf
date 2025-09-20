@@ -9,14 +9,18 @@ namespace NetHtml2Pdf.Rendering.Mappers
     /// <summary>
     /// Maps ParagraphNode to QuestPDF elements
     /// </summary>
-    public class ParagraphNodeMapper(IDocumentNodeMapperFactory mapperFactory) : IDocumentNodeMapper<ParagraphNode>
+    public class ParagraphNodeMapper() : IDocumentNodeMapper<ParagraphNode>
     {
         public void Map(ParagraphNode paragraphNode, IContainer container)
         {
             if (paragraphNode.TextRuns.Count == 0)
                 return;
 
-            container.Text(text =>
+            container.PaddingTop(paragraphNode.PaddingTop)
+                      .PaddingRight(paragraphNode.PaddingRight)
+                      .PaddingBottom(paragraphNode.PaddingBottom)
+                      .PaddingLeft(paragraphNode.PaddingLeft)
+                      .Text(text =>
             {
                 text.DefaultTextStyle(style =>
                 {

@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using NetHtml2Pdf.Core.Models;
 using NetHtml2Pdf.Parsing.Interfaces;
+using System.Xml.Linq;
 
 namespace NetHtml2Pdf.Parsing.Utilities
 {
@@ -40,12 +41,53 @@ namespace NetHtml2Pdf.Parsing.Utilities
                 }
             }
             
+            // Handle padding (all sides) - set all individual padding values
             if (styles.TryGetValue("padding", out var padding))
             {
                 var paddingValue = ParseSize(padding);
                 if (paddingValue.HasValue)
                 {
-                    node.Padding = paddingValue.Value;
+                    node.PaddingLeft = paddingValue.Value;
+                    node.PaddingRight = paddingValue.Value;
+                    node.PaddingTop = paddingValue.Value;
+                    node.PaddingBottom = paddingValue.Value;
+                }
+            }
+
+            // Handle individual padding properties
+            if (styles.TryGetValue("padding-left", out var paddingLeft))
+            {
+                var paddingLeftValue = ParseSize(paddingLeft);
+                if (paddingLeftValue.HasValue)
+                {
+                    node.PaddingLeft = paddingLeftValue.Value;
+                }
+            }
+
+            if (styles.TryGetValue("padding-right", out var paddingRight))
+            {
+                var paddingRightValue = ParseSize(paddingRight);
+                if (paddingRightValue.HasValue)
+                {
+                    node.PaddingRight = paddingRightValue.Value;
+                }
+            }
+
+            if (styles.TryGetValue("padding-top", out var paddingTop))
+            {
+                var paddingTopValue = ParseSize(paddingTop);
+                if (paddingTopValue.HasValue)
+                {
+                    node.PaddingTop = paddingTopValue.Value;
+                }
+            }
+
+            if (styles.TryGetValue("padding-bottom", out var paddingBottom))
+            {
+                var paddingBottomValue = ParseSize(paddingBottom);
+                if (paddingBottomValue.HasValue)
+                {
+                    node.PaddingBottom = paddingBottomValue.Value;
                 }
             }
 
@@ -124,6 +166,7 @@ namespace NetHtml2Pdf.Parsing.Utilities
                     textRun.IsItalic = isItalic;
                 }
             }
+            
         }
 
         private string ConvertColorToHex(string color)

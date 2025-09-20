@@ -4,6 +4,7 @@ using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 using Xunit.Abstractions;
+using System.Runtime.CompilerServices;
 
 namespace NetHtml2Pdf.Test
 {
@@ -45,6 +46,34 @@ namespace NetHtml2Pdf.Test
                 Assert.Contains(expectedText, extractedText);
             }
         }
+
+		/// <summary>
+		/// Saves PDF bytes to a temp file and logs the path for inspection.
+		/// When no file name is provided, uses the calling test method's name.
+		/// </summary>
+		private async Task SavePdfForInspectionAsync(
+			byte[] pdfBytes,
+			string? fileName = null,
+			[CallerMemberName] string? callerName = null)
+		{
+			var baseName = string.IsNullOrWhiteSpace(fileName) ? (callerName ?? "output") : fileName;
+			var safeBase = MakeSafeFileName(baseName);
+			var finalFileName = safeBase.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? safeBase : $"{safeBase}.pdf";
+			var tempPath = Path.Combine(Path.GetTempPath(), finalFileName);
+			await File.WriteAllBytesAsync(tempPath, pdfBytes);
+			output.WriteLine($"PDF saved to: {tempPath}");
+		}
+
+		private static string MakeSafeFileName(string name)
+		{
+			var invalidChars = Path.GetInvalidFileNameChars();
+			var builder = new System.Text.StringBuilder(name.Length);
+			foreach (var ch in name)
+			{
+				builder.Append(invalidChars.Contains(ch) ? '_' : ch);
+			}
+			return builder.ToString().Trim();
+		}
 
         /// <summary>
         /// Creates a simple table HTML with headers and data
@@ -194,6 +223,8 @@ namespace NetHtml2Pdf.Test
             // Act
             var pdfBytes = await ConvertToPdfAsync(originalHtml);
 
+			await SavePdfForInspectionAsync(pdfBytes);
+
             // Assert
             AssertValidPdf(pdfBytes);
             AssertPdfContainsText(pdfBytes, "Name", "Alice", "Bob");
@@ -230,10 +261,7 @@ namespace NetHtml2Pdf.Test
             // Assert
             AssertValidPdf(pdfBytes);
             
-            // Save PDF for manual inspection
-            var tempPath = Path.Combine(Path.GetTempPath(), "linebreak-test.pdf");
-            await File.WriteAllBytesAsync(tempPath, pdfBytes);
-            output.WriteLine($"PDF saved to: {tempPath}");
+			await SavePdfForInspectionAsync(pdfBytes);
 
             // Verify words are on different lines (line breaks create separate lines)
             var words = GetPdfWords(pdfBytes);
@@ -255,10 +283,7 @@ namespace NetHtml2Pdf.Test
             // Assert
             AssertValidPdf(pdfBytes);
             
-            // Save PDF for manual inspection
-            var tempPath = Path.Combine(Path.GetTempPath(), "ListItems-test.pdf");
-            await File.WriteAllBytesAsync(tempPath, pdfBytes);
-            output.WriteLine($"PDF saved to: {tempPath}");
+			await SavePdfForInspectionAsync(pdfBytes);
 
             // Verify list items are rendered correctly
             var words = GetPdfWords(pdfBytes);
@@ -271,6 +296,25 @@ namespace NetHtml2Pdf.Test
             words[5].Text.ShouldBe("Item3");
         }
 
+        [Fact]
+        public async Task Convert_ParagraphWithPadding_RendersPadding()
+        {
+            // Arrange
+            const string html = "<p style='padding: 100px;'>Padded Text</p>";
+
+            // Act
+            var pdfBytes = await ConvertToPdfAsync(html);
+
+            // Assert
+            AssertValidPdf(pdfBytes);
+            
+			await SavePdfForInspectionAsync(pdfBytes);
+
+            // Verify list items are rendered correctly
+            var words = GetPdfWords(pdfBytes);
+            words[0].Text.ShouldBe("Padded");
+            words[0].BoundingBox.Left.ShouldBe(130);
+        }
         #endregion
 
         #region Utility Methods

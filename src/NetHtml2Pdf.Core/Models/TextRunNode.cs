@@ -30,5 +30,6 @@ namespace NetHtml2Pdf.Core.Models
         /// Font size override (if different from paragraph)
         /// </summary>
         public float? FontSize { get; set; }
+
     }
 }
