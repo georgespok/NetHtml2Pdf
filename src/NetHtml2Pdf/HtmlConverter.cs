@@ -1,6 +1,5 @@
-﻿using QuestPDF.Infrastructure;
-using NetHtml2Pdf.Parsing;
-using NetHtml2Pdf.Rendering;
+﻿using NetHtml2Pdf.Parser;
+using NetHtml2Pdf.Renderer;
 
 namespace NetHtml2Pdf
 {
@@ -20,7 +19,7 @@ namespace NetHtml2Pdf
         {
             _htmlParser = new HtmlParser();
             _pdfRenderer = new PdfRenderer();
-            _fontPath = Path.Combine(AppContext.BaseDirectory, "fonts", "Inter-Regular.ttf");
+            _fontPath = Path.Combine(AppContext.BaseDirectory, "Fonts", "Inter-Regular.ttf");
         }
 
         /// <summary>
@@ -34,26 +33,13 @@ namespace NetHtml2Pdf
             if (string.IsNullOrEmpty(html))
                 throw new ArgumentException("HTML content cannot be null or empty", nameof(html));
 
-            SetupQuestPdf();
+            _pdfRenderer.Setup(_fontPath);
 
             // Layer 1: Parse HTML into intermediate document model
             var documentNodes = await _htmlParser.ParseAsync(html);
 
             // Layer 2: Convert document model to QuestPDF elements
             return _pdfRenderer.RenderToPdf(documentNodes);
-        }
-
-        /// <summary>
-        /// Sets up QuestPDF configuration
-        /// </summary>
-        private void SetupQuestPdf()
-        {
-            if (!File.Exists(_fontPath))
-                throw new ApplicationException($"Missing font at {_fontPath}. Ensure it's copied to output.");
-
-            QuestPDF.Settings.UseEnvironmentFonts = false;
-            QuestPDF.Settings.License = LicenseType.Community;
-            QuestPDF.Drawing.FontManager.RegisterFont(File.OpenRead(_fontPath));
         }
     }
 }
