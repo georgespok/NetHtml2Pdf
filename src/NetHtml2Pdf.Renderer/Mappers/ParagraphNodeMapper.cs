@@ -28,14 +28,17 @@ namespace NetHtml2Pdf.Renderer.Mappers
                 text.DefaultTextStyle(style =>
                 {
                     if (paragraphNode.Style.Text.FontSize.HasValue)
-                        style.FontSize(paragraphNode.Style.Text.FontSize.Value);
+                        style = style.FontSize(paragraphNode.Style.Text.FontSize.Value);
                     if (paragraphNode.Style.Text.LineHeight.HasValue)
-                        style.LineHeight(paragraphNode.Style.Text.LineHeight.Value);
+                        style = style.LineHeight(paragraphNode.Style.Text.LineHeight.Value);
                     return style;
                 });
 
+                var inheritedFontSize = paragraphNode.Style.Text.FontSize;
                 foreach (var run in paragraphNode.TextRuns)
                 {
+                    if (inheritedFontSize.HasValue && !run.FontSize.HasValue)
+                        run.FontSize = inheritedFontSize.Value;
                     MapTextRun(run, text);
                 }
             });

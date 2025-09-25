@@ -11,7 +11,7 @@
     <Description>Cross-platform .NET library to convert HTML to PDF using AngleSharp and QuestPDF, with explicit pagination and deterministic defaults.</Description>
     <PackageTags>pdf;html;converter;quests;AngleSharp;QuestPDF;cross-platform</PackageTags>
     <RepositoryUrl>https://github.com/georgespok/NetHtml2Pdf</RepositoryUrl>
-    <RepositoryType>github</RepositoryType>
+    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeSymbols>true</IncludeSymbols>

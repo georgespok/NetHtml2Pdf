@@ -25,7 +25,7 @@ namespace NetHtml2Pdf.Parser.Test
         /// </summary>
         private static TextRunNode CreateTextRun(string text, bool isBold = false, bool isItalic = false, string? color = null, float? fontSize = null, float? padding = null)
         {
-            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize};
+            return new TextRunNode { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize };
         }
 
         /// Helper method to assert text run properties
@@ -49,6 +49,51 @@ namespace NetHtml2Pdf.Parser.Test
             for (var i = 0; i < expectedRuns.Length; i++)
             {
                 AssertTextRun(actualRuns[i], expectedRuns[i]);
+            }
+        }
+
+        [Fact]
+        public async Task ParseAsync_WithHeadings_CreatesParagraphsWithDefaults()
+        {
+            // Arrange
+            const string html = @"<section>
+                <h1>H1</h1>
+                <h2>H2</h2>
+                <h3>H3</h3>
+                <h4>H4</h4>
+                <h5>H5</h5>
+                <h6>H6</h6>
+                </section>";
+
+            // Act
+            var nodes = await _htmlParser.ParseAsync(html);
+
+            // Expect a single BlockNode (for <section>) containing 6 ParagraphNode children
+            nodes.Count.ShouldBe(1);
+            var block = nodes[0].ShouldBeOfType<BlockNode>();
+            block.Children.Count.ShouldBe(6);
+            var paragraphs = block.Children.Select(Assert.IsType<ParagraphNode>).ToList();
+
+            var labels = new[] { "H1", "H2", "H3", "H4", "H5", "H6" };
+            for (var i = 0; i < paragraphs.Count; i++)
+            {
+                paragraphs[i].TextRuns.Count.ShouldBe(1);
+                paragraphs[i].TextRuns[0].Text.ShouldBe(labels[i]);
+                paragraphs[i].TextRuns[0].IsBold.ShouldBeTrue();
+            }
+
+            // Font sizes should be descending according to defaults
+            var sizes = paragraphs.Select(p => p.Style.Text.FontSize.GetValueOrDefault()).ToList();
+            sizes.Count.ShouldBe(6);
+            for (var i = 0; i < sizes.Count - 1; i++)
+            {
+                sizes[i].ShouldBeGreaterThan(sizes[i + 1]);
+            }
+            
+            foreach (var p in paragraphs)
+            {
+                p.Style.Box.MarginTop.GetValueOrDefault().ShouldBeGreaterThan(0);
+                p.Style.Box.MarginBottom.GetValueOrDefault().ShouldBeGreaterThan(0);
             }
         }
 
@@ -97,16 +142,18 @@ namespace NetHtml2Pdf.Parser.Test
             {
                 var listItem = ((ListNode)documentNodes[0]).Items[i];
                 var listItemNode = Assert.IsType<ListItemNode>(listItem);
-                
+
                 var textRuns = listItemNode.Content.OfType<TextRunNode>().ToList();
-                
+
                 AssertTextRuns(textRuns, expectedRuns[i].Content.OfType<TextRunNode>().ToArray());
             }
         }
 
         private static ListItemNode CreateListItem(string text, bool isBold = false, bool isItalic = false, string? color = null, float? fontSize = null)
         {
-            return new ListItemNode { Content =
+            return new ListItemNode
+            {
+                Content =
                 [
                     new TextRunNode
                         { Text = text, IsBold = isBold, IsItalic = isItalic, Color = color, FontSize = fontSize }
@@ -249,6 +296,6 @@ namespace NetHtml2Pdf.Parser.Test
             return Assert.IsType<TableNode>(result[0]);
         }
 
-        
+
     }
 }
