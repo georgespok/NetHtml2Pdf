@@ -19,7 +19,7 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <IncludeReferencedProjects>true</IncludeReferencedProjects>
+    <IncludeReferencedProjects>false</IncludeReferencedProjects>
   </PropertyGroup>
 
   
