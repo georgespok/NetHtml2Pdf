@@ -17,6 +17,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <IncludeReferencedProjects>true</IncludeReferencedProjects>
   </PropertyGroup>
 
   
@@ -32,9 +35,19 @@
     <None Include="..\..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <!-- Ensure fonts are available to consumers when installed via NuGet -->
+  <ItemGroup>
+    <None Include="Fonts\Inter-Regular.ttf" Pack="true" PackagePath="buildTransitive\NetHtml2Pdf\Fonts\Inter-Regular.ttf" />
+    <None Include="buildTransitive\NetHtml2Pdf.targets" Pack="true" PackagePath="buildTransitive\NetHtml2Pdf.targets" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\NetHtml2Pdf.Parser\NetHtml2Pdf.Parser.csproj" />
     <ProjectReference Include="..\NetHtml2Pdf.Renderer\NetHtml2Pdf.Renderer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

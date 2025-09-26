@@ -30,6 +30,11 @@ Sync Impact Report
 - MUST validate output determinism with either hash-based checks on generated PDFs for fixed
   inputs/options or structural assertions (page count, text order, table cell text).
 - MUST include regression tests for fixed defects to prevent reintroduction.
+- SHOULD place unit tests in project-scoped test projects:
+  - Parser unit tests in `src/NetHtml2Pdf.Parser.Test` (scope: parsing only)
+  - Renderer unit tests in `src/NetHtml2Pdf.Renderer.Test` (scope: rendering only)
+- MUST keep `src/NetHtml2Pdf.Test` for a minimal set of public API integration tests only (end-to-end HTML → PDF).
+- MUST avoid cross-project unit tests; keep concerns isolated to the owning project.
 
 ### User Experience Consistency (Determinism)
 - MUST produce deterministic or visually equivalent PDFs for the same input/options across

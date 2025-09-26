@@ -1,0 +1,11 @@
+<Project>
+  <!-- Copy bundled font to consumer output so default font works out-of-the-box -->
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)NetHtml2Pdf\Fonts\Inter-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fonts\Inter-Regular.ttf</Link>
+    </Content>
+  </ItemGroup>
+</Project>
+
+

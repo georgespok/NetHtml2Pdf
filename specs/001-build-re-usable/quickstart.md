@@ -12,14 +12,7 @@ dotnet add package NetHtml2Pdf
 ```csharp
 using NetHtml2Pdf;
 
-var builder = new PdfDocumentBuilder(new DocumentOptions
-{
-    PageSize = PageSize.Letter,
-    Orientation = PageOrientation.Portrait,
-    MarginsInches = 1.0,
-    FontFamily = "Inter"
-});
-
+var builder = new PdfDocumentBuilder(); // Defaults: Letter, 1" margins, Inter
 builder.AddPdfPage(@"<section><h1>Title</h1><p>Hello</p></section>");
 var pdf = await builder.RenderAsync();
 await File.WriteAllBytesAsync("output.pdf", pdf);

@@ -93,6 +93,19 @@ builder.SetHeaderHtml("<div style='text-align: right; padding: 8px; color: #333;
 builder.SetFooterHtml("<div style='text-align: center; padding: 6px; color: #666; font-size: 10px;'><em>Confidential</em></div>");
 ```
 
+### Console Samples
+
+- `src/NetHtml2Pdf.TestConsole/samples/headings.html`
+- `src/NetHtml2Pdf.TestConsole/samples/table.html`
+
+Run them with the console app:
+
+```bash
+cd src/NetHtml2Pdf.TestConsole
+dotnet run samples/headings.html
+dotnet run samples/table.html
+```
+
 ## Dependencies
 
 - **QuestPDF**: PDF generation library
@@ -119,6 +132,51 @@ dotnet test
 cd src/NetHtml2Pdf.TestConsole
 dotnet run example.html
 ```
+
+### Testing Strategy
+
+- Most unit tests live in `src/NetHtml2Pdf.Renderer.Test` (rendering scope) and `src/NetHtml2Pdf.Parser.Test` (parsing scope).
+- `src/NetHtml2Pdf.Test` contains a small number of integration tests across parsing + rendering.
+- Tests use xUnit + Shouldly; PDF assertions use PdfPig for text extraction and measurement.
+
+### Minimal CI / Local verification
+
+Run a lightweight CI script that builds, tests, and optionally packs the NuGet:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\build\ci.ps1
+# Or include packing
+powershell -ExecutionPolicy Bypass -File .\build\ci.ps1 -Pack
+```
+
+Artifacts are written to the `nuget/` folder when packing.
+
+### Versioning & Releases
+
+- Semantic Versioning (MAJOR.MINOR.PATCH)
+- Deterministic builds with SourceLink embedded
+- Pack locally:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\build\build-nuget.ps1 -Configuration Release
+```
+
+- Publish to NuGet (requires API key):
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\build\publish-nuget.ps1 -ApiKey <NUGET_API_KEY>
+```
+
+#### Setting versions
+
+- `VersionPrefix` is defined in `src/NetHtml2Pdf/NetHtml2Pdf.csproj` (e.g., `0.1.0`).
+- Use `VersionSuffix` during packing for pre-releases:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\build\build-nuget.ps1 -Configuration Release -VersionSuffix beta.1
+```
+
+This produces `NetHtml2Pdf.<VersionPrefix>-beta.1.nupkg` in `nuget/`.
 
 ## Contributing
 

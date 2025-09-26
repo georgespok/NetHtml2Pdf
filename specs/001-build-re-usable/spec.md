@@ -25,7 +25,7 @@ As an application developer, I want a reusable, cross-platform library that conv
 2. Given valid HTML containing a table with headers and rows, when I convert it to PDF, then the table is rendered with rows and cells in the correct order and alignment and all text content is present.
 3. Given HTML containing unsupported tags or attributes, when I convert it to PDF, then the library ignores unsupported markup while preserving inner text content and produces a valid PDF (no crash), or returns a clear, actionable error if conversion cannot proceed.
 4. Given the same HTML input on Windows, macOS, and Linux, when I convert it to PDF, then the output is deterministic or visually equivalent and does not require external native executables, display servers, or browser runtimes.
-5. Given an empty HTML input, when I convert it to PDF, then the library returns a valid (possibly empty/blank) PDF according to defined defaults. An empty input should through an error with message that will clearly expalin the reason.
+5. Given an empty HTML input, when I convert it to PDF, then the library throws a clear error indicating the input is empty.
 6. Given malformed HTML (e.g., unclosed tags), when I convert it to PDF, then the library either performs a best-effort conversion with predictable rules and warnings.
 
 ### Edge Cases
@@ -54,7 +54,7 @@ As an application developer, I want a reusable, cross-platform library that conv
 ### Non-Functional Requirements
 - NFR-001: Cross-platform determinism — for the same input and options, output must be deterministic or visually equivalent across supported OSes.
 - NFR-002: Performance — converting a typical 3–5 page document with a table should complete within an acceptable time on commodity hardware. Target threshold response should be less than 2 seconds.
-- NFR-003: Resource usage — memory and CPU usage must be reasonable and bounded for typical documents. Memory should consumption should be reasonable and be less than 512Mb. CPU consumption should be minimum.
+- NFR-003: Resource usage — for a typical 3–5 page document, peak memory MUST be < 512 MB and total conversion time SHOULD be < 2 seconds on commodity hardware.
 - NFR-004: Concurrency — the library should be safe to use from multiple threads or processes concurrently. 
 - NFR-005: Distribution — zero external runtime/process invocation and minimal footprint to facilitate easy inclusion in applications.
  - NFR-006: Default font family is Inter (bundled) to ensure deterministic rendering across platforms.

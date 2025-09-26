@@ -19,34 +19,34 @@
 - Include exact file paths in descriptions
 
 ## Phase 3.1: Setup
-- [ ] T001 Configure Inter font asset copy and registration in `src/NetHtml2Pdf/Fonts/` and ensure it’s bundled
-- [ ] T002 Wire default `DocumentOptions` (Letter, 1" margins, Inter) in `src/NetHtml2Pdf/HtmlConverter.cs`
-- [ ] T003 [P] Add PdfPig test helper to `src/NetHtml2Pdf.Test/` for PDF text extraction (GetWords with NearestNeighbourWordExtractor)
+- [x] T001 Configure Inter font asset copy and registration in `src/NetHtml2Pdf/Fonts/` and ensure it’s bundled
+- [x] T002 Wire default `DocumentOptions` (Letter, 1" margins, Inter) in `src/NetHtml2Pdf/HtmlConverter.cs`
+- [x] T003 [P] Add PdfPig test helper to `src/NetHtml2Pdf.Test/` for PDF text extraction (GetWords with NearestNeighbourWordExtractor)
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-- [ ] T004 [P] Unit: paragraphs/headings/br render text in order (use PdfPig) in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
-- [ ] T005 [P] Unit: table renders headers and rows preserving cell text in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
-- [ ] T006 [P] Unit: unsupported elements ignored; inner text preserved in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
-- [ ] T007 [P] Unit: inline CSS subset applied; unsupported CSS ignored in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
-- [ ] T008 Determinism: same input/options yields identical text layout across runs in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
-- [ ] T009 Error handling: empty input fails with clear message in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T004 [P] Unit: paragraphs/headings/br render text in order (use PdfPig) in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T005 [P] Unit: table renders headers and rows preserving cell text in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T006 [P] Unit: unsupported elements ignored; inner text preserved in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T007 [P] Unit: inline CSS subset applied; unsupported CSS ignored in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T008 Determinism: same input/options yields identical text layout across runs in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
+- [x] T009 Error handling: empty input fails with clear message in `src/NetHtml2Pdf.Test/HtmlConverterTests.cs`
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T010 Implement AngleSharp-based parser mapping to intermediate nodes in `src/NetHtml2Pdf.Parser/`
-- [ ] T011 Implement core model nodes and styles in `src/NetHtml2Pdf.Core/`
-- [ ] T012 Implement DocumentModelMapper and PdfRenderer in `src/NetHtml2Pdf.Renderer/`
-- [ ] T013 Implement explicit pagination API: `PdfDocumentBuilder.AddPdfPage(string html)` and `RenderAsync()` in `src/NetHtml2Pdf/`
-- [ ] T014 Hook default options (Letter, 1" margins, Inter) and CSS subset handling in `src/NetHtml2Pdf/HtmlConverter.cs`
+- [x] T010 Implement AngleSharp-based parser mapping to intermediate nodes in `src/NetHtml2Pdf.Parser/`
+- [x] T011 Implement core model nodes and styles in `src/NetHtml2Pdf.Core/`
+- [x] T012 Implement DocumentModelMapper and PdfRenderer in `src/NetHtml2Pdf.Renderer/`
+- [x] T013 Implement explicit pagination API: `PdfDocumentBuilder.AddPdfPage(string html)` and `RenderAsync()` in `src/NetHtml2Pdf/`
+- [x] T014 Ensure defaults (Letter, 1" margins, Inter) and CSS subset handling are applied in the rendering path (PdfRenderer/Paragraph mapping) and exposed via the public API where applicable.
 
 ## Phase 3.4: Integration
-- [ ] T015 Integration: verify end-to-end quickstart scenario in `src/NetHtml2Pdf.TestConsole/`
-- [ ] T016 Add determinism smoke test using fixed input and compare extracted words order in `src/NetHtml2Pdf.Test/`
+- [x] T015 Integration: verify end-to-end quickstart scenario in `src/NetHtml2Pdf.TestConsole/`
+- [x] T016 Add determinism smoke test using fixed input and compare extracted words order in `src/NetHtml2Pdf.Test/`
 
 ## Phase 3.5: Polish
-- [ ] T017 [P] Performance test: 3–5 page doc converts < 2s in `src/NetHtml2Pdf.Test/`
-- [ ] T018 [P] Documentation: update `README.md` with explicit pagination and defaults
-- [ ] T019 [P] CI: ensure analyzers warn-as-error for `src/*` and tests run PdfPig
-- [ ] T020 [P] Examples: add table and headings samples to `src/NetHtml2Pdf.TestConsole/`
+- [x] T017 [P] Performance test: 3–5 page doc converts < 2s in `src/NetHtml2Pdf.Test/`
+- [x] T018 [P] Documentation: update `README.md` with explicit pagination and defaults
+- [x] T019 [P] CI: ensure analyzers warn-as-error for `src/*` and tests run PdfPig
+- [x] T020 [P] Examples: add table and headings samples to `src/NetHtml2Pdf.TestConsole/`
 
 ## Dependencies
 - T004–T009 before T010–T014 (TDD)

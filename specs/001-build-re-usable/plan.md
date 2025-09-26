@@ -31,7 +31,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-[Extract from feature spec: primary requirement + technical approach from research]
+Build a reusable, offline, cross-platform .NET library that converts basic HTML into PDF using AngleSharp and QuestPDF, with explicit pagination and deterministic defaults (Letter, 1" margins, Inter).
 
 ## Technical Context
 **Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
@@ -203,9 +203,9 @@ ios/ or android/
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
-- [ ] All NEEDS CLARIFICATION resolved
+- [x] Initial Constitution Check: PASS
+- [x] Post-Design Constitution Check: PASS
+- [x] All NEEDS CLARIFICATION resolved
 - [ ] Complexity deviations documented
 
 ---
