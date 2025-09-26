@@ -1,6 +1,10 @@
 ﻿using NetHtml2Pdf;
 
-var html = @"<section><h1>Sandbox Test</h1><p>This is a minimal conversion.</p></section>";
+var html = @"<section>
+<h1>Sandbox Test</h1>
+<p>This is a minimal conversion.</p>
+<p>Timestamp:" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + @"</p>
+</section>";
 
 var converter = new HtmlConverter();
 var pdfBytes = await converter.ConvertToPdfBytes(html);
