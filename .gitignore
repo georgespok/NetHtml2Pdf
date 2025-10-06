@@ -52,3 +52,11 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+.vs
+*.DotSettings.user
+/.codex
+/src/NetHtml2Pdf.TestAzureFunction/Properties/
+*.csproj.user
+/.vscode
+/nuget.config
+/.cursor
