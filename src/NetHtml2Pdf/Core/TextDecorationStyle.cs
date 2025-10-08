@@ -1,5 +1,3 @@
-using System;
-
 namespace NetHtml2Pdf.Core;
 
 [Flags]

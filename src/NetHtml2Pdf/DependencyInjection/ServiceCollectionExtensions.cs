@@ -1,6 +1,4 @@
-using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using NetHtml2Pdf;
 using NetHtml2Pdf.Parser;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -8,6 +6,7 @@ using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
 using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class NetHtml2PdfServiceCollectionExtensions

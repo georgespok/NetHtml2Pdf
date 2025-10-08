@@ -4,6 +4,47 @@
 
 This document provides practical guidance on what to test and what not to test, based on the complexity and business value of the code.
 
+## Tests as First-Class Code
+
+**Tests MUST be treated with the same quality standards as production code.**
+
+### Clean Code Principles for Tests
+
+- **SOLID**: Apply Single Responsibility, Open/Closed, and other SOLID principles
+- **DRY**: Don't Repeat Yourself - eliminate code duplication
+- **KISS**: Keep It Simple, Stupid - avoid over-engineering tests
+- **Readability**: Tests should be easy to read and understand
+
+### Test Quality Standards
+
+1. **Use Theory and InlineData**: Consolidate similar test scenarios
+   ```csharp
+   // ✅ Good - consolidated with Theory
+   [Theory]
+   [InlineData(null, typeof(ArgumentNullException))]
+   [InlineData("", typeof(ArgumentException))]
+   public void Method_WithInvalidInput_ShouldThrow(string input, Type exceptionType)
+   
+   // ❌ Bad - repetitive individual tests
+   [Fact] public void Method_WithNull_ShouldThrow() { }
+   [Fact] public void Method_WithEmpty_ShouldThrow() { }
+   ```
+
+2. **Create Helper Methods**: Eliminate repetitive arrange sections
+   ```csharp
+   // ✅ Good - helper method
+   private MyClass CreateInstance(int value = 10) => new MyClass(value);
+   
+   // ❌ Bad - repeated setup in every test
+   var instance = new MyClass(10);
+   ```
+
+3. **Keep Tests Short**: Ideally under 15 lines per test method
+
+4. **Use Test Data Builders**: For complex object creation
+
+5. **Refactor Tests**: Apply the same refactoring standards as production code
+
 ## Test Coverage Priorities
 
 ### 🔴 High Priority - MUST Test

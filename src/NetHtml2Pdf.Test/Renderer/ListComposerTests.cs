@@ -1,5 +1,6 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Renderer;
+using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;

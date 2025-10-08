@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Parser;
 using Shouldly;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Parser;
 

@@ -76,9 +76,9 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 
 #### Unsupported HTML Elements
 - **Behavior**: Unsupported tags (e.g., `<video>`, `<audio>`, `<canvas>`) are processed by a generic fallback renderer
-- **Response**: System emits structured warning log: `{Timestamp} [WARNING] FallbackRenderer: Unsupported element '<tagname>' processed with best-effort rendering`
+- **Response**: System emits structured warning log using `ILogger.LogWarning` with structured data including component, element type, and context
 - **Recovery**: Element content is rendered as plain text with preserved structure, element is marked with appropriate DocumentNodeType
-- **Error Handling**: If fallback rendering fails, element is skipped with error log: `{Timestamp} [ERROR] FallbackRenderer: Failed to process '<tagname>', element skipped`
+- **Error Handling**: If fallback rendering fails, element is skipped with error log using `ILogger.LogError` with structured data
 
 #### Empty and Malformed Elements
 - **Empty inline elements**: Collapse without emitting content, no warning generated
@@ -88,13 +88,13 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **Error Handling**: Severely malformed markup that cannot be parsed raises `HtmlParsingException` with specific error message
 
 #### CSS Class and Style Issues
-- **Missing CSS classes**: Fall back to inherited styles, emit warning: `{Timestamp} [WARNING] CssResolver: CSS class 'classname' not found, using inherited styles`
-- **Invalid CSS properties**: Ignore invalid properties, emit warning: `{Timestamp} [WARNING] CssResolver: Invalid CSS property 'property' ignored`
-- **Malformed CSS values**: Use default value for property type, emit warning: `{Timestamp} [WARNING] CssResolver: Invalid value for 'property', using default`
+- **Missing CSS classes**: Fall back to inherited styles, emit structured warning with className and context
+- **Invalid CSS properties**: Ignore invalid properties, emit structured warning with propertyName and context
+- **Malformed CSS values**: Use default value for property type, emit structured warning with propertyName, value, and context
 - **Recovery**: System continues processing with available valid styles, no exceptions thrown for CSS issues
 
 #### Performance and Resource Constraints
-- **Large HTML documents**: Process in chunks if document exceeds 10MB, emit info log: `{Timestamp} [INFO] HtmlParser: Processing large document in chunks`
+- **Large HTML documents**: Process in chunks if document exceeds 10MB, emit structured info log with documentSize and chunkCount
 - **Memory constraints**: If memory usage exceeds 500MB, abort with `OutOfMemoryException` and clear error message
 - **Timeout handling**: If rendering exceeds 30 seconds, abort with `TimeoutException` and partial PDF output
 - **Recovery**: System attempts to complete partial rendering before aborting, logs completion percentage
@@ -108,8 +108,8 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **FR-003**: Users MUST be able to provide HTML content through the public `HtmlConverter` API for rendering.
 - **FR-004**: System MUST rely solely on managed .NET dependencies (QuestPDF, AngleSharp) without introducing GDI+ or native rendering libraries to ensure inherent cross-platform compatibility. **MUST** validate managed-only constraint through dependency audit (`dotnet list package --include-transitive`) confirming all dependencies are managed .NET libraries. Cross-platform issues will be addressed reactively as they arise.
 - **FR-005**: System MUST route unsupported HTML elements to a generic fallback renderer that attempts best-effort output and surfaces clear warnings describing the degraded behavior.
-- **FR-006**: System MUST include regression tests and fixtures covering each supported tag and representative combinations (paragraphs, lists, tables). **MUST** follow Test-Driven Development (TDD) approach, writing tests FIRST before implementing any feature, following the red-green-refactor cycle.
-- **FR-007**: System MUST emit structured warning logs describing fallback rendering events using format: `{Timestamp} [WARNING] {Component}: {Message}` with severity level WARNING. No additional analytics storage is required in Iteration 1.
+- **FR-006**: System MUST include regression tests and fixtures covering each supported tag and representative combinations (paragraphs, lists, tables). **MUST** follow Test-Driven Development (TDD) approach, writing tests FIRST before implementing any feature, following the red-green-refactor cycle. **MUST** treat tests as first-class code applying clean code principles, SOLID, DRY, and KISS. **MUST** use `[Theory]` with `[InlineData]` to consolidate similar test scenarios, create helper methods to eliminate repetitive arrange sections, and keep test methods short and focused (ideally under 15 lines). Integration tests prefixed with `Iteration1_*` in `HtmlConverterTests` serve as contract validation for the specifications defined in `contracts/` directory.
+- **FR-007**: System MUST emit structured warning logs describing fallback rendering events using `Microsoft.Extensions.Logging.ILogger` with severity level WARNING. Logs MUST include structured data (component, element type, context) rather than plain string messages. No additional analytics storage is required in Iteration 1.
 - **FR-008**: System MUST support table border styling including `border`, `border-collapse`, `border-width`, `border-style`, `border-color` properties and cell alignment properties including `text-align` (horizontal alignment) and `vertical-align` (vertical alignment) in addition to typography and spacing controls. Default values: `border-collapse: separate`, `text-align: left`, `vertical-align: top`. CSS inheritance follows standard cascade rules with inline styles taking precedence over class styles.
 - **FR-009**: System MUST capture render timing metrics for monitoring and future performance optimization. No explicit performance targets are established for Iteration 1 - focus is on measurement and data collection only. Timing data MUST include total render duration and be stored in application logs.
 - **FR-010**: System MUST achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. Focus test coverage on High Priority areas: classes with business logic, algorithms, validation, parsing, rendering, and complex state management. Medium Priority areas include classes with moderate complexity, data transformation, or integration points. Low Priority areas (simple data containers, property setters, enums, basic value objects) are optional. Exempt areas include auto-generated code, simple constructors without logic, and trivial getters/setters.
@@ -158,13 +158,19 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-006.3**: Representative combinations (paragraphs, lists, tables) are tested
 - **AC-006.4**: All tests pass before implementation is considered complete
 - **AC-006.5**: PdfPig is used for PDF verification in tests
+- **AC-006.6**: Tests apply clean code principles: SOLID, DRY, KISS
+- **AC-006.7**: Similar test scenarios are consolidated using `[Theory]` with `[InlineData]`
+- **AC-006.8**: Helper methods and test data builders eliminate repetitive arrange sections
+- **AC-006.9**: Test methods are short and focused (ideally under 15 lines)
+- **AC-006.10**: Integration tests prefixed with `Iteration1_*` in `HtmlConverterTests` serve as contract validation
 
 #### FR-007: Structured Warning Logs
-- **AC-007.1**: Warning logs follow format: `{Timestamp} [WARNING] {Component}: {Message}`
-- **AC-007.2**: Warning severity level is set to WARNING
-- **AC-007.3**: Fallback rendering events generate warning logs
-- **AC-007.4**: CSS resolution issues generate warning logs
-- **AC-007.5**: Logs are stored in application logs without external analytics storage
+- **AC-007.1**: Warning logs use `Microsoft.Extensions.Logging.ILogger` interface
+- **AC-007.2**: Warning severity level is set to LogLevel.Warning
+- **AC-007.3**: Fallback rendering events generate warning logs with structured data
+- **AC-007.4**: CSS resolution issues generate warning logs with structured data
+- **AC-007.5**: Logs include structured properties (component, elementType, context) not just strings
+- **AC-007.6**: Logs are stored in application logs without external analytics storage
 
 #### FR-008: Table Border Styling and Alignment
 - **AC-008.1**: All 8 table CSS properties (border, border-collapse, border-width, border-style, border-color, text-align, vertical-align) are supported

@@ -1,16 +1,18 @@
 <!--
 Sync Impact Report:
-- Version change: 1.3.0 → 2.0.0 (MAJOR: Breaking change - removed cross-platform validation requirement)
+- Version change: 1.3.0 → 2.1.0 (MINOR: Enhanced testing standards)
 - Modified principles: 
-  * II. Managed Cross-Platform Fidelity → Removed mandatory cross-platform validation
-  * VI. Architecture Planning & Validation → Removed cross-platform validation strategy requirement
-- Removed sections: Cross-platform validation requirements from Quality Gates
+  * II. Managed Cross-Platform Fidelity → Removed mandatory cross-platform validation (v2.0.0)
+  * VI. Architecture Planning & Validation → Removed cross-platform validation strategy requirement (v2.0.0)
+  * Testing Standards → Enhanced with clean code requirements for tests (v2.1.0)
+- Enhanced sections: Testing Standards (added Theory/InlineData requirement, test quality standards)
+- Removed sections: Cross-platform validation requirements from Quality Gates (v2.0.0)
 - Templates requiring updates:
-  ✅ spec.md (remove FR-004 cross-platform validation requirement)
+  ✅ spec.md (updated FR-006 testing requirements with clean code standards)
   ✅ plan.md (remove cross-platform validation strategy)
   ✅ tasks.md (remove T041-T043, T048-T049 cross-platform validation tasks)
-- Follow-up TODOs: Update current iteration spec/plan/tasks to remove cross-platform validation
-- Rationale: Library remains cross-platform through managed dependencies (.NET Core, QuestPDF, AngleSharp), but explicit validation testing is deferred until issues arise. Primary development on Windows with expectation of Linux compatibility through managed stack.
+- Follow-up TODOs: None
+- Rationale: Tests are first-class code requiring same quality standards as production code. Use Theory/InlineData to reduce duplication and keep tests maintainable.
 -->
 
 # NetHtml2Pdf Constitution
@@ -47,7 +49,7 @@ Sync Impact Report:
 **MUST** place each class, enum, interface, and structure in a separate file with a name that matches the type name. **MUST** design all new classes following clean code architecture principles and SOLID principles, ensuring single responsibility, proper encapsulation, and clear separation of concerns.
 
 ### Testing Standards
-**MUST** achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** write tests FIRST before implementing any feature, following the red-green-refactor cycle. **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. **MUST** use descriptive test names that clearly indicate the scenario and expected outcome. **MUST** maintain test independence - each test must be able to run in isolation without dependencies on other tests. **MUST** include both positive and negative test cases, covering edge cases and error conditions. **MUST** refactor tests alongside implementation code to maintain clarity and maintainability.
+**MUST** achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** write tests FIRST before implementing any feature, following the red-green-refactor cycle. **MUST** treat tests as first-class code applying the same quality standards as production code: SOLID principles, clean code practices, DRY, and KISS. **MUST** use `[Theory]` with `[InlineData]` to consolidate similar test scenarios and reduce code duplication. **MUST** create helper methods and test data builders to eliminate repetitive arrange sections. **MUST** keep test methods short and focused (ideally under 15 lines). **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. **MUST** use descriptive test names that clearly indicate the scenario and expected outcome. **MUST** maintain test independence - each test must be able to run in isolation without dependencies on other tests. **MUST** include both positive and negative test cases, covering edge cases and error conditions. **MUST** refactor tests alongside implementation code to maintain clarity and maintainability.
 
 **Test Coverage Guidelines**:
 - **High Priority**: Classes with business logic, algorithms, validation, parsing, rendering, and complex state management
@@ -67,4 +69,4 @@ Sync Impact Report:
 
 This constitution supersedes all other practices. Amendments require documentation, approval, and migration plan. All PRs/reviews must verify compliance; complexity must be justified. Constitution violations are automatically CRITICAL and require adjustment of specifications, plans, or tasks—not dilution, reinterpretation, or silent ignoring of principles.
 
-**Version**: 2.0.0 | **Ratified**: 2025-01-27 | **Last Amended**: 2025-01-27
+**Version**: 2.1.0 | **Ratified**: 2025-01-27 | **Last Amended**: 2025-01-27

@@ -1,19 +1,11 @@
 namespace NetHtml2Pdf.Core;
 
-internal readonly struct BoxSpacing
+internal readonly struct BoxSpacing(double? top, double? right, double? bottom, double? left)
 {
-    public BoxSpacing(double? top, double? right, double? bottom, double? left)
-    {
-        Top = top;
-        Right = right;
-        Bottom = bottom;
-        Left = left;
-    }
-
-    public double? Top { get; }
-    public double? Right { get; }
-    public double? Bottom { get; }
-    public double? Left { get; }
+    public double? Top { get; } = top;
+    public double? Right { get; } = right;
+    public double? Bottom { get; } = bottom;
+    public double? Left { get; } = left;
 
     public bool HasValue => Top.HasValue || Right.HasValue || Bottom.HasValue || Left.HasValue;
 

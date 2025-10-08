@@ -14,7 +14,7 @@ public class CssStyleMapTests
         // Arrange
         var baseMap = CssStyleMap.Empty
             .WithFontStyle(FontStyle.Italic)
-            .WithBold(true)
+            .WithBold()
             .WithTextDecoration(TextDecorationStyle.Underline)
             .WithLineHeight(1.5)
             .WithMarginTop(10)
@@ -46,7 +46,7 @@ public class CssStyleMapTests
         // Arrange
         var map1 = CssStyleMap.Empty
             .WithFontStyle(FontStyle.Italic)
-            .WithBold(true)
+            .WithBold()
             .WithMarginTop(10)
             .WithPaddingLeft(15);
 

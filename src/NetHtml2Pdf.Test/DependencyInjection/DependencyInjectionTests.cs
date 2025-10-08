@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NetHtml2Pdf;
 using NetHtml2Pdf.Parser;
 using NetHtml2Pdf.Parser.Interfaces;
 using NetHtml2Pdf.Renderer;
@@ -81,6 +80,6 @@ public class DependencyInjectionTests
     private sealed class StubCssDeclarationParser : ICssDeclarationParser
     {
         public IEnumerable<CssDeclaration> Parse(string declarations) =>
-            Array.Empty<CssDeclaration>();
+            [];
     }
 }

@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test;
 
 [Collection("PdfRendering")]
-public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderingTestBase(output)
+public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     [Fact]
     public void ConvertToPdf_ValidHtml_ReturnsPdfBytes()
@@ -33,7 +33,7 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderingTestBase
 
         await SavePdfForInspectionAsync(pdfBytes);
 
-        var words = PdfParser.ExtractWords(pdfBytes);
+        var words = ExtractWords(pdfBytes);
         words.ShouldContain("Welcome");
         words.ShouldContain("NetHtml2Pdf.");
         words.ShouldContain(word => word.StartsWith("Iter"));
@@ -63,7 +63,7 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderingTestBase
 
         await SavePdfForInspectionAsync(pdfBytes);
 
-        var words = PdfParser.ExtractWords(pdfBytes);
+        var words = ExtractWords(pdfBytes);
         words.ShouldContain("First");
         words.ShouldContain("Second");
         words.ShouldContain("One");

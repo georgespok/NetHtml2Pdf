@@ -35,10 +35,10 @@ namespace NetHtml2Pdf.Test.Core
             return new PdfRenderSnapshot(
                 renderDuration ?? DefaultRenderDuration,
                 platform ?? DefaultPlatform,
-                warnings ?? new List<string>(),
+                warnings ?? [],
                 outputSize ?? DefaultOutputSize,
                 timestamp ?? DefaultTimestamp,
-                fallbackElements ?? new List<string>(),
+                fallbackElements ?? [],
                 inputHtmlSize ?? DefaultInputHtmlSize,
                 elementCount ?? DefaultElementCount,
                 supportedElementCount ?? DefaultSupportedElementCount,
@@ -55,7 +55,7 @@ namespace NetHtml2Pdf.Test.Core
                 null!,
                 DefaultOutputSize,
                 DefaultTimestamp,
-                new List<string>(),
+                [],
                 DefaultInputHtmlSize,
                 DefaultElementCount,
                 DefaultSupportedElementCount,
@@ -69,7 +69,7 @@ namespace NetHtml2Pdf.Test.Core
             return new PdfRenderSnapshot(
                 DefaultRenderDuration,
                 DefaultPlatform,
-                new List<string>(),
+                [],
                 DefaultOutputSize,
                 DefaultTimestamp,
                 null!,
@@ -163,8 +163,7 @@ namespace NetHtml2Pdf.Test.Core
         public void Constructor_WithNullWarnings_ShouldThrowArgumentException()
         {
             // Act & Assert
-            Should.Throw<ArgumentException>(() => 
-                CreateSnapshotWithNullWarnings())
+            Should.Throw<ArgumentException>(CreateSnapshotWithNullWarnings)
                 .Message.ShouldContain("Warnings cannot be null");
         }
 
@@ -173,7 +172,7 @@ namespace NetHtml2Pdf.Test.Core
         {
             // Act & Assert
             Should.Throw<ArgumentException>(() => 
-                CreateSnapshot(warnings: new List<string> { "" }))
+                CreateSnapshot(warnings: [""]))
                 .Message.ShouldContain("Warnings must be non-empty strings");
         }
 
@@ -211,8 +210,7 @@ namespace NetHtml2Pdf.Test.Core
         public void Constructor_WithNullFallbackElements_ShouldThrowArgumentException()
         {
             // Act & Assert
-            Should.Throw<ArgumentException>(() => 
-                CreateSnapshotWithNullFallbackElements())
+            Should.Throw<ArgumentException>(CreateSnapshotWithNullFallbackElements)
                 .Message.ShouldContain("FallbackElements cannot be null");
         }
 
@@ -221,7 +219,7 @@ namespace NetHtml2Pdf.Test.Core
         {
             // Act & Assert
             Should.Throw<ArgumentException>(() => 
-                CreateSnapshot(fallbackElements: new List<string> { "video", "123invalid" })) // Invalid HTML tag
+                CreateSnapshot(fallbackElements: ["video", "123invalid"])) // Invalid HTML tag
                 .Message.ShouldContain("FallbackElements must be valid HTML tag names");
         }
 
@@ -244,7 +242,7 @@ namespace NetHtml2Pdf.Test.Core
             // Act & Assert
             Should.Throw<ArgumentException>(() => 
                 CreateSnapshot(
-                    fallbackElements: new List<string> { "video", "audio" }, // 2 elements
+                    fallbackElements: ["video", "audio"], // 2 elements
                     supportedElementCount: 23,
                     fallbackElementCount: 3)) // Should be 2 to match FallbackElements.Count
                 .Message.ShouldContain("FallbackElementCount must equal FallbackElements.Count");

@@ -1,6 +1,5 @@
 using NetHtml2Pdf.Core;
 using Shouldly;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Core;
 

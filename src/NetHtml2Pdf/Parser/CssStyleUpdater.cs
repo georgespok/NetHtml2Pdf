@@ -17,6 +17,8 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             "font-weight" => styles.WithBold(IsBoldValue(declaration.Value)),
             "text-decoration" => styles.WithTextDecoration(ParseTextDecoration(declaration.Value)),
             "line-height" => styles.WithLineHeight(ParseNumeric(declaration.Value)),
+            "color" => styles.WithColor(declaration.Value?.Trim()),
+            "background-color" => styles.WithBackgroundColor(declaration.Value?.Trim()),
             "margin" => styles.WithMargin(ParseBoxSpacing(declaration.Value)),
             "margin-top" => styles.WithMarginTop(ParseNumeric(declaration.Value)),
             "margin-right" => styles.WithMarginRight(ParseNumeric(declaration.Value)),

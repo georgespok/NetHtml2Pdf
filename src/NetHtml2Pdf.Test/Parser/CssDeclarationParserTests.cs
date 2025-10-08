@@ -1,7 +1,5 @@
-using System.Linq;
 using NetHtml2Pdf.Parser;
 using Shouldly;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Parser;
 

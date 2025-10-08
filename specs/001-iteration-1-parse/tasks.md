@@ -42,33 +42,27 @@
   - Write failing tests for CSS property mapping and source tracking → implement until green.
 
 ### Logging Infrastructure
-- [ ] T009 [US1] Add structured logging interface tests and implementation (`src/NetHtml2Pdf.Test/Core/ILoggerTests.cs`, `src/NetHtml2Pdf/Core/ILogger.cs`).
-  - Write failing tests for warning log emission → implement structured logging interface until green.
-- [ ] T010 [US1] Add logger implementation tests and implementation (`src/NetHtml2Pdf.Test/Core/LoggerTests.cs`, `src/NetHtml2Pdf/Core/Logger.cs`).
-  - Write failing tests for logger implementation → implement until green.
-- [ ] T010A [US1] Add structured warning log format validation tests and implementation (`src/NetHtml2Pdf.Test/Core/StructuredWarningLogTests.cs`, `src/NetHtml2Pdf/Core/StructuredWarningLog.cs`).
-  - Write failing tests for warning log format: `{Timestamp} [WARNING] {Component}: {Message}` → implement until green.
-- [ ] T010B [US1] Add warning log severity level tests and implementation (`src/NetHtml2Pdf.Test/Core/WarningSeverityTests.cs`, `src/NetHtml2Pdf/Core/WarningSeverity.cs`).
-  - Write failing tests for WARNING severity level validation → implement until green.
+- [X] T009 [US1] Add Microsoft.Extensions.Logging dependency (`src/NetHtml2Pdf/NetHtml2Pdf.csproj`).
+  - Add Microsoft.Extensions.Logging.Abstractions package reference.
 
 ## Phase 2: Foundational Prerequisites
 
 ### HTML Parser Foundation
-- [ ] T011 [US1] Add HtmlParser interface tests and implementation (`src/NetHtml2Pdf.Test/Parser/IHtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/IHtmlParser.cs`).
+- [X] T011 [US1] Add HtmlParser interface tests and implementation (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/Interfaces/IHtmlParser.cs`).
   - Write failing tests for HTML parsing interface → implement until green.
-- [ ] T012 [US1] Add HtmlParser implementation tests and implementation (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
+- [X] T012 [US1] Add HtmlParser implementation tests and implementation (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
   - Write failing tests for AngleSharp integration and DOM node mapping → implement until green.
 
 ### PDF Renderer Foundation
-- [ ] T013 [US1] Add PdfRenderer interface tests and implementation (`src/NetHtml2Pdf.Test/Renderer/IPdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/IPdfRenderer.cs`).
+- [X] T013 [US1] Add PdfRenderer interface tests and implementation (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/Interfaces/IPdfRenderer.cs`).
   - Write failing tests for PDF rendering interface → implement until green.
-- [ ] T014 [US1] Add PdfRenderer implementation tests and implementation (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
+- [X] T014 [US1] Add PdfRenderer implementation tests and implementation (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
   - Write failing tests for QuestPDF integration and document composition → implement until green.
 
 ### Public API Foundation
-- [ ] T015 [US1] Add HtmlConverter interface tests and implementation (`src/NetHtml2Pdf.Test/IHtmlConverterTests.cs`, `src/NetHtml2Pdf/IHtmlConverter.cs`).
+- [X] T015 [US1] Add HtmlConverter interface tests and implementation (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/IHtmlConverter.cs`).
   - Write failing tests for public API interface → implement until green.
-- [ ] T016 [US1] Add HtmlConverter implementation tests and implementation (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
+- [X] T016 [US1] Add HtmlConverter implementation tests and implementation (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
   - Write failing tests for facade orchestration → implement until green.
 
 ## Phase 3: User Story 1 - Core HTML Element Parsing & Rendering
@@ -79,24 +73,20 @@
 - All supported HTML elements parse correctly into HtmlFragment entities
 - CSS properties (font-weight, font-style, text-decoration, line-height, color, background-color, margin, padding) apply correctly
 - PDF output renders consistently with expected text formatting and spacing
-- Contract tests pass for core-paragraphs.md scenario
+- Integration tests (Iteration1_*) validate contract scenarios
 - TDD approach followed (tests written first, then implementation)
 
-### Contract Tests
-- [ ] T017 [US1] Add core-paragraphs contract test (`src/NetHtml2Pdf.Test/Contracts/CoreParagraphsContractTests.cs`).
-  - Write failing contract test based on `contracts/core-paragraphs.md` → implement until green.
-
 ### Parser Implementation
-- [ ] T018 [US1] Add parser coverage for basic HTML elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
+- [X] T018 [US1] Add parser coverage for basic HTML elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
   - Write failing tests for basic HTML elements parsing (see FR-001 in spec.md for complete element list: div, p, span, strong, b, i, br, h1, h2, h3, h4, h5, h6) → implement until green.
-- [ ] T019 [US1] Add CSS style parsing tests and implementation (`src/NetHtml2Pdf.Test/Parser/CssStyleParserTests.cs`, `src/NetHtml2Pdf/Parser/CssStyleParser.cs`).
-  - Write failing tests for supported CSS styles → implement until green.
+- [X] T019 [US1] Add CSS style parsing tests and implementation (`src/NetHtml2Pdf.Test/Parser/CssStyleUpdaterTests.cs`, `src/NetHtml2Pdf/Parser/CssStyleUpdater.cs`, `src/NetHtml2Pdf/Core/CssStyleMap.cs`).
+  - Write failing tests for supported CSS styles → implement until green. All FR-002 properties now supported: font-weight, font-style, text-decoration, line-height, color, background-color, margin (all variants), padding (all variants).
 
 ### Renderer Implementation
-- [ ] T020 [US1] Add renderer coverage for basic HTML elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
-  - Write failing tests for QuestPDF paragraph and heading rendering → implement until green.
-- [ ] T021 [US1] Add CSS styling renderer tests and implementation (`src/NetHtml2Pdf.Test/Renderer/CssStyleRendererTests.cs`, `src/NetHtml2Pdf/Renderer/CssStyleRenderer.cs`).
-  - Write failing tests for CSS style application → implement until green.
+- [X] T020 [US1] Add renderer coverage for basic HTML elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/BlockComposer.cs`, `src/NetHtml2Pdf/Renderer/InlineComposer.cs`).
+  - Write failing tests for QuestPDF paragraph and heading rendering → implement until green. Basic elements handled through existing BlockComposer and InlineComposer infrastructure.
+- [X] T021 [US1] Add CSS styling renderer tests and implementation (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/InlineComposer.cs`, `src/NetHtml2Pdf/Renderer/InlineStyleState.cs`, `src/NetHtml2Pdf/Renderer/BlockComposer.cs`).
+  - Write failing tests for CSS style application → implement until green. Implemented color, background-color rendering with named color conversion. Added heading-specific rendering with proper font sizes (H1: 32pt, H2: 24pt, H3: 19pt, H4: 16pt, H5: 13pt, H6: 11pt) and boldness.
 
 ### Integration
 - [ ] T022 [US1] Add HtmlConverter integration for basic elements (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
@@ -142,12 +132,8 @@
 - Header cells (th) render with appropriate styling
 - Cell alignment (text-align, vertical-align) works correctly
 - Border properties (border, border-collapse, border-width, border-style, border-color) apply correctly
-- Contract tests pass for table-borders-alignment.md scenario
+- Integration tests (Iteration1_*) validate contract scenarios
 - TDD approach followed (tests written first, then implementation)
-
-### Contract Tests
-- [ ] T028 [US3] Add table-borders-alignment contract test (`src/NetHtml2Pdf.Test/Contracts/TableBordersAlignmentContractTests.cs`).
-  - Write failing contract test based on `contracts/table-borders-alignment.md` → implement until green.
 
 ### Parser Implementation
 - [ ] T029 [US3] Add parser coverage for table elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
@@ -175,12 +161,8 @@
 - Unsupported elements (e.g., video, audio) are processed by fallback renderer
 - Warning logs are emitted for unsupported elements
 - Document structure is preserved despite unsupported elements
-- Contract tests pass for fallback-unsupported-tag.md scenario
+- Integration tests (Iteration1_*) validate contract scenarios
 - TDD approach followed (tests written first, then implementation)
-
-### Contract Tests
-- [ ] T034 [US4] Add fallback-unsupported-tag contract test (`src/NetHtml2Pdf.Test/Contracts/FallbackUnsupportedTagContractTests.cs`).
-  - Write failing contract test based on `contracts/fallback-unsupported-tag.md` → implement until green.
 
 ### Parser Implementation
 - [ ] T035 [US4] Add parser coverage for unsupported elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
@@ -306,7 +288,7 @@ Each user story phase delivers independently testable functionality:
 
 ## Validation Checklist
 
-- [ ] Each contract scenario (core-paragraphs, table-borders-alignment, fallback-unsupported-tag) covered by test+implementation pair
+- [ ] Each contract scenario (core-paragraphs, table-borders-alignment, fallback-unsupported-tag) validated by Iteration1_* integration tests
 - [ ] Core/Parser/Renderer/Facade updates occur in the same task that adds the relevant test
 - [ ] Managed dependency audit recorded in research.md before closing iteration
 - [ ] Documentation and formatting updated before closing iteration

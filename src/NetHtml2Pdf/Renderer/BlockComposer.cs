@@ -22,6 +22,24 @@ internal sealed class BlockComposer(
             case DocumentNodeType.Paragraph:
                 ComposeParagraph(column, node);
                 break;
+            case DocumentNodeType.Heading1:
+                ComposeHeading(column, node, fontSize: 32, bold: true);
+                break;
+            case DocumentNodeType.Heading2:
+                ComposeHeading(column, node, fontSize: 24, bold: true);
+                break;
+            case DocumentNodeType.Heading3:
+                ComposeHeading(column, node, fontSize: 19, bold: true);
+                break;
+            case DocumentNodeType.Heading4:
+                ComposeHeading(column, node, fontSize: 16, bold: true);
+                break;
+            case DocumentNodeType.Heading5:
+                ComposeHeading(column, node, fontSize: 13, bold: true);
+                break;
+            case DocumentNodeType.Heading6:
+                ComposeHeading(column, node, fontSize: 11, bold: true);
+                break;
             case DocumentNodeType.List:
                 listComposer.Compose(column, node, ordered: false, Compose);
                 break;
@@ -33,9 +51,13 @@ internal sealed class BlockComposer(
             case DocumentNodeType.Document:                
             case DocumentNodeType.Span:
             case DocumentNodeType.Strong:
+            case DocumentNodeType.Bold:
+            case DocumentNodeType.Italic:
             case DocumentNodeType.Text:
             case DocumentNodeType.LineBreak:
             case DocumentNodeType.Table:
+            case DocumentNodeType.TableHead:
+            case DocumentNodeType.TableBody:
             case DocumentNodeType.TableSection:
             case DocumentNodeType.TableRow:
             case DocumentNodeType.TableHeaderCell:
@@ -57,6 +79,25 @@ internal sealed class BlockComposer(
             foreach (var child in node.Children)
             {
                 inlineComposer.Compose(text, child, InlineStyleState.Empty);
+            }
+        });
+    }
+
+    private void ComposeHeading(ColumnDescriptor column, DocumentNode node, double fontSize, bool bold)
+    {
+        var container = spacingApplier.ApplySpacing(column.Item(), node.Styles);
+
+        container.Text(text =>
+        {
+            var headingStyle = InlineStyleState.Empty.WithFontSize(fontSize);
+            if (bold)
+            {
+                headingStyle = headingStyle.WithBold();
+            }
+
+            foreach (var child in node.Children)
+            {
+                inlineComposer.Compose(text, child, headingStyle);
             }
         });
     }

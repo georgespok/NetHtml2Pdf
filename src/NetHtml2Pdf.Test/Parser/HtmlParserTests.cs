@@ -74,7 +74,7 @@ public class HtmlParserTests
 
         section.Children.Count.ShouldBe(2);
         var unordered = section.Children[0];
-        unordered.NodeType.ShouldBe(DocumentNodeType.List);
+        unordered.NodeType.ShouldBe(DocumentNodeType.UnorderedList);
         unordered.Children.Count.ShouldBe(2);
 
         unordered.Children[0].NodeType.ShouldBe(DocumentNodeType.ListItem);
@@ -88,5 +88,94 @@ public class HtmlParserTests
         ordered.NodeType.ShouldBe(DocumentNodeType.OrderedList);
         ordered.Styles.Margin.Top.ShouldBe(8);
         ordered.Children.Single().Children.Single().TextContent.ShouldBe("One");
+    }
+
+    [Theory]
+    [InlineData("h1", DocumentNodeType.Heading1)]
+    [InlineData("h2", DocumentNodeType.Heading2)]
+    [InlineData("h3", DocumentNodeType.Heading3)]
+    [InlineData("h4", DocumentNodeType.Heading4)]
+    [InlineData("h5", DocumentNodeType.Heading5)]
+    [InlineData("h6", DocumentNodeType.Heading6)]
+    public void Headings_ShouldParseToCorrectNodeType(string tag, DocumentNodeType expectedType)
+    {
+        // Arrange
+        var html = $"<{tag}>Heading Text</{tag}>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        document.Children.Single().NodeType.ShouldBe(expectedType);
+    }
+
+    [Theory]
+    [InlineData("b", DocumentNodeType.Bold)]
+    [InlineData("i", DocumentNodeType.Italic)]
+    public void TextEmphasis_ShouldParseToCorrectNodeType(string tag, DocumentNodeType expectedType)
+    {
+        // Arrange
+        var html = $"<p>Text with <{tag}>emphasis</{tag}>.</p>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var paragraph = document.Children.Single();
+        paragraph.Children.Any(c => c.NodeType == expectedType).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void InlineStyles_WithColor_ShouldParseColorProperty()
+    {
+        // Arrange
+        const string html = """<p style="color: red">Red text</p>""";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var paragraph = document.Children.Single();
+        paragraph.Styles.Color.ShouldBe("red");
+    }
+
+    [Fact]
+    public void InlineStyles_WithBackgroundColor_ShouldParseBackgroundColorProperty()
+    {
+        // Arrange
+        const string html = """<p style="background-color: yellow">Highlighted text</p>""";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var paragraph = document.Children.Single();
+        paragraph.Styles.BackgroundColor.ShouldBe("yellow");
+    }
+
+    [Fact]
+    public void CssClass_WithColorProperties_ShouldResolveCorrectly()
+    {
+        // Arrange
+        const string html = """
+            <html>
+            <head>
+                <style>
+                    .highlight { color: blue; background-color: #ffff00; }
+                </style>
+            </head>
+            <body>
+                <p class="highlight">Styled text</p>
+            </body>
+            </html>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var paragraph = document.Children.Single();
+        paragraph.Styles.Color.ShouldBe("blue");
+        paragraph.Styles.BackgroundColor.ShouldBe("#ffff00");
     }
 }

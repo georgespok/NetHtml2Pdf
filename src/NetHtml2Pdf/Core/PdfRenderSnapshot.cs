@@ -2,66 +2,41 @@ using System.Text.RegularExpressions;
 
 namespace NetHtml2Pdf.Core
 {
-    public class PdfRenderSnapshot
+    public class PdfRenderSnapshot(
+        TimeSpan renderDuration,
+        string platform,
+        List<string> warnings,
+        long outputSize,
+        DateTime timestamp,
+        List<string> fallbackElements,
+        int inputHtmlSize,
+        int elementCount,
+        int supportedElementCount,
+        int fallbackElementCount,
+        int cssPropertyCount,
+        long memoryUsage)
     {
-        private static readonly HashSet<string> ValidValidationResults = new HashSet<string>
-        {
-            "IDENTICAL", "DIFFERENT", "ERROR"
-        };
+        private static readonly HashSet<string> ValidValidationResults = ["IDENTICAL", "DIFFERENT", "ERROR"];
 
-        private static readonly HashSet<string> ValidPlatforms = new HashSet<string>
-        {
-            "Windows", "Linux"
-        };
+        private static readonly HashSet<string> ValidPlatforms = ["Windows", "Linux"];
 
         private static readonly Regex HtmlTagNameRegex = new Regex(@"^[a-zA-Z][a-zA-Z0-9-]*$", RegexOptions.Compiled);
 
-        public TimeSpan RenderDuration { get; }
-        public string Platform { get; }
-        public List<string> Warnings { get; }
-        public long OutputSize { get; }
-        public DateTime Timestamp { get; }
-        public List<string> FallbackElements { get; }
-        public int InputHtmlSize { get; }
-        public int ElementCount { get; }
-        public int SupportedElementCount { get; }
-        public int FallbackElementCount { get; }
-        public int CssPropertyCount { get; }
-        public long MemoryUsage { get; }
-        public bool IsCrossPlatformValidated { get; private set; }
-        public DateTime? ValidationTimestamp { get; private set; }
-        public string? ValidationResult { get; private set; }
-
-        public PdfRenderSnapshot(
-            TimeSpan renderDuration,
-            string platform,
-            List<string> warnings,
-            long outputSize,
-            DateTime timestamp,
-            List<string> fallbackElements,
-            int inputHtmlSize,
-            int elementCount,
-            int supportedElementCount,
-            int fallbackElementCount,
-            int cssPropertyCount,
-            long memoryUsage)
-        {
-            RenderDuration = ValidateRenderDuration(renderDuration);
-            Platform = ValidatePlatform(platform);
-            Warnings = ValidateWarnings(warnings);
-            OutputSize = ValidateOutputSize(outputSize);
-            Timestamp = ValidateTimestamp(timestamp);
-            FallbackElements = ValidateFallbackElements(fallbackElements);
-            InputHtmlSize = ValidateInputHtmlSize(inputHtmlSize);
-            FallbackElementCount = ValidateFallbackElementCount(fallbackElementCount, fallbackElements);
-            SupportedElementCount = ValidateSupportedElementCount(supportedElementCount, elementCount);
-            ElementCount = ValidateElementCount(elementCount, supportedElementCount, fallbackElementCount, fallbackElements);
-            CssPropertyCount = ValidateCssPropertyCount(cssPropertyCount);
-            MemoryUsage = ValidateMemoryUsage(memoryUsage);
-            IsCrossPlatformValidated = false;
-            ValidationTimestamp = null;
-            ValidationResult = null;
-        }
+        public TimeSpan RenderDuration { get; } = ValidateRenderDuration(renderDuration);
+        public string Platform { get; } = ValidatePlatform(platform);
+        public List<string> Warnings { get; } = ValidateWarnings(warnings);
+        public long OutputSize { get; } = ValidateOutputSize(outputSize);
+        public DateTime Timestamp { get; } = ValidateTimestamp(timestamp);
+        public List<string> FallbackElements { get; } = ValidateFallbackElements(fallbackElements);
+        public int InputHtmlSize { get; } = ValidateInputHtmlSize(inputHtmlSize);
+        public int ElementCount { get; } = ValidateElementCount(elementCount, supportedElementCount, fallbackElementCount, fallbackElements);
+        public int SupportedElementCount { get; } = ValidateSupportedElementCount(supportedElementCount, elementCount);
+        public int FallbackElementCount { get; } = ValidateFallbackElementCount(fallbackElementCount, fallbackElements);
+        public int CssPropertyCount { get; } = ValidateCssPropertyCount(cssPropertyCount);
+        public long MemoryUsage { get; } = ValidateMemoryUsage(memoryUsage);
+        public bool IsCrossPlatformValidated { get; private set; } = false;
+        public DateTime? ValidationTimestamp { get; private set; } = null;
+        public string? ValidationResult { get; private set; } = null;
 
         public void SetValidation(DateTime validationTimestamp, string validationResult)
         {
