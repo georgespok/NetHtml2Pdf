@@ -89,7 +89,7 @@
   - Write failing tests for CSS style application → implement until green. Implemented color, background-color rendering with named color conversion. Added heading-specific rendering with proper font sizes (H1: 32pt, H2: 24pt, H3: 19pt, H4: 16pt, H5: 13pt, H6: 11pt) and boldness.
 
 ### Integration
-- [ ] T022 [US1] Add HtmlConverter integration for basic elements (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
+- [X] T022 [US1] Add HtmlConverter integration for basic elements (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
   - Write failing integration test for end-to-end HTML-to-PDF conversion → implement until green.
 
 **Checkpoint**: US1 complete - Basic HTML elements including headings render correctly with CSS styling.
@@ -106,20 +106,20 @@
 - TDD approach followed (tests written first, then implementation)
 
 ### Parser Implementation
-- [ ] T023 [US2] Add parser coverage for list elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
-  - Write failing tests for list elements parsing (see FR-001 in spec.md for complete element list: ul, li, ol) → implement until green.
-- [ ] T024 [US2] Add parser coverage for structural containers (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
-  - Write failing tests for structural containers parsing (see FR-001 in spec.md for complete element list: div, section) → implement until green.
+- [X] T023 [US2] Add parser coverage for list elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
+  - Write failing tests for list elements parsing (see FR-001 in spec.md for complete element list: ul, li, ol) → implement until green. Added comprehensive tests: ListElements_ShouldParseToCorrectNodeType (Theory for ul/ol), ListItem_ShouldParseTextContent, NestedLists_ShouldParseHierarchy, ListWithInlineStyles_ShouldApplyStylesToListItems.
+- [X] T024 [US2] Add parser coverage for structural containers (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
+  - Write failing tests for structural containers parsing (see FR-001 in spec.md for complete element list: div, section) → implement until green. Added comprehensive tests: StructuralContainers_ShouldParseToCorrectNodeType (Theory for div/section), NestedStructuralContainers_ShouldParseHierarchy, StructuralContainerWithStyles_ShouldApplyPaddingAndMargin, MultipleContainersAtSameLevel_ShouldParseAllChildren.
 
 ### Renderer Implementation
-- [ ] T025 [US2] Add renderer coverage for list elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
-  - Write failing tests for QuestPDF list rendering → implement until green.
-- [ ] T026 [US2] Add renderer coverage for structural containers (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
-  - Write failing tests for container layout → implement until green.
+- [X] T025 [US2] Add renderer coverage for list elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
+  - Write failing tests for QuestPDF list rendering → implement until green. Added comprehensive tests: UnorderedList_RendersWithBulletMarkers, OrderedList_RendersWithNumericMarkers, NestedLists_RenderHierarchically, MixedLists_RenderBothBulletsAndNumbers, ListWithStyledItems_AppliesFormattingToText. Fixed IsInlineNode in ListComposer to include Bold and Italic node types.
+- [X] T026 [US2] Add renderer coverage for structural containers (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
+  - Write failing tests for container layout → implement until green. Added tests: StructuralContainers_ShouldRenderChildParagraphs (Theory for div/section), NestedStructuralContainers_ShouldRenderHierarchy, MultipleContainersAtSameLevel_ShouldRenderAllChildren.
 
 ### Integration
-- [ ] T027 [US2] Add HtmlConverter integration for lists and containers (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
-  - Write failing integration test for list rendering → implement until green.
+- [X] T027 [US2] Add HtmlConverter integration for lists and containers (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
+  - Write failing integration test for list rendering → implement until green. Added comprehensive integration tests: ListsAndContainers_IntegrationTest, NestedLists_IntegrationTest, MixedContainers_IntegrationTest covering complex HTML structures with lists, containers, headings, and styled text.
 
 **Checkpoint**: US2 complete - Lists and structural containers render correctly.
 

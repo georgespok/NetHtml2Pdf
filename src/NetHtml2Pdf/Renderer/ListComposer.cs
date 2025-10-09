@@ -1,6 +1,7 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace NetHtml2Pdf.Renderer;
 
@@ -25,6 +26,7 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
                     continue;
                 }
 
+                // Each list item should be a separate vertical item
                 listColumn.Item().Row(row =>
                 {
                     var marker = ordered ? $"{index}." : "\u2022";
@@ -82,6 +84,9 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
         inlineBuffer.Clear();
     }
 
+    
+
     private static bool IsInlineNode(DocumentNode node) =>
-        node.NodeType is DocumentNodeType.Text or DocumentNodeType.Span or DocumentNodeType.Strong or DocumentNodeType.LineBreak;
+        node.NodeType is DocumentNodeType.Text or DocumentNodeType.Span or DocumentNodeType.Strong 
+        or DocumentNodeType.Bold or DocumentNodeType.Italic or DocumentNodeType.LineBreak;
 }

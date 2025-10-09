@@ -41,6 +41,7 @@ internal sealed class BlockComposer(
                 ComposeHeading(column, node, fontSize: 11, bold: true);
                 break;
             case DocumentNodeType.List:
+            case DocumentNodeType.UnorderedList:
                 listComposer.Compose(column, node, ordered: false, Compose);
                 break;
             case DocumentNodeType.OrderedList:
