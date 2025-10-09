@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf", "NetHtml2Pdf\NetHtml2Pdf.csproj", "{8ECF6822-CC12-4218-BC3C-64475D76316F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.Test", "NetHtml2Pdf.Test\NetHtml2Pdf.Test.csproj", "{F565BC95-2CF6-450C-945E-959841AA0C88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.TestConsole", "NetHtml2Pdf.TestConsole\NetHtml2Pdf.TestConsole.csproj", "{81CF798C-784A-725D-1DDD-F273F69A3E7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetHtml2Pdf.TestAzureFunction", "NetHtml2Pdf.TestAzureFunction\NetHtml2Pdf.TestAzureFunction.csproj", "{3243B6B9-E407-AC6F-F41E-A1FF3844EC5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxNetHtml2Pdf", "..\sandbox\SandboxNetHtml2Pdf.csproj", "{3807FC03-E317-09DD-E258-1E7D00AE532E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8ECF6822-CC12-4218-BC3C-64475D76316F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ECF6822-CC12-4218-BC3C-64475D76316F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ECF6822-CC12-4218-BC3C-64475D76316F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ECF6822-CC12-4218-BC3C-64475D76316F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F565BC95-2CF6-450C-945E-959841AA0C88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F565BC95-2CF6-450C-945E-959841AA0C88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F565BC95-2CF6-450C-945E-959841AA0C88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F565BC95-2CF6-450C-945E-959841AA0C88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81CF798C-784A-725D-1DDD-F273F69A3E7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81CF798C-784A-725D-1DDD-F273F69A3E7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81CF798C-784A-725D-1DDD-F273F69A3E7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81CF798C-784A-725D-1DDD-F273F69A3E7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3243B6B9-E407-AC6F-F41E-A1FF3844EC5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3243B6B9-E407-AC6F-F41E-A1FF3844EC5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3243B6B9-E407-AC6F-F41E-A1FF3844EC5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3243B6B9-E407-AC6F-F41E-A1FF3844EC5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3807FC03-E317-09DD-E258-1E7D00AE532E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3807FC03-E317-09DD-E258-1E7D00AE532E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3807FC03-E317-09DD-E258-1E7D00AE532E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3807FC03-E317-09DD-E258-1E7D00AE532E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8D33FF2-4F31-41C9-A86B-C01D14EF7473}
+	EndGlobalSection
+EndGlobal
