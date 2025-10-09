@@ -14,8 +14,9 @@ public class BlockComposerTests
     {
         var inlineComposer = new RecordingInlineComposer();
         var listComposer = new RecordingListComposer();
+        var tableComposer = new RecordingTableComposer();
         var spacingApplier = new PassthroughSpacingApplier();
-        var sut = new BlockComposer(inlineComposer, listComposer, spacingApplier);
+        var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
 
         var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
         paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Hello"));
@@ -39,8 +40,9 @@ public class BlockComposerTests
     {
         var inlineComposer = new RecordingInlineComposer();
         var listComposer = new RecordingListComposer();
+        var tableComposer = new RecordingTableComposer();
         var spacingApplier = new PassthroughSpacingApplier();
-        var sut = new BlockComposer(inlineComposer, listComposer, spacingApplier);
+        var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
 
         var listNode = new DocumentNode(DocumentNodeType.List);
         listNode.AddChild(new DocumentNode(DocumentNodeType.ListItem));
@@ -91,6 +93,17 @@ public class BlockComposerTests
             Called = true;
             LastOrdered = ordered;
             column.Item().Text("list");
+        }
+    }
+
+    private sealed class RecordingTableComposer : ITableComposer
+    {
+        public bool Called { get; private set; }
+
+        public void Compose(ColumnDescriptor column, DocumentNode tableNode)
+        {
+            Called = true;
+            column.Item().Text("table");
         }
     }
 

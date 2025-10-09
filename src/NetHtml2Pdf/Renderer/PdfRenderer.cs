@@ -28,8 +28,9 @@ internal class PdfRenderer(RendererOptions? options = null,
         var spacingApplier = new BlockSpacingApplier();
         var inlineComposer = new InlineComposer();
         var listComposer = new ListComposer(inlineComposer, spacingApplier);
+        var tableComposer = new TableComposer(inlineComposer, spacingApplier);
 
-        return new BlockComposer(inlineComposer, listComposer, spacingApplier);
+        return new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
     }
 
     private void ConfigureQuestPdf()

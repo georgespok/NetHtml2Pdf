@@ -83,10 +83,5 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
 
         inlineBuffer.Clear();
     }
-
-    
-
-    private static bool IsInlineNode(DocumentNode node) =>
-        node.NodeType is DocumentNodeType.Text or DocumentNodeType.Span or DocumentNodeType.Strong 
-        or DocumentNodeType.Bold or DocumentNodeType.Italic or DocumentNodeType.LineBreak;
+    private static bool IsInlineNode(DocumentNode node) => RenderingHelpers.IsInlineNode(node);
 }

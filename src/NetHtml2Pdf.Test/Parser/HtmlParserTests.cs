@@ -157,11 +157,11 @@ public class HtmlParserTests
     public void CssClass_WithColorProperties_ShouldResolveCorrectly()
     {
         // Arrange
-        const string html = """
+        var html = $$"""
             <html>
             <head>
                 <style>
-                    .highlight { color: blue; background-color: #ffff00; }
+                    .highlight { color: blue; background-color: {{Colors.Yellow}}; }
                 </style>
             </head>
             <body>
@@ -176,7 +176,7 @@ public class HtmlParserTests
         // Assert
         var paragraph = document.Children.Single();
         paragraph.Styles.Color.ShouldBe("blue");
-        paragraph.Styles.BackgroundColor.ShouldBe("#ffff00");
+        paragraph.Styles.BackgroundColor.ShouldBe(Colors.Yellow);
     }
 
     [Theory]
@@ -368,5 +368,385 @@ public class HtmlParserTests
         document.Children[0].NodeType.ShouldBe(DocumentNodeType.Div);
         document.Children[1].NodeType.ShouldBe(DocumentNodeType.Section);
         document.Children[2].NodeType.ShouldBe(DocumentNodeType.Div);
+    }
+
+    [Fact]
+    public void Table_ShouldParseToTableNodeType()
+    {
+        // Arrange
+        const string html = "<table><tr><td>Content</td></tr></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        document.Children.Single().NodeType.ShouldBe(DocumentNodeType.Table);
+    }
+
+    [Fact]
+    public void TableHead_ShouldParseToTableHeadNodeType()
+    {
+        // Arrange
+        const string html = "<table><thead><tr><th>Header</th></tr></thead></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.Children[0].NodeType.ShouldBe(DocumentNodeType.TableHead);
+    }
+
+    [Fact]
+    public void TableBody_ShouldParseToTableBodyNodeType()
+    {
+        // Arrange
+        const string html = "<table><tbody><tr><td>Data</td></tr></tbody></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.Children[0].NodeType.ShouldBe(DocumentNodeType.TableBody);
+    }
+
+    [Fact]
+    public void TableRow_ShouldParseToTableRowNodeType()
+    {
+        // Arrange
+        const string html = "<table><tr><td>Cell</td></tr></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        // AngleSharp auto-inserts tbody, so row is under tbody
+        var tbody = table.Children[0];
+        tbody.Children[0].NodeType.ShouldBe(DocumentNodeType.TableRow);
+    }
+
+    [Fact]
+    public void TableHeaderCell_ShouldParseToTableHeaderCellNodeType()
+    {
+        // Arrange
+        const string html = "<table><thead><tr><th>Header</th></tr></thead></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        var thead = table.Children[0];
+        var row = thead.Children[0];
+        row.Children[0].NodeType.ShouldBe(DocumentNodeType.TableHeaderCell);
+    }
+
+    [Fact]
+    public void TableCell_ShouldParseToTableCellNodeType()
+    {
+        // Arrange
+        const string html = "<table><tbody><tr><td>Data</td></tr></tbody></table>";
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        var tbody = table.Children[0];
+        var row = tbody.Children[0];
+        row.Children[0].NodeType.ShouldBe(DocumentNodeType.TableCell);
+    }
+
+    [Fact]
+    public void Table_WithCompleteStructure_ShouldParseCorrectHierarchy()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <thead>
+                    <tr>
+                        <th>Header 1</th>
+                        <th>Header 2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data 1</td>
+                        <td>Data 2</td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.NodeType.ShouldBe(DocumentNodeType.Table);
+        table.Children.Count.ShouldBe(2);
+
+        // Verify thead structure
+        var thead = table.Children[0];
+        thead.NodeType.ShouldBe(DocumentNodeType.TableHead);
+        thead.Children.Count.ShouldBe(1);
+        
+        var headerRow = thead.Children[0];
+        headerRow.NodeType.ShouldBe(DocumentNodeType.TableRow);
+        headerRow.Children.Count.ShouldBe(2);
+        headerRow.Children[0].NodeType.ShouldBe(DocumentNodeType.TableHeaderCell);
+        headerRow.Children[1].NodeType.ShouldBe(DocumentNodeType.TableHeaderCell);
+
+        // Verify tbody structure
+        var tbody = table.Children[1];
+        tbody.NodeType.ShouldBe(DocumentNodeType.TableBody);
+        tbody.Children.Count.ShouldBe(1);
+        
+        var dataRow = tbody.Children[0];
+        dataRow.NodeType.ShouldBe(DocumentNodeType.TableRow);
+        dataRow.Children.Count.ShouldBe(2);
+        dataRow.Children[0].NodeType.ShouldBe(DocumentNodeType.TableCell);
+        dataRow.Children[1].NodeType.ShouldBe(DocumentNodeType.TableCell);
+    }
+
+    [Fact]
+    public void Table_WithInlineStyles_ShouldApplyStylesToElements()
+    {
+        // Arrange
+        var html = $"""
+            <table style="margin: 10px;">
+                <tbody>
+                    <tr>
+                        <td style="background-color: {Colors.LightGray}; padding: 5px;">Styled Cell</td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.Styles.Margin.Top.ShouldBe(10);
+        
+        var tbody = table.Children[0];
+        var row = tbody.Children[0];
+        var cell = row.Children[0];
+        cell.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+        cell.Styles.Padding.Top.ShouldBe(5);
+    }
+
+    [Fact]
+    public void Table_WithCssClasses_ShouldResolveStylesToElements()
+    {
+        // Arrange
+        var html = $$"""
+            <html>
+            <head>
+                <style>
+                    .styled-table { margin: 20px; padding: 10px; }
+                    .header-cell { background-color: {{Colors.LightGray}}; font-weight: bold; }
+                    .data-cell { color: {{Colors.DarkGray}}; }
+                </style>
+            </head>
+            <body>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th class="header-cell">Name</th>
+                            <th class="header-cell">Age</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="data-cell">John Doe</td>
+                            <td class="data-cell">25</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </body>
+            </html>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.Styles.Margin.Top.ShouldBe(20);
+        table.Styles.Padding.Top.ShouldBe(10);
+
+        var thead = table.Children[0];
+        var headerRow = thead.Children[0];
+        var headerCell1 = headerRow.Children[0];
+        headerCell1.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+        headerCell1.Styles.Bold.ShouldBeTrue();
+
+        var tbody = table.Children[1];
+        var dataRow = tbody.Children[0];
+        var dataCell1 = dataRow.Children[0];
+        dataCell1.Styles.Color.ShouldBe(Colors.DarkGray);
+    }
+
+    [Fact]
+    public void Table_WithEmptyCells_ShouldPreserveStructure()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <tr>
+                    <td>Filled</td>
+                    <td></td>
+                    <td>Also Filled</td>
+                </tr>
+            </table>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        // AngleSharp auto-inserts tbody
+        var tbody = table.Children[0];
+        var row = tbody.Children[0];
+        row.Children.Count.ShouldBe(3);
+        row.Children[0].NodeType.ShouldBe(DocumentNodeType.TableCell);
+        row.Children[1].NodeType.ShouldBe(DocumentNodeType.TableCell);
+        row.Children[2].NodeType.ShouldBe(DocumentNodeType.TableCell);
+        
+        // Empty cell should have no children
+        row.Children[1].Children.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Table_WithoutTbody_ShouldParseTrDirectly()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <tr>
+                    <td>Cell 1</td>
+                    <td>Cell 2</td>
+                </tr>
+            </table>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.NodeType.ShouldBe(DocumentNodeType.Table);
+        
+        // AngleSharp should auto-insert tbody
+        var firstChild = table.Children[0];
+        (firstChild.NodeType == DocumentNodeType.TableRow || 
+         firstChild.NodeType == DocumentNodeType.TableBody).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Table_WithTextContentInCells_ShouldParseCorrectly()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Simple Text</td>
+                        <td><strong>Bold Text</strong></td>
+                        <td><span>Span Text</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        var tbody = table.Children[0];
+        var row = tbody.Children[0];
+        
+        row.Children.Count.ShouldBe(3);
+        
+        // First cell should have text node
+        var cell1 = row.Children[0];
+        cell1.Children.Any(c => c.NodeType == DocumentNodeType.Text).ShouldBeTrue();
+        
+        // Second cell should have strong node
+        var cell2 = row.Children[1];
+        cell2.Children.Any(c => c.NodeType == DocumentNodeType.Strong).ShouldBeTrue();
+        
+        // Third cell should have span node
+        var cell3 = row.Children[2];
+        cell3.Children.Any(c => c.NodeType == DocumentNodeType.Span).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Table_WithBorderAndAlignmentStyles_ShouldParseCorrectly()
+    {
+        // Arrange
+        var html = $$"""
+            <html>
+            <head>
+                <style>
+                    .bordered-table { border: 2px solid black; border-collapse: collapse; }
+                    .header-cell { text-align: center; vertical-align: middle; background-color: {{Colors.LightGray}}; }
+                    .data-cell { text-align: left; vertical-align: top; }
+                    .right-aligned { text-align: right; }
+                </style>
+            </head>
+            <body>
+                <table class="bordered-table">
+                    <thead>
+                        <tr>
+                            <th class="header-cell">Name</th>
+                            <th class="header-cell">Age</th>
+                            <th class="header-cell">City</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="data-cell">John Doe</td>
+                            <td class="data-cell right-aligned">25</td>
+                            <td class="data-cell">New York</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </body>
+            </html>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert
+        var table = document.Children.Single();
+        table.Styles.Border.ShouldBe("2px solid black");
+        table.Styles.BorderCollapse.ShouldBe("collapse");
+
+        var thead = table.Children[0];
+        var headerRow = thead.Children[0];
+        
+        var headerCell1 = headerRow.Children[0];
+        headerCell1.Styles.TextAlign.ShouldBe("center");
+        headerCell1.Styles.VerticalAlign.ShouldBe("middle");
+        headerCell1.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+
+        var tbody = table.Children[1];
+        var dataRow = tbody.Children[0];
+        
+        var dataCell1 = dataRow.Children[0];
+        dataCell1.Styles.TextAlign.ShouldBe("left");
+        dataCell1.Styles.VerticalAlign.ShouldBe("top");
+
+        var dataCell2 = dataRow.Children[1];
+        dataCell2.Styles.TextAlign.ShouldBe("right");
+        dataCell2.Styles.VerticalAlign.ShouldBe("top");
     }
 }

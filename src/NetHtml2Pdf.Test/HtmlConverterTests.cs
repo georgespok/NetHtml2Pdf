@@ -1,3 +1,4 @@
+using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Test.Support;
 using Shouldly;
 using Xunit.Abstractions;
@@ -5,8 +6,15 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test;
 
 [Collection("PdfRendering")]
-public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(output)
+public class HtmlConverterTests : PdfRenderTestBase
 {
+    private readonly ITestOutputHelper _output;
+
+    public HtmlConverterTests(ITestOutputHelper output) : base(output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void ConvertToPdf_ValidHtml_ReturnsPdfBytes()
     {
@@ -117,7 +125,7 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var words = ExtractWords(pdfBytes);
         
         // Debug: Log extracted words to understand what's being extracted
-        output.WriteLine($"Extracted words: [{string.Join(", ", words.Select(w => $"'{w}'"))}]");
+        _output.WriteLine($"Extracted words: [{string.Join(", ", words.Select(w => $"'{w}'"))}]");
         
         // Verify headings are present (match actual extracted words)
         words.Any(w => w.Contains("Introducon") || w.Contains("Introduction")).ShouldBeTrue();
@@ -229,7 +237,7 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var words = ExtractWords(pdfBytes);
         
         // Debug: Log extracted words to understand what's being extracted
-        output.WriteLine($"Extracted words: [{string.Join(", ", words.Select(w => $"'{w}'"))}]");
+        _output.WriteLine($"Extracted words: [{string.Join(", ", words.Select(w => $"'{w}'"))}]");
         
         // Verify all content is present (match actual extracted words)
         words.Any(w => w.Contains("Document")).ShouldBeTrue();
@@ -298,10 +306,10 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
     [Fact]
     public async Task InlineColorStyles_RenderWithCorrectColors()
     {
-        const string html = """
+        var html = $"""
             <p style="color: red;">Red text</p>
             <p style="background-color: yellow;">Yellow background</p>
-            <p style="color: #0000FF; background-color: #FFFF00;">Blue on yellow</p>
+            <p style="color: {Colors.Blue}; background-color: {Colors.Yellow};">Blue on yellow</p>
             """;
         var converter = new HtmlConverter();
 
@@ -315,12 +323,12 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         // Verify red text color
         var redWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Red"));
         redWord.ShouldNotBeNull();
-        redWord.HexColor.ShouldBe("#FF0000");
+        redWord.HexColor.ShouldBe(Colors.Red);
         
         // Verify blue text color
         var blueWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Blue"));
         blueWord.ShouldNotBeNull();
-        blueWord.HexColor.ShouldBe("#0000FF");
+        blueWord.HexColor.ShouldBe(Colors.Blue);
     }
 
     [Fact]
@@ -346,7 +354,7 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         // Verify CSS class color is applied
         var highlightedWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Highlighted"));
         highlightedWord.ShouldNotBeNull();
-        highlightedWord.HexColor.ShouldBe("#FF0000");
+        highlightedWord.HexColor.ShouldBe(Colors.Red);
         
         // Verify CSS class bold is applied
         var boldWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Bold"));
@@ -383,5 +391,246 @@ public class HtmlConverterTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         headingWord.ShouldNotBeNull();
         headingWord.IsBold.ShouldBeTrue();
         headingWord.FontSize.ShouldBeGreaterThan(16.0);
+    }
+
+    [Fact]
+    public async Task Table_BasicStructure_IntegrationTest()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <thead>
+                    <tr>
+                        <th>Header 1</th>
+                        <th>Header 2</th>
+                        <th>Header 3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data 1</td>
+                        <td>Data 2</td>
+                        <td>Data 3</td>
+                    </tr>
+                    <tr>
+                        <td>Data 4</td>
+                        <td>Data 5</td>
+                        <td>Data 6</td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+        var converter = new HtmlConverter();
+
+        // Act
+        var pdfBytes = converter.ConvertToPdf(html);
+
+        // Assert
+        await SavePdfForInspectionAsync(pdfBytes);
+        AssertValidPdf(pdfBytes);
+        
+        var words = ExtractWords(pdfBytes);
+        words.Any(w => w.Contains("Header")).ShouldBeTrue();
+        words.Any(w => w.Contains("Data")).ShouldBeTrue();
+        
+        var pdfWords = GetPdfWords(pdfBytes);
+        // Header cells should be bold
+        var headerWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Header"));
+        headerWord.ShouldNotBeNull();
+        headerWord.IsBold.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Table_WithBordersAndAlignment_IntegrationTest()
+    {
+        // Arrange - Based on table-borders-alignment.md contract
+        var html = $$"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .bordered-table {
+                        border: 2px solid black;
+                        border-collapse: collapse;
+                    }
+                    .header-cell {
+                        background-color: {{Colors.LightGray}};
+                        text-align: center;
+                        vertical-align: middle;
+                    }
+                    .data-cell {
+                        text-align: left;
+                        vertical-align: top;
+                    }
+                    .right-aligned {
+                        text-align: right;
+                    }
+                </style>
+            </head>
+            <body>
+                <table class="bordered-table">
+                    <thead>
+                        <tr>
+                            <th class="header-cell">Name</th>
+                            <th class="header-cell">Age</th>
+                            <th class="header-cell">City</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="data-cell">John Doe</td>
+                            <td class="data-cell right-aligned">25</td>
+                            <td class="data-cell">New York</td>
+                        </tr>
+                        <tr>
+                            <td class="data-cell">Jane Smith</td>
+                            <td class="data-cell right-aligned">30</td>
+                            <td class="data-cell">Los Angeles</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </body>
+            </html>
+            """;
+        var converter = new HtmlConverter();
+
+        // Act
+        var pdfBytes = converter.ConvertToPdf(html);
+
+        // Assert
+        await SavePdfForInspectionAsync(pdfBytes);
+        AssertValidPdf(pdfBytes);
+        
+        var words = ExtractWords(pdfBytes);
+        words.Any(w => w.Contains("Name")).ShouldBeTrue();
+        words.Any(w => w.Contains("Age")).ShouldBeTrue();
+        words.Any(w => w.Contains("City")).ShouldBeTrue();
+        words.Any(w => w.Contains("John")).ShouldBeTrue();
+        words.Any(w => w.Contains("Jane")).ShouldBeTrue();
+        words.Any(w => w.Contains("25")).ShouldBeTrue();
+        words.Any(w => w.Contains("30")).ShouldBeTrue();
+        words.Any(w => w.Contains("York")).ShouldBeTrue();
+        words.Any(w => w.Contains("Angeles")).ShouldBeTrue();
+        
+        var pdfWords = GetPdfWords(pdfBytes);
+        // Verify headers are bold
+        var nameHeader = pdfWords.FirstOrDefault(w => w.Text.Contains("Name"));
+        nameHeader.ShouldNotBeNull();
+        nameHeader.IsBold.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Table_WithComplexContent_IntegrationTest()
+    {
+        // Arrange
+        const string html = """
+            <div class="report">
+                <h2>Sales Report</h2>
+                <p>This is a summary of sales data.</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Widget A</strong></td>
+                            <td>100</td>
+                            <td>$5,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Widget B</strong></td>
+                            <td>75</td>
+                            <td>$3,750</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p>Total revenue: <strong>$8,750</strong></p>
+            </div>
+            """;
+        var converter = new HtmlConverter();
+
+        // Act
+        var pdfBytes = converter.ConvertToPdf(html);
+
+        // Assert
+        await SavePdfForInspectionAsync(pdfBytes);
+        AssertValidPdf(pdfBytes);
+        
+        var words = ExtractWords(pdfBytes);
+        words.Any(w => w.Contains("Sales")).ShouldBeTrue();
+        words.Any(w => w.Contains("Report")).ShouldBeTrue();
+        words.Any(w => w.Contains("Product")).ShouldBeTrue();
+        words.Any(w => w.Contains("Widget")).ShouldBeTrue();
+        words.Any(w => w.Contains("Total") || w.Contains("revenue")).ShouldBeTrue();
+        // Verify table has data
+        words.Any(w => w.Contains("100") || w.Contains("75")).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Table_WithEmptyCells_IntegrationTest()
+    {
+        // Arrange
+        const string html = """
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Cell 1</td>
+                        <td></td>
+                        <td>Cell 3</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Cell 5</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+        var converter = new HtmlConverter();
+
+        // Act
+        var pdfBytes = converter.ConvertToPdf(html);
+
+        // Assert
+        await SavePdfForInspectionAsync(pdfBytes);
+        AssertValidPdf(pdfBytes);
+        
+        var words = ExtractWords(pdfBytes);
+        words.Any(w => w.Contains("Cell")).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Table_WithInlineStyles_IntegrationTest()
+    {
+        // Arrange
+        var html = $$"""
+            <table style="margin: 20px;">
+                <tbody>
+                    <tr>
+                        <td style="background-color: {{Colors.LightGray}}; padding: 10px;">Styled Cell 1</td>
+                        <td style="text-align: center; padding: 10px;">Styled Cell 2</td>
+                        <td style="text-align: right; padding: 10px;">Styled Cell 3</td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+        var converter = new HtmlConverter();
+
+        // Act
+        var pdfBytes = converter.ConvertToPdf(html);
+
+        // Assert
+        await SavePdfForInspectionAsync(pdfBytes);
+        AssertValidPdf(pdfBytes);
+        
+        var words = ExtractWords(pdfBytes);
+        words.Any(w => w.Contains("Styled")).ShouldBeTrue();
+        words.Any(w => w.Contains("Cell")).ShouldBeTrue();
     }
 }

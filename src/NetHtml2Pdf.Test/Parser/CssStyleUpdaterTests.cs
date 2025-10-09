@@ -107,4 +107,86 @@ public class CssStyleUpdaterTests
         // Assert
         styles.ShouldBeSameAs(CssStyleMap.Empty);
     }
+
+    [Theory]
+    [InlineData("text-align", "center")]
+    [InlineData("text-align", "left")]
+    [InlineData("text-align", "right")]
+    public void Apply_ShouldUpdateTextAlignProperty(string propertyName, string value)
+    {
+        // Arrange
+        var styles = CssStyleMap.Empty;
+
+        // Act
+        styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
+
+        // Assert
+        styles.TextAlign.ShouldBe(value);
+    }
+
+    [Theory]
+    [InlineData("vertical-align", "top")]
+    [InlineData("vertical-align", "middle")]
+    [InlineData("vertical-align", "bottom")]
+    public void Apply_ShouldUpdateVerticalAlignProperty(string propertyName, string value)
+    {
+        // Arrange
+        var styles = CssStyleMap.Empty;
+
+        // Act
+        styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
+
+        // Assert
+        styles.VerticalAlign.ShouldBe(value);
+    }
+
+    [Theory]
+    [InlineData("border", "1px solid black")]
+    [InlineData("border", "2px dashed red")]
+    [InlineData("border", "3px dotted blue")]
+    public void Apply_ShouldUpdateBorderProperty(string propertyName, string value)
+    {
+        // Arrange
+        var styles = CssStyleMap.Empty;
+
+        // Act
+        styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
+
+        // Assert
+        styles.Border.ShouldBe(value);
+    }
+
+    [Theory]
+    [InlineData("border-collapse", "collapse")]
+    [InlineData("border-collapse", "separate")]
+    public void Apply_ShouldUpdateBorderCollapseProperty(string propertyName, string value)
+    {
+        // Arrange
+        var styles = CssStyleMap.Empty;
+
+        // Act
+        styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
+
+        // Assert
+        styles.BorderCollapse.ShouldBe(value);
+    }
+
+    [Fact]
+    public void Apply_ShouldUpdateMultipleTableProperties()
+    {
+        // Arrange
+        var styles = CssStyleMap.Empty;
+
+        // Act
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border", "2px solid black"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border-collapse", "collapse"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("text-align", "center"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("vertical-align", "middle"));
+
+        // Assert
+        styles.Border.ShouldBe("2px solid black");
+        styles.BorderCollapse.ShouldBe("collapse");
+        styles.TextAlign.ShouldBe("center");
+        styles.VerticalAlign.ShouldBe("middle");
+    }
 }

@@ -29,6 +29,10 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             "padding-right" => styles.WithPaddingRight(ParseNumeric(declaration.Value)),
             "padding-bottom" => styles.WithPaddingBottom(ParseNumeric(declaration.Value)),
             "padding-left" => styles.WithPaddingLeft(ParseNumeric(declaration.Value)),
+            "text-align" => styles.WithTextAlign(declaration.Value?.Trim()),
+            "vertical-align" => styles.WithVerticalAlign(declaration.Value?.Trim()),
+            "border" => styles.WithBorder(declaration.Value?.Trim()),
+            "border-collapse" => styles.WithBorderCollapse(declaration.Value?.Trim()),
             _ => styles
         };
     }

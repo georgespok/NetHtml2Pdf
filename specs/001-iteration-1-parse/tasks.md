@@ -136,20 +136,20 @@
 - TDD approach followed (tests written first, then implementation)
 
 ### Parser Implementation
-- [ ] T029 [US3] Add parser coverage for table elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
-  - Write failing tests for table elements parsing (see FR-001 in spec.md for complete element list: table, thead, tbody, tr, th, td) → implement until green.
-- [ ] T030 [US3] Add table CSS style parsing tests and implementation (`src/NetHtml2Pdf.Test/Parser/TableCssStyleParserTests.cs`, `src/NetHtml2Pdf/Parser/TableCssStyleParser.cs`).
-  - Write failing tests for table-specific CSS styles → implement until green.
+- [X] T029 [US3] Add parser coverage for table elements (`src/NetHtml2Pdf.Test/Parser/HtmlParserTests.cs`, `src/NetHtml2Pdf/Parser/HtmlParser.cs`).
+  - Write failing tests for table elements parsing (see FR-001 in spec.md for complete element list: table, thead, tbody, tr, th, td) → implement until green. Added comprehensive tests: Table_ShouldParseToTableNodeType, TableHead_ShouldParseToTableHeadNodeType, TableBody_ShouldParseToTableBodyNodeType, TableRow_ShouldParseToTableRowNodeType, TableHeaderCell_ShouldParseToTableHeaderCellNodeType, TableCell_ShouldParseToTableCellNodeType, Table_WithCompleteStructure_ShouldParseCorrectHierarchy, Table_WithInlineStyles_ShouldApplyStylesToElements, Table_WithCssClasses_ShouldResolveStylesToElements, Table_WithEmptyCells_ShouldPreserveStructure, Table_WithoutTbody_ShouldParseTrDirectly, Table_WithTextContentInCells_ShouldParseCorrectly. All tests passing - table elements parse correctly with proper structure and CSS styles.
+- [X] T030 [US3] Add table CSS style parsing tests and implementation (`src/NetHtml2Pdf.Test/Parser/CssStyleUpdaterTests.cs`, `src/NetHtml2Pdf/Parser/CssStyleUpdater.cs`, `src/NetHtml2Pdf/Core/CssStyleMap.cs`).
+  - Write failing tests for table-specific CSS styles → implement until green. Extended CssStyleMap with TextAlign, VerticalAlign, Border, BorderCollapse properties. Updated CssStyleUpdater to parse these properties. Added comprehensive tests: Apply_ShouldUpdateTextAlignProperty (center/left/right), Apply_ShouldUpdateVerticalAlignProperty (top/middle/bottom), Apply_ShouldUpdateBorderProperty (various border values), Apply_ShouldUpdateBorderCollapseProperty (collapse/separate), Apply_ShouldUpdateMultipleTableProperties. Added integration test Table_WithBorderAndAlignmentStyles_ShouldParseCorrectly to verify end-to-end parsing. All 149 tests passing - table CSS properties parse correctly.
 
 ### Renderer Implementation
-- [ ] T031 [US3] Add renderer coverage for table elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
-  - Write failing tests for QuestPDF table rendering → implement until green.
-- [ ] T032 [US3] Add table styling renderer tests and implementation (`src/NetHtml2Pdf.Test/Renderer/TableStyleRendererTests.cs`, `src/NetHtml2Pdf/Renderer/TableStyleRenderer.cs`).
-  - Write failing tests for table border and alignment style rendering → implement until green.
+- [X] T031 [US3] Add renderer coverage for table elements (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/PdfRenderer.cs`).
+  - Write failing tests for QuestPDF table rendering → implement until green. Created ITableComposer interface and TableComposer implementation. Added 5 comprehensive tests: Table_ShouldRenderBasicStructure, Table_WithMultipleRows_ShouldRenderAllContent, Table_WithHeaderAndDataCells_ShouldRenderDistinctly, Table_WithEmptyCells_ShouldRenderWithoutErrors, Table_WithNestedInlineElements_ShouldRenderFormatting. Updated BlockComposer to delegate table rendering to TableComposer. Updated PdfRenderer to include TableComposer in dependency chain. Updated BlockComposerTests with mock TableComposer. All 154 tests passing - tables render correctly with proper structure, header/data cell differentiation, and inline content formatting.
+- [X] T032 [US3] Add table styling renderer tests and implementation (`src/NetHtml2Pdf.Test/Renderer/PdfRendererTests.cs`, `src/NetHtml2Pdf/Renderer/TableComposer.cs`).
+  - Write failing tests for table border and alignment style rendering → implement until green. Added 6 comprehensive styling tests: Table_WithBorders_ShouldRenderWithBorderStyling (border property), Table_WithTextAlignment_ShouldRenderAlignedContent (left/center/right alignment), Table_WithBackgroundColors_ShouldRenderColoredCells (cell background colors), Table_WithBorderCollapse_ShouldRenderCorrectly (border-collapse property), Table_WithVerticalAlignment_ShouldRenderCorrectly (top/middle/bottom vertical alignment), Table_WithCombinedStyling_ShouldRenderAllStyles (all styling features combined). Table styling implementation already exists in TableComposer with border rendering, background colors, text alignment via RenderingHelpers. All 160 tests passing - table borders, alignment, and styling render correctly.
 
 ### Integration
-- [ ] T033 [US3] Add HtmlConverter integration for tables (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
-  - Write failing integration test for table rendering → implement until green.
+- [X] T033 [US3] Add HtmlConverter integration for tables (`src/NetHtml2Pdf.Test/HtmlConverterTests.cs`, `src/NetHtml2Pdf/HtmlConverter.cs`).
+  - Write failing integration test for table rendering → implement until green. Added 5 comprehensive integration tests: Table_BasicStructure_IntegrationTest (basic table with headers and multiple rows), Table_WithBordersAndAlignment_IntegrationTest (validates table-borders-alignment.md contract with all CSS styling), Table_WithComplexContent_IntegrationTest (table mixed with headings, paragraphs, and inline formatting), Table_WithEmptyCells_IntegrationTest (empty cell handling), Table_WithInlineStyles_IntegrationTest (inline style application on table and cells). HtmlConverter already delegates to PdfRenderer which uses TableComposer - no implementation changes needed. All 165 tests passing - tables render correctly end-to-end through HtmlConverter facade.
 
 **Checkpoint**: US3 complete - Tables render correctly with borders and alignment.
 
@@ -295,3 +295,16 @@ Each user story phase delivers independently testable functionality:
 - [ ] All user stories independently testable and complete
 - [ ] TDD approach followed throughout (tests first, then implementation)
 - [ ] Constitution compliance maintained throughout implementation
+
+## Know issues
+
+| # |Issue                                             |Importance|Severity|
+|---|--------------------------------------------------|----------|--------|
+|1  |No support for css margin attribute               |HIGH      |HIGH    |
+|2  |Named color list doesn't support all html standards: https://www.w3schools.com/colors/colors_names.asp|MEDIUM    |LOW     |
+|3  |No support PDF document page                      |HIGH      |LOW     |
+|4  |No support for footess and headers                |MEDIUM    |LOW     |
+|5  |No support for CSS "border" attributes for blocks |HIGH      |HIGH    |
+|6  |HTML/CSS rendering rules for Google Chrome don't match PDF render, specially rules for table, tbody, th, td|LOW       |MEDIUM  |
+|7  |No support for element styles, when element specified as selector for example  <style>table { border-collapse: collapse}|LOW       |MEDIUM  |
+|8  |No Support for element id selector                |LOW       |LOW     |

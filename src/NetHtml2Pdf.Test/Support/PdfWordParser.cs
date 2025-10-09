@@ -1,3 +1,4 @@
+using NetHtml2Pdf.Core;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
@@ -9,7 +10,7 @@ namespace NetHtml2Pdf.Test.Support;
 /// </summary>
 public class PdfWordParser
 {
-    private const string DefaultBlackColor = "#000000";
+    private static readonly string DefaultBlackColor = Colors.Black;
 
     /// <summary>
     /// Extracts all words from a PDF with their styling attributes.

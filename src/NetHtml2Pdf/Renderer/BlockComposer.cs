@@ -6,7 +6,7 @@ namespace NetHtml2Pdf.Renderer;
 
 internal sealed class BlockComposer(
     IInlineComposer inlineComposer, IListComposer listComposer,
-    IBlockSpacingApplier spacingApplier) : IBlockComposer
+    ITableComposer tableComposer, IBlockSpacingApplier spacingApplier) : IBlockComposer
 {
     public void Compose(ColumnDescriptor column, DocumentNode node)
     {
@@ -23,22 +23,16 @@ internal sealed class BlockComposer(
                 ComposeParagraph(column, node);
                 break;
             case DocumentNodeType.Heading1:
-                ComposeHeading(column, node, fontSize: 32, bold: true);
-                break;
             case DocumentNodeType.Heading2:
-                ComposeHeading(column, node, fontSize: 24, bold: true);
-                break;
             case DocumentNodeType.Heading3:
-                ComposeHeading(column, node, fontSize: 19, bold: true);
-                break;
             case DocumentNodeType.Heading4:
-                ComposeHeading(column, node, fontSize: 16, bold: true);
-                break;
             case DocumentNodeType.Heading5:
-                ComposeHeading(column, node, fontSize: 13, bold: true);
-                break;
             case DocumentNodeType.Heading6:
-                ComposeHeading(column, node, fontSize: 11, bold: true);
+                var headingSize = RenderingHelpers.GetHeadingFontSize(node.NodeType);
+                if (headingSize.HasValue)
+                {
+                    ComposeHeading(column, node, fontSize: headingSize.Value, bold: true);
+                }
                 break;
             case DocumentNodeType.List:
             case DocumentNodeType.UnorderedList:
@@ -46,6 +40,9 @@ internal sealed class BlockComposer(
                 break;
             case DocumentNodeType.OrderedList:
                 listComposer.Compose(column, node, ordered: true, Compose);
+                break;
+            case DocumentNodeType.Table:
+                tableComposer.Compose(column, node);
                 break;
                 
             case DocumentNodeType.ListItem:                
@@ -56,7 +53,6 @@ internal sealed class BlockComposer(
             case DocumentNodeType.Italic:
             case DocumentNodeType.Text:
             case DocumentNodeType.LineBreak:
-            case DocumentNodeType.Table:
             case DocumentNodeType.TableHead:
             case DocumentNodeType.TableBody:
             case DocumentNodeType.TableSection:

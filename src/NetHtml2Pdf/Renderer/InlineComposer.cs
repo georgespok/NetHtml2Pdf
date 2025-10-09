@@ -69,7 +69,7 @@ internal sealed class InlineComposer : IInlineComposer
 
         if (!string.IsNullOrEmpty(style.Color))
         {
-            var hexColor = ConvertToHexColor(style.Color);
+            var hexColor = RenderingHelpers.ConvertToHexColor(style.Color);
             if (hexColor != null)
             {
                 span.FontColor(hexColor);
@@ -78,33 +78,11 @@ internal sealed class InlineComposer : IInlineComposer
 
         if (!string.IsNullOrEmpty(style.BackgroundColor))
         {
-            var hexColor = ConvertToHexColor(style.BackgroundColor);
+            var hexColor = RenderingHelpers.ConvertToHexColor(style.BackgroundColor);
             if (hexColor != null)
             {
                 span.BackgroundColor(hexColor);
             }
         }
-    }
-
-    private static string? ConvertToHexColor(string color)
-    {
-        if (color.StartsWith("#"))
-            return color;
-
-        // Convert common named colors to hex
-        return color.ToLowerInvariant() switch
-        {
-            "red" => "#FF0000",
-            "blue" => "#0000FF",
-            "green" => "#008000",
-            "yellow" => "#FFFF00",
-            "black" => "#000000",
-            "white" => "#FFFFFF",
-            "gray" or "grey" => "#808080",
-            "orange" => "#FFA500",
-            "purple" => "#800080",
-            "pink" => "#FFC0CB",
-            _ => color.StartsWith("#") ? color : null
-        };
     }
 }
