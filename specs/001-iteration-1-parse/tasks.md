@@ -13,11 +13,13 @@
    -> contracts/: core-paragraphs, fallback-unsupported-tag, table-borders-alignment → contract tests.
    -> research.md: Technology decisions → setup and validation tasks.
 3. Generate tasks honoring constitution (TDD approach):
-   -> Tests FIRST before implementation (red-green-refactor cycle).
+   -> Classic red-green-refactor cycle: write ONE failing test → implement minimal code to pass → refactor → repeat.
+   -> Only ONE test failing at a time within each task.
+   -> Test concrete implementations only - do NOT test interfaces themselves (interfaces validated through implementation).
    -> Maintain layer boundaries (Core → Parser → Renderer → Facade).
    -> Comprehensive test coverage for classes with business logic and complex behavior.
 4. Apply dependency rules.
-   -> Tests precede implementation within the SAME task via red/green loop.
+   -> Tests precede implementation within the SAME task via incremental red/green loops.
    -> Sequential ordering enforced when files overlap.
 5. Number tasks sequentially (T001, T002, ...).
 6. Validate readiness after each task (tests passing, docs updated when required).
@@ -296,7 +298,7 @@ Each user story phase delivers independently testable functionality:
 - [ ] TDD approach followed throughout (tests first, then implementation)
 - [ ] Constitution compliance maintained throughout implementation
 
-## Know issues
+## Known issues
 
 | # |Issue                                             |Importance|Severity|
 |---|--------------------------------------------------|----------|--------|

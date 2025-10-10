@@ -7,6 +7,7 @@ using NetHtml2Pdf.Renderer.Interfaces;
 
 namespace NetHtml2Pdf;
 
+[Obsolete("HtmlConverter is deprecated. Use PdfBuilder instead. This class will be removed in a future version.")]
 public class HtmlConverter : IHtmlConverter
 {
     private readonly IHtmlParser _parser;
