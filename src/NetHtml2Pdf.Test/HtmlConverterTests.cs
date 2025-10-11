@@ -18,10 +18,10 @@ public class HtmlConverterTests : PdfRenderTestBase
     [Fact]
     public void ConvertToPdf_ValidHtml_ReturnsPdfBytes()
     {
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
         const string html = "<h1>Test</h1>";
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         AssertValidPdf(pdfBytes);
     }
@@ -35,9 +35,9 @@ public class HtmlConverterTests : PdfRenderTestBase
               <p><span class="em" style="font-style: italic;">Iteration 1</span> handles <br />line breaks.</p>
             </div>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
 
@@ -65,9 +65,9 @@ public class HtmlConverterTests : PdfRenderTestBase
     {
         // Test with single list first to isolate the issue
         const string html = "<ul><li>First</li><li>Second</li></ul>";
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
 
@@ -113,8 +113,8 @@ public class HtmlConverterTests : PdfRenderTestBase
             </section>
             """;
         
-        var converter = new HtmlConverter();
-        var pdfBytes = converter.ConvertToPdf(html);
+        var builder = new PdfBuilder();
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
 
@@ -176,8 +176,8 @@ public class HtmlConverterTests : PdfRenderTestBase
             </div>
             """;
         
-        var converter = new HtmlConverter();
-        var pdfBytes = converter.ConvertToPdf(html);
+        var builder = new PdfBuilder();
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
 
@@ -225,8 +225,8 @@ public class HtmlConverterTests : PdfRenderTestBase
             </section>
             """;
         
-        var converter = new HtmlConverter();
-        var pdfBytes = converter.ConvertToPdf(html);
+        var builder = new PdfBuilder();
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
 
@@ -251,11 +251,11 @@ public class HtmlConverterTests : PdfRenderTestBase
     [Fact]
     public void ConvertToPdf_EmptyHtml_ThrowsArgumentException()
     {
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var exception = Assert.Throws<ArgumentException>(() => converter.ConvertToPdf(string.Empty));
-        exception.ParamName.ShouldBe("html");
-        exception.Message.ShouldStartWith("HTML content cannot be null or empty");
+        var exception = Assert.Throws<ArgumentException>(() => builder.AddPage(string.Empty));
+        exception.ParamName.ShouldBe("htmlContent");
+        exception.Message.ShouldStartWith("HTML content cannot be empty or whitespace");
     }
 
     [Theory]
@@ -267,9 +267,9 @@ public class HtmlConverterTests : PdfRenderTestBase
     [InlineData("<h6>Heading 6</h6>", "Heading", 11.0)]
     public void Headings_RenderWithCorrectSizeAndBoldness(string html, string expectedText, double expectedFontSize)
     {
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         AssertValidPdf(pdfBytes);
         
@@ -287,9 +287,9 @@ public class HtmlConverterTests : PdfRenderTestBase
     [InlineData("<p><strong>Strong</strong></p>", "Strong", true, false)]
     public async void TextEmphasis_RenderWithCorrectStyles(string html, string targetWord, bool expectedBold, bool expectedItalic)
     {
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         AssertValidPdf(pdfBytes);
         
@@ -311,9 +311,9 @@ public class HtmlConverterTests : PdfRenderTestBase
             <p style="background-color: yellow;">Yellow background</p>
             <p style="color: {Colors.Blue}; background-color: {Colors.Yellow};">Blue on yellow</p>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
         AssertValidPdf(pdfBytes);
@@ -342,9 +342,9 @@ public class HtmlConverterTests : PdfRenderTestBase
             <p class="highlight">Highlighted text</p>
             <p class="bold-text">Bold styled text</p>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         await SavePdfForInspectionAsync(pdfBytes);
         AssertValidPdf(pdfBytes);
@@ -369,9 +369,9 @@ public class HtmlConverterTests : PdfRenderTestBase
             <p><b>Bold text</b> and <i>italic text</i></p>
             <h1>Large Heading</h1>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         AssertValidPdf(pdfBytes);
         var pdfWords = GetPdfWords(pdfBytes);
@@ -420,10 +420,10 @@ public class HtmlConverterTests : PdfRenderTestBase
                 </tbody>
             </table>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
         // Act
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         // Assert
         await SavePdfForInspectionAsync(pdfBytes);
@@ -492,10 +492,10 @@ public class HtmlConverterTests : PdfRenderTestBase
             </body>
             </html>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
         // Act
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         // Assert
         await SavePdfForInspectionAsync(pdfBytes);
@@ -553,10 +553,10 @@ public class HtmlConverterTests : PdfRenderTestBase
                 <p>Total revenue: <strong>$8,750</strong></p>
             </div>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
         // Act
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         // Assert
         await SavePdfForInspectionAsync(pdfBytes);
@@ -592,10 +592,10 @@ public class HtmlConverterTests : PdfRenderTestBase
                 </tbody>
             </table>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
         // Act
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         // Assert
         await SavePdfForInspectionAsync(pdfBytes);
@@ -620,10 +620,10 @@ public class HtmlConverterTests : PdfRenderTestBase
                 </tbody>
             </table>
             """;
-        var converter = new HtmlConverter();
+        var builder = new PdfBuilder();
 
         // Act
-        var pdfBytes = converter.ConvertToPdf(html);
+        var pdfBytes = builder.AddPage(html).Build();
 
         // Assert
         await SavePdfForInspectionAsync(pdfBytes);
