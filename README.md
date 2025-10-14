@@ -51,8 +51,11 @@ var html = @"
     </table>
 ";
 
-var converter = new HtmlConverter();
-var pdfBytes = await converter.ConvertToPdf(html);
+var builder = new PdfBuilder();
+var pdfBytes = builder
+    .AddPage(html)
+    .Build();
+
 await File.WriteAllBytesAsync("output.pdf", pdfBytes);
 ```
 
@@ -64,8 +67,11 @@ await File.WriteAllBytesAsync("output.pdf", pdfBytes);
 Example (right-aligned header, centered footer):
 
 ```csharp
-builder.SetHeaderHtml("<div style='text-align: right; padding: 8px; color: #333; font-size: 12px;'>My Company</div>");
-builder.SetFooterHtml("<div style='text-align: center; padding: 6px; color: #666; font-size: 10px;'><em>Confidential</em></div>");
+var pdf = builder
+    .SetHeader("<div style='text-align: right; padding: 8px; color: #333; font-size: 12px;'>My Company</div>")
+    .SetFooter("<div style='text-align: center; padding: 6px; color: #666; font-size: 10px;'><em>Confidential</em></div>")
+    .AddPage(html)
+    .Build();
 ```
 
 ### Console Samples

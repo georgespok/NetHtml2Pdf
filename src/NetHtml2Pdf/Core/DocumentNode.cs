@@ -26,7 +26,7 @@ internal class DocumentNode
 
     public CssStyleMap Styles { get; }
 
-    public IReadOnlyList<DocumentNode> Children => _children;
+    public IReadOnlyList<DocumentNode> Children => _children.AsReadOnly();
 
     public void AddChild(DocumentNode child)
     {

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 namespace NetHtml2Pdf.TestConsole
 {
     /// <summary>
@@ -5,11 +6,6 @@ namespace NetHtml2Pdf.TestConsole
     /// </summary>
     public class Program
     {
-        /// <summary>
-        /// Main entry point for the console application
-        /// </summary>
-        /// <param name="args">Command line arguments: input.html [output.pdf]</param>
-        /// <returns>Task representing the asynchronous operation</returns>
         public static async Task Main(string[] args)
         {
             // Parse command line arguments
@@ -49,42 +45,57 @@ namespace NetHtml2Pdf.TestConsole
             {
                 Directory.CreateDirectory(outputDir);
             }
-
+            
             try
             {
                 // Read HTML content from file
                 var htmlContent = await File.ReadAllTextAsync(inputFile);
 
-                // Convert HTML to PDF
-                var converter = new HtmlConverter();
-                var pdfBytes = converter.ConvertToPdf(htmlContent);
+                Console.WriteLine("Converting HTML to PDF...");
+                Console.WriteLine($"Input file: {Path.GetFullPath(inputFile)}");
+                Console.WriteLine($"Output file: {Path.GetFullPath(outputPath)}");
+                Console.WriteLine();
+
+                // Create console logger and options, pass into PdfBuilder
+                using var loggerFactory = LoggerFactory.Create(b =>
+                {
+                    b.AddSimpleConsole();
+                    b.SetMinimumLevel(LogLevel.Information);
+                });
+                var builder = new PdfBuilder(loggerFactory.CreateLogger<PdfBuilder>());
+                var pdfBytes = builder.AddPage(htmlContent).Build();
                 
                 // Write PDF to output file
                 await File.WriteAllBytesAsync(outputPath, pdfBytes);
                 
-                Console.WriteLine("PDF created successfully!");
-                Console.WriteLine($"Input file: {Path.GetFullPath(inputFile)}");
-                Console.WriteLine($"Output file: {Path.GetFullPath(outputPath)}");
-                Console.WriteLine($"File size: {pdfBytes.Length:N0} bytes");
+                Console.WriteLine("✅ PDF created successfully!");
+                Console.WriteLine($"📄 File size: {pdfBytes.Length:N0} bytes");
+                Console.WriteLine();
+
+                // Warnings are logged via ILogger; no need to query builder for warnings
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating PDF: {ex.Message}");
+                Console.WriteLine($"❌ Error creating PDF: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
-        }
+        }        
 
-        /// <summary>
-        /// Displays usage information for the console application
-        /// </summary>
         private static void ShowUsage()
         {
             Console.WriteLine("Usage: NetHtml2Pdf.TestConsole <input.html> [output.pdf]");
+            Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  NetHtml2Pdf.TestConsole example.html");
             Console.WriteLine("  NetHtml2Pdf.TestConsole example.html output.pdf");
             Console.WriteLine("  NetHtml2Pdf.TestConsole example.html C:\\temp\\report.pdf");
             Console.WriteLine("  NetHtml2Pdf.TestConsole example.html ./reports/monthly-report.pdf");
+            Console.WriteLine();
+            Console.WriteLine("Features:");
+            Console.WriteLine("  • Converts HTML files to PDF");
+            Console.WriteLine("  • Displays warnings for unsupported elements");
+            Console.WriteLine("  • Shows fallback element processing information");
+            Console.WriteLine("  • Supports relative and absolute output paths");
         }
     }
 }

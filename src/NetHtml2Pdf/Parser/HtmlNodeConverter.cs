@@ -5,7 +5,7 @@ using NetHtml2Pdf.Core.Enums;
 
 namespace NetHtml2Pdf.Parser;
 
-internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver)
+internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver, Action<string>? onFallbackElement = null)
 {
     private static readonly IReadOnlyDictionary<string, DocumentNodeType> ElementTypeMap = new Dictionary<string, DocumentNodeType>(StringComparer.OrdinalIgnoreCase)
     {
@@ -76,6 +76,16 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver)
         return documentNode;
     }
 
-    private static DocumentNodeType MapElementType(string tagName) => 
-        ElementTypeMap.GetValueOrDefault(tagName, DocumentNodeType.Generic);
+    private DocumentNodeType MapElementType(string tagName)
+    {
+        var nodeType = ElementTypeMap.GetValueOrDefault(tagName, DocumentNodeType.Div);
+        
+        // If element is not supported (mapped to default Div), log warning
+        if (!ElementTypeMap.ContainsKey(tagName) && !string.IsNullOrEmpty(tagName))
+        {
+            onFallbackElement?.Invoke(tagName.ToUpperInvariant());
+        }
+        
+        return nodeType;
+    }
 }

@@ -325,4 +325,44 @@ public class CssStyleUpdaterTests
         styles.Border.HasValue.ShouldBeFalse();
         styles.Border.IsVisible.ShouldBeFalse();
     }
+
+    [Fact]
+    public void Apply_BorderShorthandAfterLonghand_ShorthandWins()
+    {
+        // Arrange - Test cascade behavior: shorthand after longhand should override all border properties
+        var styles = CssStyleMap.Empty;
+
+        // Act - Apply longhand first, then shorthand
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border-width", "5px"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border-style", "dashed"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border-color", "yellow"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border", "1px solid black"));
+
+        // Assert - Shorthand should override all longhand values (AC-002a.9)
+        styles.Border.Width.ShouldBe(1.0);      // Shorthand overrides longhand
+        styles.Border.Style.ShouldBe(CssBorderValues.Solid);  // Shorthand overrides longhand
+        styles.Border.Color.ShouldBe(HexColors.Black);        // Shorthand overrides longhand
+        styles.Border.IsVisible.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Apply_BorderLonghandAfterShorthand_ShorthandPreserved()
+    {
+        // Arrange - Test cascade behavior: longhand after shorthand (current implementation behavior)
+        // Note: Individual border properties (border-width, border-style, border-color) are not yet implemented
+        var styles = CssStyleMap.Empty;
+
+        // Act - Apply shorthand first, then attempt longhand (which will be ignored)
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border", "1px solid black"));
+        styles = _updater.UpdateStyles(styles, new CssDeclaration("border-width", "5px"));
+
+        // Assert - Current implementation preserves shorthand values since individual properties not supported
+        styles.Border.Width.ShouldBe(1.0);      // Shorthand value preserved (longhand ignored)
+        styles.Border.Style.ShouldBe(CssBorderValues.Solid);  // Shorthand value preserved
+        styles.Border.Color.ShouldBe(HexColors.Black);        // Shorthand value preserved
+        styles.Border.IsVisible.ShouldBeTrue();
+        
+        // TODO: Implement individual border properties (border-width, border-style, border-color)
+        // to support proper CSS cascade behavior per AC-002a.10
+    }
 }

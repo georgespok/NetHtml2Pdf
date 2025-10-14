@@ -7,33 +7,20 @@ namespace NetHtml2Pdf.Parser;
 internal class HtmlParser : IHtmlParser
 {
     private readonly AngleSharp.Html.Parser.HtmlParser _angleSharpParser;
-    private readonly ICssDeclarationParser _declarationParser;
-    private readonly ICssDeclarationUpdater _declarationUpdater;
     private readonly ICssClassStyleExtractor _classStyleExtractor;
-
-    public HtmlParser()
-        : this(
-            new AngleSharp.Html.Parser.HtmlParser(),
-            new CssDeclarationParser(),
-            new CssStyleUpdater(),
-            null)
-    {
-    }
+    private readonly Action<string>? _onFallbackElement;
 
     internal HtmlParser(
         AngleSharp.Html.Parser.HtmlParser angleSharpParser,
-        ICssDeclarationParser declarationParser,
-        ICssDeclarationUpdater declarationUpdater,
-        ICssClassStyleExtractor? classStyleExtractor)
+        ICssClassStyleExtractor classStyleExtractor,
+        Action<string>? onFallbackElement)
     {
         ArgumentNullException.ThrowIfNull(angleSharpParser);
-        ArgumentNullException.ThrowIfNull(declarationParser);
-        ArgumentNullException.ThrowIfNull(declarationUpdater);
+        ArgumentNullException.ThrowIfNull(classStyleExtractor);
 
         _angleSharpParser = angleSharpParser;
-        _declarationParser = declarationParser;
-        _declarationUpdater = declarationUpdater;
-        _classStyleExtractor = classStyleExtractor ?? new CssClassStyleExtractor(_declarationParser, _declarationUpdater);
+        _classStyleExtractor = classStyleExtractor;
+        _onFallbackElement = onFallbackElement;
     }
 
     public DocumentNode Parse(string html)
@@ -45,8 +32,8 @@ internal class HtmlParser : IHtmlParser
 
         var angleSharpDocument = _angleSharpParser.ParseDocument(html);
         var classStyles = _classStyleExtractor.Extract(angleSharpDocument);
-        var styleResolver = new CssStyleResolver(classStyles, _declarationParser, _declarationUpdater);
-        var nodeConverter = new HtmlNodeConverter(styleResolver);
+        var styleResolver = new CssStyleResolver(classStyles, _classStyleExtractor.DeclarationParser, _classStyleExtractor.DeclarationUpdater);
+        var nodeConverter = new HtmlNodeConverter(styleResolver, _onFallbackElement);
 
         var root = new DocumentNode(DocumentNodeType.Document);
         var body = angleSharpDocument.Body;

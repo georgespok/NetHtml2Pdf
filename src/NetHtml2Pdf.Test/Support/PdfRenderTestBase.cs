@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Support;
@@ -10,7 +12,7 @@ namespace NetHtml2Pdf.Test.Support;
 [CollectionDefinition("PdfRendering", DisableParallelization = true)]
 public abstract class PdfRenderTestBase(ITestOutputHelper output) : PdfValidationTestBase
 {
-    protected static readonly PdfWordParser WordParser = new();
+    protected ITestOutputHelper Output => output;
 
     #region PDF Word Extraction
 
@@ -18,13 +20,99 @@ public abstract class PdfRenderTestBase(ITestOutputHelper output) : PdfValidatio
     /// Extracts all words from a PDF with their styling attributes.
     /// </summary>
     protected static IReadOnlyList<PdfWord> GetPdfWords(byte[] pdfBytes) =>
-        WordParser.GetWords(pdfBytes);
+        PdfWordParser.GetStyledWords(pdfBytes);
 
     /// <summary>
     /// Extracts all words from a PDF as strings for simple text validation.
     /// </summary>
     protected static string[] ExtractWords(byte[] pdfBytes) =>
-        WordParser.GetWords(pdfBytes).Select(w => w.Text).ToArray();
+        PdfWordParser.GetTextWords(pdfBytes);
+
+    #endregion
+
+    #region DocumentNode Builders
+
+    internal static DocumentNode Document(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Document), children);
+
+    internal static DocumentNode Div(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Div), children);
+
+    internal static DocumentNode Div(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Div, styles: styles), children);
+
+    internal static DocumentNode Section(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Section), children);
+
+    internal static DocumentNode Paragraph(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Paragraph), children);
+
+    internal static DocumentNode Paragraph(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Paragraph, styles: styles), children);
+
+    internal static DocumentNode Span(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Span, styles: styles), children);
+
+    internal static DocumentNode Strong(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Strong), children);
+
+    internal static DocumentNode Italic(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Italic), children);
+
+    internal static DocumentNode UnorderedList(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.UnorderedList), children);
+
+    internal static DocumentNode OrderedList(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.OrderedList), children);
+
+    internal static DocumentNode ListItem(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.ListItem), children);
+
+    internal static DocumentNode Heading(DocumentNodeType type, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(type), children);
+
+    internal static DocumentNode Table(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Table), children);
+
+    internal static DocumentNode Table(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.Table, styles: styles), children);
+
+    internal static DocumentNode TableHead(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableHead), children);
+
+    internal static DocumentNode TableBody(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableBody), children);
+
+    internal static DocumentNode TableRow(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableRow), children);
+
+    internal static DocumentNode TableHeaderCell(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableHeaderCell), children);
+
+    internal static DocumentNode TableHeaderCell(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableHeaderCell, styles: styles), children);
+
+    internal static DocumentNode TableCell(params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableCell), children);
+
+    internal static DocumentNode TableCell(CssStyleMap styles, params DocumentNode[] children) =>
+        AddChildren(new DocumentNode(DocumentNodeType.TableCell, styles: styles), children);
+
+    internal static DocumentNode Text(string text, CssStyleMap? styles = null) =>
+        new(DocumentNodeType.Text, text, styles ?? CssStyleMap.Empty);
+
+    internal static DocumentNode LineBreak() =>
+        new(DocumentNodeType.LineBreak);
+
+    private static DocumentNode AddChildren(DocumentNode node, params DocumentNode[] children)
+    {
+        foreach (var child in children)
+        {
+            node.AddChild(child);
+        }
+
+        return node;
+    }
 
     #endregion
 
@@ -64,3 +152,4 @@ public abstract class PdfRenderTestBase(ITestOutputHelper output) : PdfValidatio
 
     #endregion
 }
+

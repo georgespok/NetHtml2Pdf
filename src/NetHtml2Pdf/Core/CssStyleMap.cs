@@ -130,12 +130,13 @@ internal sealed class CssStyleMap
 
         var margin = BoxSpacing.Merge(Margin, other.Margin);
         var padding = BoxSpacing.Merge(Padding, other.Padding);
+        var border = other.Border.HasValue ? other.Border : Border;
 
+        // Other properties (color, font, etc.) should be inherited from parent
         var color = other.Color ?? Color;
         var backgroundColor = other.BackgroundColor ?? BackgroundColor;
         var textAlign = other.TextAlign ?? TextAlign;
         var verticalAlign = other.VerticalAlign ?? VerticalAlign;
-        var border = other.Border.HasValue ? other.Border : Border;
         var borderCollapse = other.BorderCollapse ?? BorderCollapse;
 
         return new CssStyleMap(fontStyle, fontStyleSet, bold, boldSet, decoration, decorationSet, lineHeight, margin, padding, color, backgroundColor, textAlign, verticalAlign, border, borderCollapse);

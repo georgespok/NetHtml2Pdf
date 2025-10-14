@@ -6,8 +6,10 @@ var html = @"<section>
 <p>Timestamp:" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + @"</p>
 </section>";
 
-var converter = new HtmlConverter();
-var pdfBytes = converter.ConvertToPdf(html);
+var converter = new PdfBuilder();
+var pdfBytes = converter
+    .AddPage(html)
+    .Build();
 
 var output = Path.Combine(Path.GetTempPath(), "sandbox-test.pdf");
 await File.WriteAllBytesAsync(output, pdfBytes);

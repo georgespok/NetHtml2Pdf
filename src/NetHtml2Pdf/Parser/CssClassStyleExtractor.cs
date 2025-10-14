@@ -11,6 +11,8 @@ namespace NetHtml2Pdf.Parser;
 /// </summary>
 internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationParser, ICssDeclarationUpdater declarationUpdater) : ICssClassStyleExtractor
 {
+    public ICssDeclarationParser DeclarationParser { get; } = declarationParser;
+    public ICssDeclarationUpdater DeclarationUpdater { get; } = declarationUpdater;
     private static readonly Regex ClassRuleRegex = 
         new(CssRegexPatterns.ClassRule, 
         RegexOptions.Compiled | RegexOptions.Multiline);
@@ -49,9 +51,9 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
     private CssStyleMap BuildStyleMap(string declarations)
     {
         var styles = CssStyleMap.Empty;
-        foreach (var declaration in declarationParser.Parse(declarations))
+        foreach (var declaration in DeclarationParser.Parse(declarations))
         {
-            styles = declarationUpdater.UpdateStyles(styles, declaration);
+            styles = DeclarationUpdater.UpdateStyles(styles, declaration);
         }
 
         return styles;

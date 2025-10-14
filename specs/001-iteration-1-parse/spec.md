@@ -80,6 +80,14 @@
 - **REQUIRED**: Follow Test-Driven Development (TDD) approach: write ONE failing test → implement minimal code to pass → refactor → repeat
 
 ### Unit Testing Standards
+- **REQUIRED**: Coverage scoring system prioritizes testing based on method complexity and business criticality
+- **REQUIRED**: Coverage score formula is applied: `Score = (0.4 × CyclomaticComplexity) + (0.3 × BusinessCriticality) + (0.2 × ChangeFrequency) + (0.1 × DefectHistory)`
+- **REQUIRED**: Testing priorities are enforced based on score thresholds:
+  - Score < 5: Low priority - No tests required
+  - Score 5-7: Medium priority - Standard test coverage
+  - Score > 7: High priority - Comprehensive test coverage (must test)
+- **REQUIRED**: Low priority methods (Score < 5) are ignored to reduce maintenance overhead
+- **REQUIRED**: Focus testing effort on Medium and High priority methods (Score ≥ 5)
 - **REQUIRED**: Theory tests (`[Theory]` with `[InlineData]`) are PRIORITY for parameterized testing scenarios
 - **REQUIRED**: Analyze test classes regularly to ensure optimal organization using xUnit features
 - **REQUIRED**: Consolidate similar test scenarios using `[Theory]` with `[InlineData]`, `[MemberData]`, or `[ClassData]`
@@ -93,6 +101,41 @@
 - **REQUIRED**: Use descriptive test method names following the pattern: `MethodName_Scenario_ExpectedResult`
 - **REQUIRED**: Organize tests by functionality, not by implementation details
 - **REQUIRED**: Refactor tests regularly to improve maintainability and reduce duplication
+- **REQUIRED**: Review coverage scores regularly as code evolves and business requirements change
+
+### Integration Testing Standards
+- **REQUIRED**: Integration tests focus on cross-module communication with minimal number of tests and maximum coverage
+- **REQUIRED**: IntegrationTests class is used for MODULE INTEGRATION ONLY - testing component interactions and contracts between modules
+- **REQUIRED**: IntegrationTests class contains a SMALL NUMBER of tests for end-to-end testing scenarios that validate cross-module workflows
+- **REQUIRED**: Integration score formula is applied: `IntegrationScore = (0.3 × CrossModule) + (0.3 × ExternalDependency) + (0.3 × Criticality) + (0.1 × Transactional)`
+- **REQUIRED**: Integration testing priorities are enforced based on score thresholds:
+  - Score ≥ 7: High priority - Must have integration test
+  - Score 5-6: Medium priority - Desirable integration test
+  - Score < 5: Low priority - Rely on unit tests only
+- **REQUIRED**: One integration test per major use case, not per method
+- **REQUIRED**: Simulate full transaction flow: request → domain → persistence
+- **REQUIRED**: Test the "contract" not the "internals"
+- **REQUIRED**: Avoid duplicating unit-level assertions; focus on integration outcomes
+- **REQUIRED**: Focus on major use cases rather than individual method combinations
+- **REQUIRED**: Test end-to-end workflows that span multiple modules
+- **REQUIRED**: Verify integration contracts between components
+- **REQUIRED**: Minimize test duplication with unit tests
+- **REQUIRED**: Use real or realistic dependencies where appropriate
+- **REQUIRED**: Test error propagation across module boundaries
+
+### Ultimate Integration Testing Standards
+- **REQUIRED**: Ultimate integration tests validate the complete HTML-to-PDF rendering pipeline with extensive HTML/CSS coverage
+- **REQUIRED**: Ultimate tests are a SMALL SUBSET of IntegrationTests class - specifically the comprehensive end-to-end tests like `FullDocument_Rendering_SmokeTest`
+- **REQUIRED**: Ultimate tests include comprehensive HTML structure coverage (document, typography, lists, tables, containers)
+- **REQUIRED**: Ultimate tests include comprehensive CSS styling coverage (font, layout, visual, table properties)
+- **REQUIRED**: Ultimate tests include multi-page features (headers, footers, cross-page consistency)
+- **REQUIRED**: Ultimate tests generate PDF files saved with `SavePdfForInspectionAsync()` for visual comparison
+- **REQUIRED**: Ultimate tests validate both content and styling through automated word extraction and analysis
+- **REQUIRED**: Ultimate tests combine headers, footers, tables, lists, styling, and formatting in realistic scenarios
+- **REQUIRED**: Ultimate tests serve as final validation of system capabilities and produce visual PDF outputs
+- **REQUIRED**: Ultimate tests are mandatory regardless of integration score due to their comprehensive validation value
+- **REQUIRED**: Ultimate tests follow the `FullDocument_Rendering_SmokeTest` pattern for comprehensive coverage
+- **REQUIRED**: Ultimate tests include both structural validation (content presence) and styling validation (formatting verification)
 
 ---
 
@@ -172,14 +215,12 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **FR-003**: Users MUST be able to provide HTML content through the public `IPdfBuilder` interface implemented by `PdfBuilder` class. The API MUST follow a classical fluent builder pattern with `Reset()` to clear state, `SetHeader(string html)` and `SetFooter(string html)` for defining repeated content, `AddPage(string html)` for adding pages, and `Build(ConverterOptions? options = null)` as the finalization method returning byte array. All methods MUST return `IPdfBuilder` to support method chaining. The legacy `IHtmlConverter` interface and `HtmlConverter` class are completely removed (breaking change). Dependency injection MUST provide `services.AddPdfBuilder()` extension method; the legacy `AddHtml2Pdf()` is deprecated.
 - **FR-004**: System MUST rely solely on managed .NET dependencies (QuestPDF, AngleSharp) without introducing GDI+ or native rendering libraries to ensure inherent cross-platform compatibility. **MUST** validate managed-only constraint through dependency audit (`dotnet list package --include-transitive`) confirming all dependencies are managed .NET libraries. Cross-platform issues will be addressed reactively as they arise.
 - **FR-005**: System MUST route unsupported HTML elements to a generic fallback renderer that attempts best-effort output and surfaces clear warnings describing the degraded behavior.
-- **FR-006**: System MUST include regression tests and fixtures covering each supported tag and representative combinations (paragraphs, lists, tables). **MUST** follow Test-Driven Development (TDD) approach using the red-green-refactor cycle: write ONE failing test → implement minimal code to pass → refactor → repeat. Only ONE test should be failing at a time. Write test FIRST before implementing any feature, make it pass with minimal code, then write the next test. **MUST** test concrete implementations only - do NOT create tests for interfaces themselves (interfaces are contracts validated by implementation tests). **MUST** treat tests as first-class code applying clean code principles, SOLID, DRY, and KISS. **MUST** use `[Theory]` with `[InlineData]` to consolidate similar test scenarios, create helper methods to eliminate repetitive arrange sections, and keep test methods short and focused (ideally under 15 lines). Integration tests prefixed with `Iteration1_*` in `HtmlConverterTests` serve as contract validation for the specifications defined in `contracts/` directory.
+- **FR-006**: System MUST include comprehensive testing covering each supported tag and representative combinations (paragraphs, lists, tables). **MUST** follow Test-Driven Development (TDD) approach using the red-green-refactor cycle: write ONE failing test → implement minimal code to pass → refactor → repeat. Only ONE test should be failing at a time. Write test FIRST before implementing any feature, make it pass with minimal code, then write the next test. **MUST** test concrete implementations only - do NOT create tests for interfaces themselves (interfaces are contracts validated by implementation tests). **MUST** treat tests as first-class code applying clean code principles, SOLID, DRY, and KISS. **MUST** use `[Theory]` with `[InlineData]` to consolidate similar test scenarios, create helper methods to eliminate repetitive arrange sections, and keep test methods short and focused (ideally under 15 lines). **MUST** achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. Focus test coverage on High Priority areas: classes with business logic, algorithms, validation, parsing, rendering, and complex state management. Medium Priority areas include classes with moderate complexity, data transformation, or integration points. Low Priority areas (simple data containers, property setters, enums, basic value objects) are optional. **MUST** use coverage scoring system to prioritize testing based on method complexity and business criticality with formula: `Score = (0.4 × CyclomaticComplexity) + (0.3 × BusinessCriticality) + (0.2 × ChangeFrequency) + (0.1 × DefectHistory)`. Testing priorities are enforced based on score thresholds: Score < 5 (Low priority - No tests required), Score 5-7 (Medium priority - Standard test coverage), Score > 7 (High priority - Comprehensive test coverage). **MUST** implement Theory tests as PRIORITY for parameterized testing scenarios with `[Theory]` with `[InlineData]`, `[MemberData]`, and `[ClassData]` for better maintainability and extensibility. **MUST** focus integration tests on cross-module communication with minimal number of tests and maximum coverage. IntegrationTests class is used for MODULE INTEGRATION ONLY - testing component interactions and contracts between modules, containing a SMALL NUMBER of tests for end-to-end testing scenarios that validate cross-module workflows. Integration score formula applies: `IntegrationScore = (0.3 × CrossModule) + (0.3 × ExternalDependency) + (0.3 × Criticality) + (0.1 × Transactional)` with priorities: Score ≥ 7 (High priority - Must have integration test), Score 5-6 (Medium priority - Desirable integration test), Score < 5 (Low priority - Rely on unit tests only). 
 - **FR-007**: System MUST emit structured warning logs describing fallback rendering events using `Microsoft.Extensions.Logging.ILogger` with severity level WARNING. Logs MUST include structured data (component, element type, context) rather than plain string messages. No additional analytics storage is required in Iteration 1.
 - **FR-008**: System MUST support table border styling including `border`, `border-collapse`, `border-width`, `border-style`, `border-color` properties and cell alignment properties including `text-align` (horizontal alignment) and `vertical-align` (vertical alignment) in addition to typography and spacing controls. Default values: `border-collapse: separate`, `text-align: left`, `vertical-align: top`. CSS inheritance follows standard cascade rules with inline styles taking precedence over class styles.
 - **FR-009**: System MUST capture render timing metrics for monitoring and future performance optimization. No explicit performance targets are established for Iteration 1 - focus is on measurement and data collection only. Timing data MUST include total render duration and be stored in application logs.
-- **FR-010**: System MUST achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. Focus test coverage on High Priority areas: classes with business logic, algorithms, validation, parsing, rendering, and complex state management. Medium Priority areas include classes with moderate complexity, data transformation, or integration points. Low Priority areas (simple data containers, property setters, enums, basic value objects) are optional. Exempt areas include auto-generated code, simple constructors without logic, and trivial getters/setters.
 - **FR-011**: System MUST support multi-page PDF generation through a classical fluent builder pattern API via `IPdfBuilder` interface. `PdfBuilder` MUST provide `Reset()` method to clear state for reuse, `AddPage(string html)` method to accumulate pages, `SetHeader(string html)` and `SetFooter(string html)` methods to define repeated header/footer content, and `Build(ConverterOptions? options = null)` as the finalization method. Typical call sequence: Reset() → SetHeader() → AddPage() × N → SetFooter() → Build(). The Build() method MUST return byte array containing all accumulated pages with headers/footers applied to each page. Headers and footers apply globally to all pages in the document. Headers and footers MUST use dynamic height, expanding to fit content automatically. Page content area MUST adjust based on actual header/footer height, ensuring no overlap or content clipping.
 - **FR-012**: System MUST eliminate hardcoded strings throughout the codebase by defining reusable text strings in the `Core/Constants` subfolder with `NetHtml2Pdf.Core.Constants` namespace. Constants MUST be organized by domain into specialized classes (`HtmlTagNames`, `CssProperties`, `HexColors`, etc.) and used when the same value appears in multiple locations across different classes. Error messages and validation messages are context-dependent and MUST remain local to their specific classes. File paths and implementation-specific strings MUST remain local to where they are used. All constants MUST follow established naming conventions and be properly documented with XML comments.
-- **FR-013**: System MUST implement comprehensive unit testing standards with Theory tests as PRIORITY for parameterized testing scenarios. Test classes MUST be analyzed regularly to ensure optimal organization using xUnit features including `[Theory]` with `[InlineData]`, `[MemberData]`, and `[ClassData]` for better maintainability and extensibility. Similar test scenarios MUST be consolidated using parameterized tests instead of individual `[Fact]` tests. Test data builders and helper methods MUST be created to eliminate repetitive arrange sections. Tests MUST follow descriptive naming patterns and be organized by functionality rather than implementation details.
 
 ### Acceptance Criteria
 
@@ -241,7 +282,7 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-005.7**: Unsupported elements are converted to plain text with preserved structure
 - **AC-005.8**: Warning logs are emitted for each fallback event
 
-#### FR-006: Regression Tests and TDD
+#### FR-006: Comprehensive Testing and TDD
 - **AC-006.1**: Tests are written FIRST before implementation (red-green-refactor cycle)
 - **AC-006.2**: Each supported HTML element has corresponding test coverage
 - **AC-006.3**: Representative combinations (paragraphs, lists, tables) are tested
@@ -252,6 +293,37 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-006.8**: Helper methods and test data builders eliminate repetitive arrange sections
 - **AC-006.9**: Test methods are short and focused (ideally under 15 lines)
 - **AC-006.10**: Integration tests prefixed with `Iteration_*` in `PdfBuilderTests` serve as contract validation
+- **AC-006.11**: High Priority classes (business logic, algorithms, validation, parsing, rendering, complex state management) have comprehensive test coverage
+- **AC-006.12**: Medium Priority classes (moderate complexity, data transformation, integration points) have appropriate test coverage
+- **AC-006.13**: Unit tests cover individual methods with Arrange-Act-Assert pattern
+- **AC-006.14**: Integration tests cover component interactions
+- **AC-006.15**: Contract tests cover API boundaries
+- **AC-006.16**: Coverage scoring system is used to prioritize testing based on method complexity and business criticality
+- **AC-006.17**: Coverage score formula is applied: `Score = (0.4 × CyclomaticComplexity) + (0.3 × BusinessCriticality) + (0.2 × ChangeFrequency) + (0.1 × DefectHistory)`
+- **AC-006.18**: Testing priorities are enforced based on score thresholds: Score < 5 (Low priority - No tests required), Score 5-7 (Medium priority - Standard test coverage), Score > 7 (High priority - Comprehensive test coverage)
+- **AC-006.19**: Theory tests (`[Theory]` with `[InlineData]`) are used as PRIORITY for parameterized testing scenarios
+- **AC-006.20**: Test classes are analyzed regularly to ensure optimal organization using xUnit features
+- **AC-006.21**: Similar test scenarios are consolidated using `[Theory]` with `[InlineData]`, `[MemberData]`, or `[ClassData]`
+- **AC-006.22**: `[Fact]` tests are used only for single, unique test scenarios that cannot be parameterized
+- **AC-006.23**: Test data builders and helper methods are created to eliminate repetitive arrange sections
+- **AC-006.24**: Test method names follow descriptive pattern: `MethodName_Scenario_ExpectedResult`
+- **AC-006.25**: Tests are organized by functionality, not by implementation details
+- **AC-006.26**: Tests are refactored regularly to improve maintainability and reduce duplication
+- **AC-006.27**: Integration tests focus on cross-module communication with minimal number of tests and maximum coverage
+- **AC-006.28**: IntegrationTests class is used for MODULE INTEGRATION ONLY - testing component interactions and contracts between modules
+- **AC-006.29**: IntegrationTests class contains a SMALL NUMBER of tests for end-to-end testing scenarios that validate cross-module workflows
+- **AC-006.30**: Integration score formula is applied: `IntegrationScore = (0.3 × CrossModule) + (0.3 × ExternalDependency) + (0.3 × Criticality) + (0.1 × Transactional)`
+- **AC-006.31**: Integration testing priorities are enforced based on score thresholds: Score ≥ 7 (High priority - Must have integration test), Score 5-6 (Medium priority - Desirable integration test), Score < 5 (Low priority - Rely on unit tests only)
+- **AC-006.32**: One integration test per major use case, not per method
+- **AC-006.33**: Simulate full transaction flow: request → domain → persistence
+- **AC-006.34**: Test the "contract" not the "internals"
+- **AC-006.35**: Avoid duplicating unit-level assertions; focus on integration outcomes
+- **AC-006.36**: Focus on major use cases rather than individual method combinations
+- **AC-006.37**: Test end-to-end workflows that span multiple modules
+- **AC-006.38**: Verify integration contracts between components
+- **AC-006.39**: Minimize test duplication with unit tests
+- **AC-006.40**: Use real or realistic dependencies where appropriate
+- **AC-006.41**: Test error propagation across module boundaries
 
 #### FR-007: Structured Warning Logs
 - **AC-007.1**: Warning logs use `Microsoft.Extensions.Logging.ILogger` interface
@@ -274,13 +346,6 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-009.3**: Timing data is stored in application logs for future benchmarking
 - **AC-009.4**: No quantitative performance targets are set for Iteration 1
 - **AC-009.5**: Timing data is included in PdfRenderSnapshot entity
-
-#### FR-010: Comprehensive Test Coverage
-- **AC-010.1**: High Priority classes (business logic, algorithms, validation, parsing, rendering, complex state management) have comprehensive test coverage
-- **AC-010.2**: Medium Priority classes (moderate complexity, data transformation, integration points) have appropriate test coverage
-- **AC-010.3**: Unit tests cover individual methods with Arrange-Act-Assert pattern
-- **AC-010.4**: Integration tests cover component interactions
-- **AC-010.5**: Contract tests cover API boundaries
 
 #### FR-011: Multi-Page PDF Generation
 - **AC-011.1**: AddPage(string html) method accepts valid HTML and accumulates pages internally
@@ -312,21 +377,44 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-012.9**: Constants are logically grouped by domain and purpose for easy maintenance
 - **AC-012.10**: Context-dependent strings (error messages, file paths) are kept local to their usage context
 
-#### FR-013: Unit Testing Standards
-- **AC-013.1**: Theory tests (`[Theory]` with `[InlineData]`) are used as PRIORITY for parameterized testing scenarios
-- **AC-013.2**: Test classes are analyzed regularly to ensure optimal organization using xUnit features
-- **AC-013.3**: Similar test scenarios are consolidated using `[Theory]` with `[InlineData]`, `[MemberData]`, or `[ClassData]`
-- **AC-013.4**: `[Fact]` tests are used only for single, unique test scenarios that cannot be parameterized
-- **AC-013.5**: xUnit features are applied for better maintainability and extensibility:
-  - `[Theory]` with `[InlineData]` for simple parameterized tests
-  - `[Theory]` with `[MemberData]` for complex test data
-  - `[Theory]` with `[ClassData]` for reusable test data classes
-  - `[Theory]` with `[MemberData]` for dynamic test data generation
-- **AC-013.6**: Test data builders and helper methods are created to eliminate repetitive arrange sections
-- **AC-013.7**: Test method names follow descriptive pattern: `MethodName_Scenario_ExpectedResult`
-- **AC-013.8**: Tests are organized by functionality, not by implementation details
-- **AC-013.9**: Tests are refactored regularly to improve maintainability and reduce duplication
-- **AC-013.10**: Test classes demonstrate efficient use of xUnit features for maximum maintainability
+#### FR-015: Ultimate Integration Testing Standards
+- **AC-015.1**: Ultimate integration tests validate the complete HTML-to-PDF rendering pipeline with extensive HTML/CSS coverage
+- **AC-015.2**: Ultimate tests are a SMALL SUBSET of IntegrationTests class - specifically the comprehensive end-to-end tests like `FullDocument_Rendering_SmokeTest`
+- **AC-015.3**: Ultimate tests include comprehensive HTML structure coverage (document, typography, lists, tables, containers)
+- **AC-015.4**: Ultimate tests include comprehensive CSS styling coverage (font, layout, visual, table properties)
+- **AC-015.5**: Ultimate tests include multi-page features (headers, footers, cross-page consistency)
+- **AC-015.6**: Ultimate tests generate PDF files saved with `SavePdfForInspectionAsync()` for visual comparison
+- **AC-015.7**: Ultimate tests validate both content and styling through automated word extraction and analysis
+- **AC-015.8**: Ultimate tests combine headers, footers, tables, lists, styling, and formatting in realistic scenarios
+- **AC-015.9**: Ultimate tests serve as final validation of system capabilities and produce visual PDF outputs
+- **AC-015.10**: Ultimate tests are mandatory regardless of integration score due to their comprehensive validation value
+- **AC-015.11**: Ultimate tests follow the `FullDocument_Rendering_SmokeTest` pattern for comprehensive coverage
+- **AC-015.12**: Ultimate tests include both structural validation (content presence) and styling validation (formatting verification)
+- **AC-015.13**: Ultimate tests cover many (but not all) supported HTML tags and CSS attributes in a single comprehensive test
+- **AC-015.14**: Ultimate tests simulate complex, realistic document structures for end-to-end validation
+- **AC-015.15**: Ultimate tests use visual PDF output for manual inspection and comparison testing
+- **AC-015.16**: Ultimate tests validate cross-module integration with comprehensive HTML/CSS scenarios
+- **AC-015.17**: Ultimate tests are implemented as small number of tests with maximum coverage of important interactions
+- **AC-015.18**: Ultimate tests MUST cover minimum 15 different HTML elements across all test scenarios (document, typography, lists, tables, containers)
+- **AC-015.19**: Ultimate tests MUST include minimum 12 different CSS properties covering font, layout, visual, and table styling categories
+- **AC-015.20**: Ultimate tests MUST generate PDF files with minimum 3 pages to validate multi-page functionality and cross-page consistency
+- **AC-015.21**: Ultimate tests MUST validate minimum 20 words extracted from generated PDFs using automated word extraction and analysis
+- **AC-015.22**: Ultimate tests MUST include minimum 5 different styling scenarios (headers, footers, tables, lists, formatting combinations)
+- **AC-015.23**: Ultimate tests MUST complete execution within maximum 30 seconds to ensure reasonable performance for CI/CD pipelines
+- **AC-015.24**: Ultimate tests MUST validate minimum 3 different HTML/CSS combinations per test to ensure comprehensive coverage
+- **AC-015.25**: Ultimate tests MUST generate PDF files with minimum file size of 10KB to ensure substantial content rendering
+- **AC-015.26**: Ultimate tests MUST validate minimum 95% content accuracy (words found in PDF match expected HTML content)
+- **AC-015.27**: Ultimate tests MUST cover minimum 80% of supported HTML elements in at least one comprehensive test scenario
+- **AC-015.28**: Ultimate tests MUST validate minimum 70% of supported CSS properties in at least one comprehensive test scenario
+
+### Implementation Guidance
+
+#### Testing Strategy Implementation Notes
+- **Coverage Scoring**: Use the coverage scoring formula to prioritize testing efforts, focusing on high-complexity and business-critical methods first
+- **Theory Test Priority**: Convert repetitive `[Fact]` tests to `[Theory]` tests with `[InlineData]` for better maintainability and reduced duplication
+- **Integration Test Focus**: Keep integration tests minimal but comprehensive - one test per major use case rather than per method
+- **Test Organization**: Group tests by functionality rather than implementation details, using descriptive naming patterns
+- **Helper Methods**: Create test data builders and helper methods to eliminate repetitive arrange sections and improve readability
 
 ### Key Entities *(include if feature involves data)*
 - **DocumentNode**: Represents a normalized HTML element optimized for PDF rendering with resolved CSS styles and clean tree structure.

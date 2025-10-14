@@ -1,6 +1,6 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
-using NetHtml2Pdf.Parser;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Test.Support;
 using Shouldly;
@@ -9,29 +9,36 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(output)
+public class PdfRendererTests : PdfRenderTestBase
 {
-    private readonly HtmlParser _parser = new();
-    private readonly PdfRenderer _renderer = new();
+    public PdfRendererTests(ITestOutputHelper output) : base(output)
+    {
+    }
 
+    private readonly PdfRenderer _renderer = new();
 
     [Fact]
     public void Paragraphs_RenderExpectedTextOrdering()
     {
-        const string html = """
-            <div class="body">
-              <p>Welcome to <strong>NetHtml2Pdf</strong>.</p>
-              <p><span class="em" style="font-style: italic;">Iteration 1</span> handles <br />line breaks.</p>
-            </div>
-            """;
+        var document = Document(
+            Div(
+                Paragraph(
+                    Text("Welcome to "),
+                    Strong(Text("NetHtml2Pdf."))),
+                Paragraph(
+                    Italic(Text("Iteration 1")),
+                    Text(" handles "),
+                    LineBreak(),
+                    Text("line breaks."))
+            )
+        );
 
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
         var words = ExtractWords(pdfBytes);
 
         words.ShouldContain("Welcome");
         words.ShouldContain("NetHtml2Pdf.");
-        words.ShouldContain(word => word.StartsWith("Iter"));
+        words.ShouldContain(word => word.StartsWith("Iter", StringComparison.OrdinalIgnoreCase));
         words.ShouldContain("1");
         words.ShouldContain("handles");
         words.ShouldContain("line");
@@ -41,26 +48,22 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [Fact]
     public void Lists_RenderBulletsAndNumbers()
     {
-        const string html = """
-            <section>
-              <ul>
-                <li>First</li>
-                <li>Second</li>
-              </ul>
-              <ol>
-                <li>One</li>
-              </ol>
-            </section>
-            """;
+        var document = Document(
+            Section(
+                UnorderedList(
+                    ListItem(Text("First")),
+                    ListItem(Text("Second"))),
+                OrderedList(
+                    ListItem(Text("One"))))
+        );
 
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
         var words = ExtractWords(pdfBytes);
 
-        words.Any(w => w.Contains("First")).ShouldBeTrue();
-        words.Any(w => w.Contains("Second")).ShouldBeTrue();
+        words.Any(w => w.Contains("First", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Second", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
         words.ShouldContain("One");
-        words.ShouldContain("1."); // Numeric markers extract reliably
+        words.ShouldContain("1.");
     }
 
     [Theory]
@@ -72,18 +75,26 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [InlineData("h6", 11.0)]
     public void Headings_ShouldRenderWithProperSizing(string tag, double expectedFontSize)
     {
-        // Arrange
-        var html = $"<{tag}>Heading Text</{tag}>";
+        var headingType = tag.ToLowerInvariant() switch
+        {
+            "h1" => DocumentNodeType.Heading1,
+            "h2" => DocumentNodeType.Heading2,
+            "h3" => DocumentNodeType.Heading3,
+            "h4" => DocumentNodeType.Heading4,
+            "h5" => DocumentNodeType.Heading5,
+            _ => DocumentNodeType.Heading6
+        };
 
-        // Act
-        var document = _parser.Parse(html);
+        var document = Document(
+            Heading(headingType, Text("Heading Text"))
+        );
+
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = GetPdfWords(pdfBytes);
-        var headingWord = words.FirstOrDefault(w => w.Text.Contains("Heading"));
-        
+        var headingWord = words.FirstOrDefault(w => w.Text.Contains("Heading", StringComparison.OrdinalIgnoreCase));
+
         headingWord.ShouldNotBeNull();
         headingWord.IsBold.ShouldBeTrue();
         headingWord.FontSize.ShouldBe(expectedFontSize, tolerance: 0.5);
@@ -92,18 +103,19 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [Fact]
     public void ColorStyles_ShouldRenderWithColors()
     {
-        // Arrange
-        const string html = """<p style="color: red; background-color: yellow">Colored text</p>""";
+        var styles = CssStyleMap.Empty
+            .WithColor(HexColors.Red)
+            .WithBackgroundColor(HexColors.Yellow);
 
-        // Act
-        var document = _parser.Parse(html);
+        var document = Document(
+            Paragraph(Text("Colored text", styles))
+        );
+
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = GetPdfWords(pdfBytes);
-        
-        var coloredWord = words.FirstOrDefault(w => w.Text.Contains("Colored"));
+        var coloredWord = words.FirstOrDefault(w => w.Text.Contains("Colored", StringComparison.OrdinalIgnoreCase));
         coloredWord.ShouldNotBeNull();
         coloredWord.HexColor.ShouldBe(HexColors.Red);
     }
@@ -114,17 +126,17 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [InlineData("purple", HexColors.Purple)]
     public void ColorStyles_ShouldRenderVariousColors(string cssColor, string expectedHex)
     {
-        // Arrange
-        var html = $"""<p style="color: {cssColor}">Test</p>""";
+        var normalizedColor = RenderingHelpers.ConvertToHexColor(cssColor) ?? cssColor;
+        var styles = CssStyleMap.Empty.WithColor(normalizedColor);
+        var document = Document(
+            Paragraph(Text("Test", styles))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = GetPdfWords(pdfBytes);
-        var testWord = words.FirstOrDefault(w => w.Text.Contains("Test"));
+        var testWord = words.FirstOrDefault(w => w.Text.Contains("Test", StringComparison.OrdinalIgnoreCase));
         testWord.ShouldNotBeNull();
         testWord.HexColor.ShouldBe(expectedHex);
     }
@@ -135,17 +147,15 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [InlineData("pink")]
     public void BackgroundColorStyles_ShouldRenderWithoutErrors(string backgroundColor)
     {
-        // Arrange
-        var html = $"""<p style="background-color: {backgroundColor}">Background Test</p>""";
+        var normalizedColor = RenderingHelpers.ConvertToHexColor(backgroundColor) ?? backgroundColor;
+        var styles = CssStyleMap.Empty.WithBackgroundColor(normalizedColor);
+        var document = Document(
+            Paragraph(Text("Background Test", styles))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
-        // Background colors in PDFs are rendered as separate graphics operations (rectangles),
-        // not as text properties, so we verify the PDF renders successfully and contains the text
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
         words.ShouldContain("Background");
         words.ShouldContain("Test");
@@ -154,74 +164,62 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [Fact]
     public void CombinedColorStyles_ShouldRenderBothTextAndBackground()
     {
-        // Arrange
-        var html = $"""
-            <div>
-                <p style="color: blue; background-color: yellow">Blue on Yellow</p>
-                <p style="color: white; background-color: red">White on Red</p>
-                <p style="color: {HexColors.BrightGreen}; background-color: {HexColors.Navy}">Green on Navy</p>
-            </div>
-            """;
+        var document = Document(
+            Div(
+                Paragraph(Text("Blue on Yellow",
+                    CssStyleMap.Empty.WithColor(HexColors.Blue).WithBackgroundColor(HexColors.Yellow))),
+                Paragraph(Text("White on Red",
+                    CssStyleMap.Empty.WithColor(HexColors.White).WithBackgroundColor(HexColors.Red))),
+                Paragraph(Text("Green on Navy",
+                    CssStyleMap.Empty.WithColor(HexColors.BrightGreen).WithBackgroundColor(HexColors.Navy))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = GetPdfWords(pdfBytes);
-        
-        // Verify first paragraph - blue text
-        var blueWord = words.FirstOrDefault(w => w.Text.Contains("Blue"));
-        blueWord.ShouldNotBeNull();
-        blueWord.HexColor.ShouldBe(HexColors.Blue);
-        
-        // Verify second paragraph - white text
-        var whiteWord = words.FirstOrDefault(w => w.Text.Contains("White"));
-        whiteWord.ShouldNotBeNull();
-        whiteWord.HexColor.ShouldBe(HexColors.White);
-        
-        // Verify third paragraph - green text
-        var greenWord = words.FirstOrDefault(w => w.Text.Contains("Green"));
-        greenWord.ShouldNotBeNull();
-        greenWord.HexColor.ShouldBe(HexColors.BrightGreen);
+
+        words.FirstOrDefault(w => w.Text.Contains("Blue", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.Blue);
+        words.FirstOrDefault(w => w.Text.Contains("White", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.White);
+        words.FirstOrDefault(w => w.Text.Contains("Green", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.BrightGreen);
     }
 
     [Fact]
     public void UnorderedList_RendersWithBulletMarkers()
     {
-        // Arrange
-        const string html = "<ul><li>First</li><li>Second</li><li>Third</li></ul>";
+        var document = Document(
+            UnorderedList(
+                ListItem(Text("First")),
+                ListItem(Text("Second")),
+                ListItem(Text("Third")))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("First")).ShouldBeTrue();
-        words.Any(w => w.Contains("Second")).ShouldBeTrue();
-        words.Any(w => w.Contains("Third")).ShouldBeTrue();
-        // Note: Bullet markers may not extract reliably from PDF
+        words.Any(w => w.Contains("First", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Second", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Third", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void OrderedList_RendersWithNumericMarkers()
     {
-        // Arrange
-        const string html = "<ol><li>First</li><li>Second</li><li>Third</li></ol>";
+        var document = Document(
+            OrderedList(
+                ListItem(Text("First")),
+                ListItem(Text("Second")),
+                ListItem(Text("Third")))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("First")).ShouldBeTrue();
-        words.Any(w => w.Contains("Second")).ShouldBeTrue();
-        words.Any(w => w.Contains("Third")).ShouldBeTrue();
+        words.Any(w => w.Contains("First", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Second", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Third", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
         words.ShouldContain("1.");
         words.ShouldContain("2.");
         words.ShouldContain("3.");
@@ -230,80 +228,60 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [Fact]
     public void NestedLists_RenderHierarchically()
     {
-        // Arrange
-        const string html = """
-            <ul>
-                <li>Parent 1
-                    <ul>
-                        <li>Child 1.1</li>
-                        <li>Child 1.2</li>
-                    </ul>
-                </li>
-                <li>Parent 2</li>
-            </ul>
-            """;
+        var document = Document(
+            UnorderedList(
+                ListItem(
+                    Text("Parent 1"),
+                    UnorderedList(
+                        ListItem(Text("Child 1.1")),
+                        ListItem(Text("Child 1.2")))),
+                ListItem(Text("Parent 2")))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Parent")).ShouldBeTrue();
-        words.Any(w => w.Contains("Child")).ShouldBeTrue();
-        // Nested structure is rendered (markers may not extract reliably)
+        words.Any(w => w.Contains("Parent", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Child", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void MixedLists_RenderBothBulletsAndNumbers()
     {
-        // Arrange
-        const string html = """
-            <ul>
-                <li>Bullet item</li>
-            </ul>
-            <ol>
-                <li>Numbered item</li>
-            </ol>
-            """;
+        var document = Document(
+            UnorderedList(ListItem(Text("Bullet item"))),
+            OrderedList(ListItem(Text("Numbered item")))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Bullet")).ShouldBeTrue();
-        words.Any(w => w.Contains("Numbered")).ShouldBeTrue();
-        words.ShouldContain("1."); // Numeric markers are more reliable
+        words.Any(w => w.Contains("Bullet", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Numbered", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.ShouldContain("1.");
     }
 
     [Fact]
     public void ListWithStyledItems_AppliesFormattingToText()
     {
-        // Arrange
-        const string html = """
-            <ul>
-                <li><strong>Bold item</strong></li>
-                <li><i>Italic item</i></li>
-            </ul>
-            """;
+        var document = Document(
+            UnorderedList(
+                ListItem(Strong(Text("Bold item"))),
+                ListItem(Italic(Text("Italic item"))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var pdfWords = GetPdfWords(pdfBytes);
-        
-        var boldWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Bold"));
+
+        var boldWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Bold", StringComparison.OrdinalIgnoreCase));
         boldWord.ShouldNotBeNull();
         boldWord.IsBold.ShouldBeTrue();
-        
-        var italicWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Italic"));
+
+        var italicWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Italic", StringComparison.OrdinalIgnoreCase));
         italicWord.ShouldNotBeNull();
         italicWord.IsItalic.ShouldBeTrue();
     }
@@ -313,463 +291,363 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
     [InlineData("section")]
     public void StructuralContainers_ShouldRenderChildParagraphs(string tag)
     {
-        // Arrange
-        var html = $"<{tag}><p>First</p><p>Second</p></{tag}>";
+        DocumentNode container = tag.Equals("div", StringComparison.OrdinalIgnoreCase)
+            ? Div(Paragraph(Text("First")), Paragraph(Text("Second")))
+            : Section(Paragraph(Text("First")), Paragraph(Text("Second")));
 
-        // Act
-        var document = _parser.Parse(html);
+        var document = Document(container);
+
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("First")).ShouldBeTrue();
-        words.Any(w => w.Contains("Second")).ShouldBeTrue();
+        words.Any(w => w.Contains("First", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Second", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void NestedStructuralContainers_ShouldRenderHierarchy()
     {
-        // Arrange
-        const string html = @"<section><div><p>Nested content</p></div></section>";
+        var document = Document(
+            Section(
+                Div(
+                    Paragraph(Text("Nested content"))
+                )
+            )
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Nested")).ShouldBeTrue();
-        words.Any(w => w.Contains("content")).ShouldBeTrue();
+        words.Any(w => w.Contains("Nested", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("content", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void MultipleContainersAtSameLevel_ShouldRenderAllChildren()
     {
-        // Arrange
-        const string html = @"<div>Alpha</div><section>Beta</section><div>Gamma</div>";
+        var document = Document(
+            Div(Text("Alpha")),
+            Section(Text("Beta")),
+            Div(Text("Gamma"))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Alpha")).ShouldBeTrue();
-        words.Any(w => w.Contains("Beta")).ShouldBeTrue();
-        words.Any(w => w.Contains("Gamma")).ShouldBeTrue();
+        words.Any(w => w.Contains("Alpha", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Beta", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Gamma", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_ShouldRenderBasicStructure()
     {
-        // Arrange
-        const string html = """
-            <table>
-                <thead>
-                    <tr>
-                        <th>Header 1</th>
-                        <th>Header 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Data 1</td>
-                        <td>Data 2</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+        var document = Document(
+            Table(
+                TableHead(
+                    TableRow(
+                        TableHeaderCell(Text("Header 1")),
+                        TableHeaderCell(Text("Header 2")))),
+                TableBody(
+                    TableRow(
+                        TableCell(Text("Data 1")),
+                        TableCell(Text("Data 2")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
-
         await SavePdfForInspectionAsync(pdfBytes);
 
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Header")).ShouldBeTrue();
-        words.Any(w => w.Contains("Data")).ShouldBeTrue();
+        words.Any(w => w.Contains("Header", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Data", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void Table_WithMultipleRows_ShouldRenderAllContent()
     {
-        // Arrange
-        const string html = """
-            <table>
-                <tbody>
-                    <tr>
-                        <td>Row 1 Col 1</td>
-                        <td>Row 1 Col 2</td>
-                    </tr>
-                    <tr>
-                        <td>Row 2 Col 1</td>
-                        <td>Row 2 Col 2</td>
-                    </tr>
-                    <tr>
-                        <td>Row 3 Col 1</td>
-                        <td>Row 3 Col 2</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(TableCell(Text("Row 1 Col 1")), TableCell(Text("Row 1 Col 2"))),
+                    TableRow(TableCell(Text("Row 2 Col 1")), TableCell(Text("Row 2 Col 2"))),
+                    TableRow(TableCell(Text("Row 3 Col 1")), TableCell(Text("Row 3 Col 2")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Row") || w.Contains("Col")).ShouldBeTrue();
-        words.Any(w => w.Contains("1")).ShouldBeTrue();
-        words.Any(w => w.Contains("2")).ShouldBeTrue();
-        words.Any(w => w.Contains("3")).ShouldBeTrue();
+        words.Any(w => w.Contains("Row", StringComparison.OrdinalIgnoreCase) || w.Contains("Col", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("1", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("2", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("3", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_WithHeaderAndDataCells_ShouldRenderDistinctly()
     {
-        // Arrange
-        const string html = """
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Age</th>
-                        <th>City</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>John Doe</td>
-                        <td>25</td>
-                        <td>New York</td>
-                    </tr>
-                    <tr>
-                        <td>Jane Smith</td>
-                        <td>30</td>
-                        <td>Los Angeles</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+        var document = Document(
+            Table(
+                TableHead(
+                    TableRow(
+                        TableHeaderCell(Text("Name")),
+                        TableHeaderCell(Text("Age")),
+                        TableHeaderCell(Text("City")))),
+                TableBody(
+                    TableRow(
+                        TableCell(Text("John Doe")),
+                        TableCell(Text("25")),
+                        TableCell(Text("New York"))),
+                    TableRow(
+                        TableCell(Text("Jane Smith")),
+                        TableCell(Text("30")),
+                        TableCell(Text("Los Angeles")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
-
         await SavePdfForInspectionAsync(pdfBytes);
 
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Name")).ShouldBeTrue();
-        words.Any(w => w.Contains("Age")).ShouldBeTrue();
-        words.Any(w => w.Contains("City")).ShouldBeTrue();
-        words.Any(w => w.Contains("John")).ShouldBeTrue();
-        words.Any(w => w.Contains("Jane")).ShouldBeTrue();
-        words.Any(w => w.Contains("25")).ShouldBeTrue();
-        words.Any(w => w.Contains("30")).ShouldBeTrue();
+        words.Any(w => w.Contains("Name", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Age", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("City", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("John", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Jane", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("25", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("30", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void Table_WithEmptyCells_ShouldRenderWithoutErrors()
     {
-        // Arrange
-        const string html = """
-            <table>
-                <tbody>
-                    <tr>
-                        <td>Filled</td>
-                        <td></td>
-                        <td>Also Filled</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(
+                        TableCell(Text("Filled")),
+                        TableCell(),
+                        TableCell(Text("Also Filled")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Filled")).ShouldBeTrue();
-        words.Any(w => w.Contains("Also")).ShouldBeTrue();
+        words.Any(w => w.Contains("Filled", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Also", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public void Table_WithNestedInlineElements_ShouldRenderFormatting()
     {
-        // Arrange
-        const string html = """
-            <table>
-                <tbody>
-                    <tr>
-                        <td><strong>Bold Text</strong></td>
-                        <td><i>Italic Text</i></td>
-                        <td><span>Span Text</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(
+                        TableCell(Strong(Text("Bold Text"))),
+                        TableCell(Italic(Text("Italic Text"))),
+                        TableCell(Span(CssStyleMap.Empty, Text("Span Text"))))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Bold")).ShouldBeTrue();
-        words.Any(w => w.Contains("Italic")).ShouldBeTrue();
-        words.Any(w => w.Contains("Span")).ShouldBeTrue();
+        words.Any(w => w.Contains("Bold", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Italic", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Span", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_WithBorders_ShouldRenderWithBorderStyling()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .bordered { border: 2px solid black; }
-                </style>
-            </head>
-            <body>
-                <table class="bordered">
-                    <tbody>
-                        <tr>
-                            <td>Cell 1</td>
-                            <td>Cell 2</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var borderedCell = CssStyleMap.Empty.WithBorder(new BorderInfo(2, CssBorderValues.Solid, HexColors.Black));
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(
+                        TableCell(borderedCell, Text("Cell 1")),
+                        TableCell(borderedCell, Text("Cell 2")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Cell")).ShouldBeTrue();
+        words.Any(w => w.Contains("Cell", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_WithTextAlignment_ShouldRenderAlignedContent()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .left-align { text-align: left; }
-                    .center-align { text-align: center; }
-                    .right-align { text-align: right; }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td class="left-align">Left Text</td>
-                            <td class="center-align">Center Text</td>
-                            <td class="right-align">Right Text</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(
+                        TableCell(CssStyleMap.Empty.WithTextAlign(CssAlignmentValues.Left), Text("Left Text")),
+                        TableCell(CssStyleMap.Empty.WithTextAlign(CssAlignmentValues.Center), Text("Center Text")),
+                        TableCell(CssStyleMap.Empty.WithTextAlign(CssAlignmentValues.Right), Text("Right Text")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Text")).ShouldBeTrue();
-        words.Count().ShouldBeGreaterThan(2); // Should have content from all three cells
+        words.Any(w => w.Contains("Text", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Count().ShouldBeGreaterThan(2);
     }
 
     [Fact]
     public async Task Table_WithBackgroundColors_ShouldRenderColoredCells()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .header-bg { background-color: {{HexColors.LightGray}}; }
-                    .yellow-bg { background-color: yellow; }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="header-bg">Header 1</th>
-                            <th class="header-bg">Header 2</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Normal Cell</td>
-                            <td class="yellow-bg">Highlighted Cell</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var document = Document(
+            Table(
+                TableHead(
+                    TableRow(
+                        TableHeaderCell(CssStyleMap.Empty.WithBackgroundColor(HexColors.LightGray), Text("Header 1")),
+                        TableHeaderCell(CssStyleMap.Empty.WithBackgroundColor(HexColors.LightGray), Text("Header 2")))),
+                TableBody(
+                    TableRow(
+                        TableCell(Text("Normal Cell")),
+                        TableCell(CssStyleMap.Empty.WithBackgroundColor(RenderingHelpers.ConvertToHexColor("yellow") ?? "yellow"), Text("Highlighted Cell")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Header")).ShouldBeTrue();
-        words.Any(w => w.Contains("Normal")).ShouldBeTrue();
-        words.Any(w => w.Contains("Highlighted")).ShouldBeTrue();
+        words.Any(w => w.Contains("Header", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Normal", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Highlighted", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_WithBorderCollapse_ShouldRenderCorrectly()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .collapsed { border: 1px solid black; border-collapse: collapse; }
-                </style>
-            </head>
-            <body>
-                <table class="collapsed">
-                    <tbody>
-                        <tr>
-                            <td style="padding: 5px">A1</td>
-                            <td style="padding: 5px">A2</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px">B1</td>
-                            <td style="padding: 5px">B2</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var cellStyle = CssStyleMap.Empty
+            .WithPadding(BoxSpacing.FromAll(5))
+            .WithBorder(new BorderInfo(1, CssBorderValues.Solid, HexColors.Black));
 
-        // Act
-        var document = _parser.Parse(html);
+        var document = Document(
+            Table(
+                CssStyleMap.Empty.WithBorderCollapse(CssTableValues.Collapse),
+                TableBody(
+                    TableRow(
+                        TableCell(cellStyle, Text("A1")),
+                        TableCell(cellStyle, Text("A2"))),
+                    TableRow(
+                        TableCell(cellStyle, Text("B1")),
+                        TableCell(cellStyle, Text("B2")))))
+        );
+
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("A1")).ShouldBeTrue();
-        words.Any(w => w.Contains("B2")).ShouldBeTrue();
+        words.Any(w => w.Contains("A1", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("B2", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
     public async Task Table_WithVerticalAlignment_ShouldRenderCorrectly()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .top-align { vertical-align: top; }
-                    .middle-align { vertical-align: middle; }
-                    .bottom-align { vertical-align: bottom; }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td class="top-align">Top Content</td>
-                            <td class="middle-align">Middle Content</td>
-                            <td class="bottom-align">Bottom Content</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(
+                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Top), Text("Top Content")),
+                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Middle), Text("Middle Content")),
+                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Bottom), Text("Bottom Content")))))
+        );
 
-        // Act
-        var document = _parser.Parse(html);
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Content")).ShouldBeTrue();
-        words.Count().ShouldBeGreaterThan(2); // Should have content from all three cells
+        words.Any(w => w.Contains("Content", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Count().ShouldBeGreaterThan(2);
     }
 
     [Fact]
     public async Task Table_WithCombinedStyling_ShouldRenderAllStyles()
     {
-        // Arrange
-        var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .full-style {
-                        border: 2px solid black;
-                        background-color: {{HexColors.LightGray}};
-                        text-align: center;
-                        vertical-align: middle;
-                        padding: 10px;
-                    }
-                </style>
-            </head>
-            <body>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td class="full-style">Fully Styled Cell</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+        var style = CssStyleMap.Empty
+            .WithBorder(new BorderInfo(2, CssBorderValues.Solid, HexColors.Black))
+            .WithBackgroundColor(HexColors.LightGray)
+            .WithTextAlign(CssAlignmentValues.Center)
+            .WithVerticalAlign(CssAlignmentValues.Middle)
+            .WithPadding(BoxSpacing.FromAll(10));
 
-        // Act
-        var document = _parser.Parse(html);
+        var document = Document(
+            Table(
+                TableBody(
+                    TableRow(TableCell(style, Text("Fully Styled Cell")))))
+        );
+
         var pdfBytes = _renderer.Render(document);
-
-        // Assert
         AssertValidPdf(pdfBytes);
         await SavePdfForInspectionAsync(pdfBytes);
+
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Fully")).ShouldBeTrue();
-        words.Any(w => w.Contains("Styled")).ShouldBeTrue();
+        words.Any(w => w.Contains("Fully", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains("Styled", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task MarginShorthand_WithTwoParameters_ShouldRenderWithCorrectSpacing()
+    {
+        // Arrange - Test margin: 24px 0 (vertical: 24px, horizontal: 0)
+        var styles = CssStyleMap.Empty.WithMargin(BoxSpacing.FromVerticalHorizontal(24, 0));
+        var document = Document(
+            Div(CssStyleMap.Empty, Text("Top")),
+            Div(styles, Text("Test")),
+            Div(CssStyleMap.Empty, Text("Bottom"))
+        );
+
+        // Act
+        var pdfBytes = _renderer.Render(document);
+        AssertValidPdf(pdfBytes);
+        await SavePdfForInspectionAsync(pdfBytes, "margin-24px-0-test");
+
+        // Assert - Verify margin gaps using helper classes
+        var words = PdfWordParser.GetRawWords(pdfBytes);
+        PdfWordParser.LogWordPositions(words, Output.WriteLine);
+
+        var gaps = MarginGapCalculator.CalculateGaps(words, "Top", "Test", "Boom");
+        var expectedGapPoints = MarginGapCalculator.ConvertPixelsToPoints(24);
+        var validation = MarginGapCalculator.ValidateGaps(gaps, expectedGapPoints);
+        
+        MarginGapCalculator.LogGapAnalysis(gaps, validation, Output.WriteLine);
+
+        // Verify gaps meet requirements
+        gaps.GapAboveTest.ShouldBeGreaterThanOrEqualTo(validation.MinExpectedGap, 
+            $"Gap above 'Test' should be at least {validation.MinExpectedGap} points, but was {gaps.GapAboveTest}");
+        gaps.GapBelowTest.ShouldBeGreaterThanOrEqualTo(validation.MinExpectedGap,
+            $"Gap below 'Test' should be at least {validation.MinExpectedGap} points, but was {gaps.GapBelowTest}");
+
+        // Verify horizontal positioning
+        var testWord = PdfWordParser.FindWordByText(words, "Test");
+        testWord.ShouldNotBeNull("Test word should be found in the PDF");
+        HorizontalPositionValidator.ValidateLeftEdgePositioning(testWord);
+        HorizontalPositionValidator.LogHorizontalPositioning(testWord, Output.WriteLine);
     }
 }
+
+
+
+
+
+
+
+
+
