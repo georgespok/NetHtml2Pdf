@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 
@@ -69,20 +70,12 @@ internal sealed class InlineComposer : IInlineComposer
 
         if (!string.IsNullOrEmpty(style.Color))
         {
-            var hexColor = RenderingHelpers.ConvertToHexColor(style.Color);
-            if (hexColor != null)
-            {
-                span.FontColor(hexColor);
-            }
+            span.FontColor(style.Color);
         }
 
         if (!string.IsNullOrEmpty(style.BackgroundColor))
         {
-            var hexColor = RenderingHelpers.ConvertToHexColor(style.BackgroundColor);
-            if (hexColor != null)
-            {
-                span.BackgroundColor(hexColor);
-            }
+            span.BackgroundColor(style.BackgroundColor);
         }
     }
 }

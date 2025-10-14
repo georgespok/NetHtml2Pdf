@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides practical guidance on what to test and what not to test, based on the complexity and business value of the code.
+This document provides practical guidance on what to test and what not to test, based on the complexity and business value of the code. **Theory tests (`[Theory]` with `[InlineData]`) are PRIORITY for parameterized testing scenarios.**
 
 ## Tests as First-Class Code
 
@@ -15,20 +15,56 @@ This document provides practical guidance on what to test and what not to test, 
 - **KISS**: Keep It Simple, Stupid - avoid over-engineering tests
 - **Readability**: Tests should be easy to read and understand
 
-### Test Quality Standards
+### Theory Tests Priority
 
-1. **Use Theory and InlineData**: Consolidate similar test scenarios
-   ```csharp
-   // ✅ Good - consolidated with Theory
-   [Theory]
-   [InlineData(null, typeof(ArgumentNullException))]
-   [InlineData("", typeof(ArgumentException))]
-   public void Method_WithInvalidInput_ShouldThrow(string input, Type exceptionType)
-   
-   // ❌ Bad - repetitive individual tests
-   [Fact] public void Method_WithNull_ShouldThrow() { }
-   [Fact] public void Method_WithEmpty_ShouldThrow() { }
-   ```
+**Theory tests (`[Theory]` with `[InlineData]`) are PRIORITY for parameterized testing scenarios.** Analyze test classes regularly to ensure optimal organization using xUnit features.
+
+#### When to Use Theory Tests
+- ✅ **Use `[Theory]` with `[InlineData]`**: For simple parameterized tests with 2-5 parameters
+- ✅ **Use `[Theory]` with `[MemberData]`**: For complex test data or dynamic data generation
+- ✅ **Use `[Theory]` with `[ClassData]`**: For reusable test data classes
+- ✅ **Consolidate Similar Scenarios**: Multiple test cases that follow the same pattern
+- ❌ **Don't Use `[Fact]`**: For scenarios that can be parameterized
+
+#### Theory Test Examples
+```csharp
+// ✅ PRIORITY - Theory test with InlineData
+[Theory]
+[InlineData("color", "red", HexColors.Red)]
+[InlineData("background-color", "yellow", HexColors.Yellow)]
+[InlineData("border", "1px solid black", 1.0, CssBorderValues.Solid, HexColors.Black)]
+public void Apply_ShouldUpdateCssProperties(string propertyName, string value, object expectedValue)
+{
+    // Arrange
+    var styles = CssStyleMap.Empty;
+    
+    // Act
+    styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
+    
+    // Assert
+    // Assert based on propertyName and expectedValue
+}
+
+// ✅ Good - Theory test with MemberData for complex data
+[Theory]
+[MemberData(nameof(GetBorderTestData))]
+public void ParseBorderShorthand_WithVariousInputs_ShouldParseCorrectly(string input, double expectedWidth, string expectedStyle, string expectedColor)
+{
+    // Test implementation
+}
+
+public static IEnumerable<object[]> GetBorderTestData()
+{
+    yield return new object[] { "1px solid red", 1.0, CssBorderValues.Solid, HexColors.Red };
+    yield return new object[] { "thick dashed blue", 5.0, CssBorderValues.Dashed, HexColors.Blue };
+    yield return new object[] { "medium dotted green", 3.0, CssBorderValues.Dotted, HexColors.Green };
+}
+
+// ❌ Bad - Multiple individual Fact tests
+[Fact] public void Apply_WithColorRed_ShouldSetRed() { }
+[Fact] public void Apply_WithColorBlue_ShouldSetBlue() { }
+[Fact] public void Apply_WithColorGreen_ShouldSetGreen() { }
+```
 
 2. **Create Helper Methods**: Eliminate repetitive arrange sections
    ```csharp
@@ -44,6 +80,160 @@ This document provides practical guidance on what to test and what not to test, 
 4. **Use Test Data Builders**: For complex object creation
 
 5. **Refactor Tests**: Apply the same refactoring standards as production code
+
+## Test Analysis and Refactoring
+
+### Regular Test Analysis
+**Analyze test classes regularly to ensure optimal organization using xUnit features.**
+
+#### Analysis Checklist
+- [ ] **Identify Duplication**: Look for repeated test patterns that can be consolidated
+- [ ] **Find Parameterization Opportunities**: Convert multiple `[Fact]` tests to `[Theory]` tests
+- [ ] **Evaluate Test Data**: Consider using `[MemberData]` or `[ClassData]` for complex scenarios
+- [ ] **Check Helper Methods**: Ensure repetitive arrange sections are eliminated
+- [ ] **Review Test Names**: Ensure descriptive naming following `MethodName_Scenario_ExpectedResult` pattern
+- [ ] **Assess Organization**: Group tests by functionality, not implementation details
+
+#### Refactoring Examples
+```csharp
+// ❌ Before - Multiple Fact tests with duplication
+[Fact]
+public void ParseMarginShorthand_OneValue_ShouldApplyToAllSides()
+{
+    var result = ParseMarginShorthand("10px");
+    result.Top.ShouldBe(10);
+    result.Right.ShouldBe(10);
+    result.Bottom.ShouldBe(10);
+    result.Left.ShouldBe(10);
+}
+
+[Fact]
+public void ParseMarginShorthand_TwoValues_ShouldApplyVerticalHorizontal()
+{
+    var result = ParseMarginShorthand("10px 20px");
+    result.Top.ShouldBe(10);
+    result.Right.ShouldBe(20);
+    result.Bottom.ShouldBe(10);
+    result.Left.ShouldBe(20);
+}
+
+[Fact]
+public void ParseMarginShorthand_ThreeValues_ShouldApplyTopHorizontalBottom()
+{
+    var result = ParseMarginShorthand("10px 20px 30px");
+    result.Top.ShouldBe(10);
+    result.Right.ShouldBe(20);
+    result.Bottom.ShouldBe(30);
+    result.Left.ShouldBe(20);
+}
+
+[Fact]
+public void ParseMarginShorthand_FourValues_ShouldApplyTopRightBottomLeft()
+{
+    var result = ParseMarginShorthand("10px 20px 30px 40px");
+    result.Top.ShouldBe(10);
+    result.Right.ShouldBe(20);
+    result.Bottom.ShouldBe(30);
+    result.Left.ShouldBe(40);
+}
+
+// ✅ After - Consolidated Theory test
+[Theory]
+[InlineData("10px", 10, 10, 10, 10)]           // One value
+[InlineData("10px 20px", 10, 20, 10, 20)]     // Two values
+[InlineData("10px 20px 30px", 10, 20, 30, 20)] // Three values
+[InlineData("10px 20px 30px 40px", 10, 20, 30, 40)] // Four values
+public void ParseMarginShorthand_WithVariousValues_ShouldParseCorrectly(
+    string input, double expectedTop, double expectedRight, double expectedBottom, double expectedLeft)
+{
+    // Arrange
+    var styles = CssStyleMap.Empty;
+    
+    // Act
+    styles = _updater.UpdateStyles(styles, new CssDeclaration("margin", input));
+    
+    // Assert
+    styles.Margin.Top.ShouldBe(expectedTop);
+    styles.Margin.Right.ShouldBe(expectedRight);
+    styles.Margin.Bottom.ShouldBe(expectedBottom);
+    styles.Margin.Left.ShouldBe(expectedLeft);
+}
+```
+
+### xUnit Features for Optimal Testing
+
+#### 1. `[Theory]` with `[InlineData]`
+**Best for**: Simple parameterized tests with 2-5 parameters
+```csharp
+[Theory]
+[InlineData("red", HexColors.Red)]
+[InlineData("blue", HexColors.Blue)]
+[InlineData("green", HexColors.Green)]
+public void ConvertColor_WithNamedColors_ShouldReturnHex(string namedColor, string expectedHex)
+{
+    var result = ColorNormalizer.NormalizeToHex(namedColor);
+    result.ShouldBe(expectedHex);
+}
+```
+
+#### 2. `[Theory]` with `[MemberData]`
+**Best for**: Complex test data or dynamic data generation
+```csharp
+[Theory]
+[MemberData(nameof(GetBorderTestCases))]
+public void ParseBorderShorthand_WithComplexData_ShouldParseCorrectly(BorderTestCase testCase)
+{
+    var result = ParseBorderShorthand(testCase.Input);
+    result.Width.ShouldBe(testCase.ExpectedWidth);
+    result.Style.ShouldBe(testCase.ExpectedStyle);
+    result.Color.ShouldBe(testCase.ExpectedColor);
+}
+
+public static IEnumerable<object[]> GetBorderTestCases()
+{
+    yield return new object[] { new BorderTestCase("1px solid red", 1.0, CssBorderValues.Solid, HexColors.Red) };
+    yield return new object[] { new BorderTestCase("thick dashed blue", 5.0, CssBorderValues.Dashed, HexColors.Blue) };
+    yield return new object[] { new BorderTestCase("medium dotted green", 3.0, CssBorderValues.Dotted, HexColors.Green) };
+}
+```
+
+#### 3. `[Theory]` with `[ClassData]`
+**Best for**: Reusable test data classes
+```csharp
+[Theory]
+[ClassData(typeof(BorderTestData))]
+public void ParseBorderShorthand_WithClassData_ShouldParseCorrectly(BorderTestCase testCase)
+{
+    // Test implementation
+}
+
+public class BorderTestData : IEnumerable<object[]>
+{
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { new BorderTestCase("1px solid red", 1.0, CssBorderValues.Solid, HexColors.Red) };
+        yield return new object[] { new BorderTestCase("thick dashed blue", 5.0, CssBorderValues.Dashed, HexColors.Blue) };
+    }
+    
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+```
+
+#### 4. `[Fact]` Tests
+**Use only for**: Single, unique test scenarios that cannot be parameterized
+```csharp
+[Fact]
+public void ParseHtml_WithComplexNesting_ShouldCreateCorrectStructure()
+{
+    // This test is unique and cannot be parameterized
+    var html = "<div><p><span>Nested content</span></p></div>";
+    var result = _parser.Parse(html);
+    
+    result.Children.ShouldHaveSingleItem();
+    result.Children[0].Children.ShouldHaveSingleItem();
+    result.Children[0].Children[0].Children.ShouldHaveSingleItem();
+}
+```
 
 ## Test Coverage Priorities
 

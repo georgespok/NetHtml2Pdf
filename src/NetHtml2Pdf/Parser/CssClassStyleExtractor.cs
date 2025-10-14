@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser.Interfaces;
 
 namespace NetHtml2Pdf.Parser;
@@ -11,7 +12,7 @@ namespace NetHtml2Pdf.Parser;
 internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationParser, ICssDeclarationUpdater declarationUpdater) : ICssClassStyleExtractor
 {
     private static readonly Regex ClassRuleRegex = 
-        new(@"\.(?<name>[A-Za-z0-9_-]+)\s*\{(?<body>[^}]*)\}", 
+        new(CssRegexPatterns.ClassRule, 
         RegexOptions.Compiled | RegexOptions.Multiline);
 
     public IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document)

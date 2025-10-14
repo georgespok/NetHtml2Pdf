@@ -1,4 +1,5 @@
-using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser;
 using Shouldly;
 
@@ -136,7 +137,7 @@ public class HtmlParserTests
 
         // Assert
         var paragraph = document.Children.Single();
-        paragraph.Styles.Color.ShouldBe("red");
+        paragraph.Styles.Color.ShouldBe(HexColors.Red);
     }
 
     [Fact]
@@ -150,7 +151,7 @@ public class HtmlParserTests
 
         // Assert
         var paragraph = document.Children.Single();
-        paragraph.Styles.BackgroundColor.ShouldBe("yellow");
+        paragraph.Styles.BackgroundColor.ShouldBe(HexColors.Yellow);
     }
 
     [Fact]
@@ -161,7 +162,7 @@ public class HtmlParserTests
             <html>
             <head>
                 <style>
-                    .highlight { color: blue; background-color: {{Colors.Yellow}}; }
+                    .highlight { color: blue; background-color: {{HexColors.Yellow}}; }
                 </style>
             </head>
             <body>
@@ -175,8 +176,8 @@ public class HtmlParserTests
 
         // Assert
         var paragraph = document.Children.Single();
-        paragraph.Styles.Color.ShouldBe("blue");
-        paragraph.Styles.BackgroundColor.ShouldBe(Colors.Yellow);
+        paragraph.Styles.Color.ShouldBe(HexColors.Blue);
+        paragraph.Styles.BackgroundColor.ShouldBe(HexColors.Yellow);
     }
 
     [Theory]
@@ -519,7 +520,7 @@ public class HtmlParserTests
             <table style="margin: 10px;">
                 <tbody>
                     <tr>
-                        <td style="background-color: {Colors.LightGray}; padding: 5px;">Styled Cell</td>
+                        <td style="background-color: {HexColors.LightGray}; padding: 5px;">Styled Cell</td>
                     </tr>
                 </tbody>
             </table>
@@ -535,7 +536,7 @@ public class HtmlParserTests
         var tbody = table.Children[0];
         var row = tbody.Children[0];
         var cell = row.Children[0];
-        cell.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+        cell.Styles.BackgroundColor.ShouldBe(HexColors.LightGray);
         cell.Styles.Padding.Top.ShouldBe(5);
     }
 
@@ -548,8 +549,8 @@ public class HtmlParserTests
             <head>
                 <style>
                     .styled-table { margin: 20px; padding: 10px; }
-                    .header-cell { background-color: {{Colors.LightGray}}; font-weight: bold; }
-                    .data-cell { color: {{Colors.DarkGray}}; }
+                    .header-cell { background-color: {{HexColors.LightGray}}; font-weight: bold; }
+                    .data-cell { color: {{HexColors.DarkGray}}; }
                 </style>
             </head>
             <body>
@@ -582,13 +583,13 @@ public class HtmlParserTests
         var thead = table.Children[0];
         var headerRow = thead.Children[0];
         var headerCell1 = headerRow.Children[0];
-        headerCell1.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+        headerCell1.Styles.BackgroundColor.ShouldBe(HexColors.LightGray);
         headerCell1.Styles.Bold.ShouldBeTrue();
 
         var tbody = table.Children[1];
         var dataRow = tbody.Children[0];
         var dataCell1 = dataRow.Children[0];
-        dataCell1.Styles.Color.ShouldBe(Colors.DarkGray);
+        dataCell1.Styles.Color.ShouldBe(HexColors.DarkGray);
     }
 
     [Fact]
@@ -696,7 +697,7 @@ public class HtmlParserTests
             <head>
                 <style>
                     .bordered-table { border: 2px solid black; border-collapse: collapse; }
-                    .header-cell { text-align: center; vertical-align: middle; background-color: {{Colors.LightGray}}; }
+                    .header-cell { text-align: center; vertical-align: middle; background-color: {{HexColors.LightGray}}; }
                     .data-cell { text-align: left; vertical-align: top; }
                     .right-aligned { text-align: right; }
                 </style>
@@ -727,26 +728,28 @@ public class HtmlParserTests
 
         // Assert
         var table = document.Children.Single();
-        table.Styles.Border.ShouldBe("2px solid black");
-        table.Styles.BorderCollapse.ShouldBe("collapse");
+        table.Styles.Border.Width.ShouldBe(2.0);
+        table.Styles.Border.Style.ShouldBe(CssBorderValues.Solid);
+        table.Styles.Border.Color.ShouldBe(HexColors.Black);
+        table.Styles.BorderCollapse.ShouldBe(CssTableValues.Collapse);
 
         var thead = table.Children[0];
         var headerRow = thead.Children[0];
         
         var headerCell1 = headerRow.Children[0];
-        headerCell1.Styles.TextAlign.ShouldBe("center");
-        headerCell1.Styles.VerticalAlign.ShouldBe("middle");
-        headerCell1.Styles.BackgroundColor.ShouldBe(Colors.LightGray);
+        headerCell1.Styles.TextAlign.ShouldBe(CssAlignmentValues.Center);
+        headerCell1.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Middle);
+        headerCell1.Styles.BackgroundColor.ShouldBe(HexColors.LightGray);
 
         var tbody = table.Children[1];
         var dataRow = tbody.Children[0];
         
         var dataCell1 = dataRow.Children[0];
-        dataCell1.Styles.TextAlign.ShouldBe("left");
-        dataCell1.Styles.VerticalAlign.ShouldBe("top");
+        dataCell1.Styles.TextAlign.ShouldBe(CssAlignmentValues.Left);
+        dataCell1.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Top);
 
         var dataCell2 = dataRow.Children[1];
-        dataCell2.Styles.TextAlign.ShouldBe("right");
-        dataCell2.Styles.VerticalAlign.ShouldBe("top");
+        dataCell2.Styles.TextAlign.ShouldBe(CssAlignmentValues.Right);
+        dataCell2.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Top);
     }
 }

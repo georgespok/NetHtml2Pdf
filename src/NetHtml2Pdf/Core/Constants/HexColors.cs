@@ -1,9 +1,9 @@
-namespace NetHtml2Pdf.Core;
+namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
 /// Provides standard color constants in hexadecimal format for use throughout the application.
 /// </summary>
-public static class Colors
+public static class HexColors
 {
     // Primary colors
     public const string Red = "#FF0000";
@@ -27,4 +27,3 @@ public static class Colors
     public const string LightGray = "#F0F0F0";
     public const string DarkGray = "#333333";
 }
-

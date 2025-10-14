@@ -124,13 +124,13 @@ namespace NetHtml2Pdf.Core
         private static DateTime ValidateTimestamp(DateTime timestamp)
         {
             var now = DateTime.UtcNow;
-            var minDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             if (timestamp > now)
             {
                 throw new ArgumentException("Timestamp cannot be in the future", nameof(timestamp));
             }
 
+            var minDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             if (timestamp < minDate)
             {
                 throw new ArgumentException("Timestamp cannot be before 2020", nameof(timestamp));

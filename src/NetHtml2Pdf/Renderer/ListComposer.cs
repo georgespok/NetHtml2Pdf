@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;

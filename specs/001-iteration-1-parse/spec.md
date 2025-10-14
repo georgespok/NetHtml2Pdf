@@ -51,6 +51,49 @@
    - Integration requirements
    - Compliance or accessibility needs
 
+## Coding Standards *(mandatory)*
+
+### Constants and String Management
+- **REQUIRED**: Reusable text strings MUST be defined in the `Core/Constants` subfolder with `NetHtml2Pdf.Core.Constants` namespace where applicable and where text is going to be reused.
+- **REQUIRED**: Constants MUST be organized by domain and purpose into specialized classes (e.g., `HtmlTagNames`, `CssProperties`, `HexColors`).
+- **REQUIRED**: Constants MUST be used instead of hardcoded strings when the same value appears in multiple locations across different classes.
+- **EXCEPTION**: Error messages and validation messages are context-dependent and MUST remain local to their specific classes - do NOT centralize these in constants.
+- **EXCEPTION**: File paths, connection strings, and other implementation-specific strings MUST remain local to where they are used.
+- **REQUIRED**: When creating new constants, follow the established naming conventions:
+  - `HtmlTagNames` for HTML element names (DIV, P, TABLE, etc.)
+  - `HtmlAttributes` for HTML attribute names (class, style, colspan, etc.)
+  - `CssProperties` for CSS property names (color, margin, border, etc.)
+  - `Css*Values` for CSS value constants (CssBorderValues, CssFontValues, etc.)
+  - `HexColors` for color constants in hex format
+  - `CssRegexPatterns` for regex patterns used in parsing
+  - `ValidationValues` for validation thresholds and platform names
+
+### When to Use Constants
+- ✅ **Use Constants For**: Values used in multiple places across different classes, domain-specific standard values, cross-cutting concerns
+- ❌ **Do NOT Use Constants For**: Context-dependent error messages, single-use strings, implementation-specific paths, localized business logic
+
+### Code Quality Standards
+- **REQUIRED**: Apply clean code principles (SOLID, DRY, KISS) to all code including tests
+- **REQUIRED**: Use `[Theory]` with `[InlineData]` to consolidate similar test scenarios
+- **REQUIRED**: Create helper methods to eliminate repetitive arrange sections
+- **REQUIRED**: Keep test methods short and focused (ideally under 15 lines)
+- **REQUIRED**: Follow Test-Driven Development (TDD) approach: write ONE failing test → implement minimal code to pass → refactor → repeat
+
+### Unit Testing Standards
+- **REQUIRED**: Theory tests (`[Theory]` with `[InlineData]`) are PRIORITY for parameterized testing scenarios
+- **REQUIRED**: Analyze test classes regularly to ensure optimal organization using xUnit features
+- **REQUIRED**: Consolidate similar test scenarios using `[Theory]` with `[InlineData]`, `[MemberData]`, or `[ClassData]`
+- **REQUIRED**: Use `[Fact]` only for single, unique test scenarios that cannot be parameterized
+- **REQUIRED**: Apply xUnit features for better maintainability and extensibility:
+  - `[Theory]` with `[InlineData]` for simple parameterized tests
+  - `[Theory]` with `[MemberData]` for complex test data
+  - `[Theory]` with `[ClassData]` for reusable test data classes
+  - `[Theory]` with `[MemberData]` for dynamic test data generation
+- **REQUIRED**: Create test data builders and helper methods to eliminate repetitive arrange sections
+- **REQUIRED**: Use descriptive test method names following the pattern: `MethodName_Scenario_ExpectedResult`
+- **REQUIRED**: Organize tests by functionality, not by implementation details
+- **REQUIRED**: Refactor tests regularly to improve maintainability and reduce duplication
+
 ---
 
 ## Clarifications
@@ -135,6 +178,8 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **FR-009**: System MUST capture render timing metrics for monitoring and future performance optimization. No explicit performance targets are established for Iteration 1 - focus is on measurement and data collection only. Timing data MUST include total render duration and be stored in application logs.
 - **FR-010**: System MUST achieve comprehensive test coverage for classes with business logic, algorithms, and complex behavior. **MUST** create unit tests for individual methods, integration tests for component interactions, and contract tests for API boundaries. Focus test coverage on High Priority areas: classes with business logic, algorithms, validation, parsing, rendering, and complex state management. Medium Priority areas include classes with moderate complexity, data transformation, or integration points. Low Priority areas (simple data containers, property setters, enums, basic value objects) are optional. Exempt areas include auto-generated code, simple constructors without logic, and trivial getters/setters.
 - **FR-011**: System MUST support multi-page PDF generation through a classical fluent builder pattern API via `IPdfBuilder` interface. `PdfBuilder` MUST provide `Reset()` method to clear state for reuse, `AddPage(string html)` method to accumulate pages, `SetHeader(string html)` and `SetFooter(string html)` methods to define repeated header/footer content, and `Build(ConverterOptions? options = null)` as the finalization method. Typical call sequence: Reset() → SetHeader() → AddPage() × N → SetFooter() → Build(). The Build() method MUST return byte array containing all accumulated pages with headers/footers applied to each page. Headers and footers apply globally to all pages in the document. Headers and footers MUST use dynamic height, expanding to fit content automatically. Page content area MUST adjust based on actual header/footer height, ensuring no overlap or content clipping.
+- **FR-012**: System MUST eliminate hardcoded strings throughout the codebase by defining reusable text strings in the `Core/Constants` subfolder with `NetHtml2Pdf.Core.Constants` namespace. Constants MUST be organized by domain into specialized classes (`HtmlTagNames`, `CssProperties`, `HexColors`, etc.) and used when the same value appears in multiple locations across different classes. Error messages and validation messages are context-dependent and MUST remain local to their specific classes. File paths and implementation-specific strings MUST remain local to where they are used. All constants MUST follow established naming conventions and be properly documented with XML comments.
+- **FR-013**: System MUST implement comprehensive unit testing standards with Theory tests as PRIORITY for parameterized testing scenarios. Test classes MUST be analyzed regularly to ensure optimal organization using xUnit features including `[Theory]` with `[InlineData]`, `[MemberData]`, and `[ClassData]` for better maintainability and extensibility. Similar test scenarios MUST be consolidated using parameterized tests instead of individual `[Fact]` tests. Test data builders and helper methods MUST be created to eliminate repetitive arrange sections. Tests MUST follow descriptive naming patterns and be organized by functionality rather than implementation details.
 
 ### Acceptance Criteria
 
@@ -254,6 +299,34 @@ An SDK consumer wants to convert simple HTML documents containing headings, para
 - **AC-011.14**: Build() requires at least one AddPage() call or throws InvalidOperationException with clear error message
 - **AC-011.15**: Reset() clears all pages, header, footer, and returns PdfBuilder to initial state
 - **AC-011.16**: All fluent methods (Reset, SetHeader, SetFooter, AddPage) return IPdfBuilder for chaining
+
+#### FR-012: Constants and String Management
+- **AC-012.1**: All reusable text strings are defined in `Core/Constants` subfolder with `NetHtml2Pdf.Core.Constants` namespace
+- **AC-012.2**: Constants are organized by domain into specialized classes (HtmlTagNames, CssProperties, HexColors, etc.)
+- **AC-012.3**: Constants are used instead of hardcoded strings when the same value appears in multiple locations across different classes
+- **AC-012.4**: Error messages and validation messages remain local to their specific classes (not centralized)
+- **AC-012.5**: File paths and implementation-specific strings remain local to where they are used
+- **AC-012.6**: All constants follow established naming conventions (HtmlTagNames, CssProperties, Css*Values, etc.)
+- **AC-012.7**: All constants are properly documented with XML comments
+- **AC-012.8**: No hardcoded strings exist for values that are reused across multiple classes
+- **AC-012.9**: Constants are logically grouped by domain and purpose for easy maintenance
+- **AC-012.10**: Context-dependent strings (error messages, file paths) are kept local to their usage context
+
+#### FR-013: Unit Testing Standards
+- **AC-013.1**: Theory tests (`[Theory]` with `[InlineData]`) are used as PRIORITY for parameterized testing scenarios
+- **AC-013.2**: Test classes are analyzed regularly to ensure optimal organization using xUnit features
+- **AC-013.3**: Similar test scenarios are consolidated using `[Theory]` with `[InlineData]`, `[MemberData]`, or `[ClassData]`
+- **AC-013.4**: `[Fact]` tests are used only for single, unique test scenarios that cannot be parameterized
+- **AC-013.5**: xUnit features are applied for better maintainability and extensibility:
+  - `[Theory]` with `[InlineData]` for simple parameterized tests
+  - `[Theory]` with `[MemberData]` for complex test data
+  - `[Theory]` with `[ClassData]` for reusable test data classes
+  - `[Theory]` with `[MemberData]` for dynamic test data generation
+- **AC-013.6**: Test data builders and helper methods are created to eliminate repetitive arrange sections
+- **AC-013.7**: Test method names follow descriptive pattern: `MethodName_Scenario_ExpectedResult`
+- **AC-013.8**: Tests are organized by functionality, not by implementation details
+- **AC-013.9**: Tests are refactored regularly to improve maintainability and reduce duplication
+- **AC-013.10**: Test classes demonstrate efficient use of xUnit features for maximum maintainability
 
 ### Key Entities *(include if feature involves data)*
 - **DocumentNode**: Represents a normalized HTML element optimized for PDF rendering with resolved CSS styles and clean tree structure.

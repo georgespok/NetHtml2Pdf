@@ -1,3 +1,5 @@
+using NetHtml2Pdf.Core.Enums;
+
 namespace NetHtml2Pdf.Core;
 
 internal sealed class CssStyleMap
@@ -16,7 +18,7 @@ internal sealed class CssStyleMap
         string? backgroundColor,
         string? textAlign,
         string? verticalAlign,
-        string? border,
+        BorderInfo border,
         string? borderCollapse)
     {
         FontStyle = fontStyle;
@@ -36,7 +38,7 @@ internal sealed class CssStyleMap
         BorderCollapse = borderCollapse;
     }
 
-    public static CssStyleMap Empty { get; } = new(FontStyle.Normal, false, false, false, TextDecorationStyle.None, false, null, BoxSpacing.Empty, BoxSpacing.Empty, null, null, null, null, null, null);
+    public static CssStyleMap Empty { get; } = new(FontStyle.Normal, false, false, false, TextDecorationStyle.None, false, null, BoxSpacing.Empty, BoxSpacing.Empty, null, null, null, null, BorderInfo.Empty, null);
 
     public FontStyle FontStyle { get; }
 
@@ -64,7 +66,7 @@ internal sealed class CssStyleMap
 
     public string? VerticalAlign { get; }
 
-    public string? Border { get; }
+    public BorderInfo Border { get; }
 
     public string? BorderCollapse { get; }
 
@@ -104,7 +106,7 @@ internal sealed class CssStyleMap
 
     public CssStyleMap WithVerticalAlign(string? verticalAlign) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, verticalAlign, Border, BorderCollapse);
 
-    public CssStyleMap WithBorder(string? border) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, border, BorderCollapse);
+    public CssStyleMap WithBorder(BorderInfo border) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, border, BorderCollapse);
 
     public CssStyleMap WithBorderCollapse(string? borderCollapse) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, borderCollapse);
 
@@ -133,7 +135,7 @@ internal sealed class CssStyleMap
         var backgroundColor = other.BackgroundColor ?? BackgroundColor;
         var textAlign = other.TextAlign ?? TextAlign;
         var verticalAlign = other.VerticalAlign ?? VerticalAlign;
-        var border = other.Border ?? Border;
+        var border = other.Border.HasValue ? other.Border : Border;
         var borderCollapse = other.BorderCollapse ?? BorderCollapse;
 
         return new CssStyleMap(fontStyle, fontStyleSet, bold, boldSet, decoration, decorationSet, lineHeight, margin, padding, color, backgroundColor, textAlign, verticalAlign, border, borderCollapse);

@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser.Interfaces;
 
 namespace NetHtml2Pdf.Parser;

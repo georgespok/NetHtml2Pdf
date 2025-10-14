@@ -2,6 +2,7 @@ using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Parser;
 using Shouldly;
+using NetHtml2Pdf.Core.Enums;
 
 namespace NetHtml2Pdf.Test.Parser;
 
