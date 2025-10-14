@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Options;
 using Moq;
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -15,7 +15,7 @@ public class PdfBuilderTests : PdfValidationTestBase
     private readonly Mock<IHtmlParser> _mockParser;
     private readonly Mock<IPdfRendererFactory> _mockRendererFactory;
     private readonly Mock<IPdfRenderer> _mockRenderer;
-    private readonly IOptions<RendererOptions> _options;
+    private readonly RendererOptions _options;
 
     // Test data constants
     private const string Page1Html = "<h2>Page 1</h2><p>First page content</p>";
@@ -42,7 +42,7 @@ public class PdfBuilderTests : PdfValidationTestBase
         _mockParser = new Mock<IHtmlParser>();
         _mockRendererFactory = new Mock<IPdfRendererFactory>();
         _mockRenderer = new Mock<IPdfRenderer>();
-        _options = Options.Create(new RendererOptions());
+        _options = new RendererOptions();
 
         var mockDocumentNode = new DocumentNode(DocumentNodeType.Paragraph, "Test");
         _mockParser.Setup(p => p.Parse(It.IsAny<string>())).Returns(mockDocumentNode);
@@ -134,9 +134,6 @@ public class PdfBuilderTests : PdfValidationTestBase
         // Verify PDF bytes returned
         VerifyBasicPdfResult(result);
         
-        // Note: Current implementation only renders first page (T015)
-        // Multi-page rendering will be implemented in T044-T045
-        // For now, verify that AddPage() accepts multiple calls without error
         _mockParser.Verify(p => p.Parse(It.IsAny<string>()), Times.AtLeastOnce);
         VerifyRendererCalls();
     }
@@ -217,9 +214,6 @@ public class PdfBuilderTests : PdfValidationTestBase
         // Verify renderer calls
         VerifyRendererCalls();
         
-        // Note: Current implementation only renders first page (T015)
-        // Multi-page rendering with headers and footers will be implemented in T044-T045
-        // This test documents the expected behavior for when multi-page with headers and footers is implemented
     }
 
     [Fact]
@@ -253,15 +247,51 @@ public class PdfBuilderTests : PdfValidationTestBase
         // Verify renderer calls
         VerifyRendererCalls();
         
-        // Note: Current implementation only renders first page (T015)
-        // Dynamic height adjustment will be implemented in T044-T045
-        // This test documents the expected behavior for when dynamic height adjustment is implemented
-        // The test verifies that large headers and footers are properly parsed and will be considered
-        // for page content area calculation in the future implementation
+    }
+
+    [Fact]
+    public void PdfBuilder_MultipleBuildCalls_ProducesIndependentPdfs()
+    {
+        // Arrange
+        var builder = CreateBuilder();
+
+        // Act - First PDF
+        var pdf1 = builder
+            .Reset()
+            .AddPage(SimplePageHtml)
+            .Build();
+
+        // Act - Second PDF (reuse same builder instance)
+        var pdf2 = builder
+            .Reset()
+            .AddPage(SimplePage2Html)
+            .Build();
+
+        // Assert - Both PDFs should be valid and independent
+        VerifyBasicPdfResult(pdf1);
+        VerifyBasicPdfResult(pdf2);
+        
+        // Verify both PDFs were generated (renderer called twice)
+        _mockRendererFactory.Verify(f => f.Create(It.IsAny<RendererOptions>()), Times.Exactly(2));
+        _mockRenderer.Verify(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()), Times.Exactly(2));
+        
+        // Verify parser was called for both pages
+        _mockParser.Verify(p => p.Parse(SimplePageHtml), Times.Once);
+        _mockParser.Verify(p => p.Parse(SimplePage2Html), Times.Once);
     }
 
     // Helper methods for common setup and verification
-    private IPdfBuilder CreateBuilder() => new PdfBuilder(_mockParser.Object, _mockRendererFactory.Object, _options);
+    private IPdfBuilder CreateBuilder()
+    {
+        return new PdfBuilder(_mockParser.Object, _mockRendererFactory.Object, _options, GetLogger());
+    }
+
+    private IPdfBuilder CreateBuilderWithRealParser() =>
+        // Use public constructor that centralizes instantiation and wiring of fallback tracking
+        new PdfBuilder(_options, GetLogger());
+
+    private static Microsoft.Extensions.Logging.Abstractions.NullLogger<PdfBuilder> GetLogger() =>
+        Microsoft.Extensions.Logging.Abstractions.NullLogger<PdfBuilder>.Instance;
 
     private void VerifyBasicPdfResult(byte[] result)
     {
@@ -273,5 +303,66 @@ public class PdfBuilderTests : PdfValidationTestBase
         _mockRendererFactory.Verify(f => f.Create(It.IsAny<RendererOptions>()), Times.Once);
         _mockRenderer.Verify(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()), Times.Once);
     }
+
+    [Fact]
+    public void PdfBuilder_WithUnsupportedElements_ShouldLogWarnings()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger>();
+        var pdfBuilder = new PdfBuilder(_options, mockLogger.Object);
+        var htmlWithUnsupportedElements = "<div><video>Unsupported video element</video><canvas>Unsupported canvas element</canvas></div>";
+
+        // Act
+        pdfBuilder.AddPage(htmlWithUnsupportedElements);
+        var pdfBytes = pdfBuilder.Build();
+
+        // Assert
+        VerifyBasicPdfResult(pdfBytes);
+
+        // Verify that warnings were logged for unsupported elements via ILogger
+        VerifyWarningLogged(mockLogger, "VIDEO");
+        VerifyWarningLogged(mockLogger, "CANVAS");
+
+        // Verify that fallback elements were tracked
+        var fallbackElements = pdfBuilder.GetFallbackElements();
+        fallbackElements.ShouldContain("VIDEO");
+        fallbackElements.ShouldContain("CANVAS");
+    }
+
+    [Fact]
+    public void PdfBuilder_Reset_ShouldClearWarningsAndFallbackElements()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger>();
+        var pdfBuilder = new PdfBuilder(_options, mockLogger.Object);
+        var htmlWithUnsupportedElements = "<div><video>Unsupported element</video></div>";
+        
+        // Act - Add page with unsupported element and build to trigger parsing/warnings
+        pdfBuilder.AddPage(htmlWithUnsupportedElements).Build();
+        var fallbackElementsBeforeReset = pdfBuilder.GetFallbackElements();
+        
+        // Verify warnings were logged via ILogger
+        VerifyWarningLogged(mockLogger, "VIDEO");
+
+        // Verify fallback elements were tracked
+        fallbackElementsBeforeReset.ShouldNotBeEmpty();
+        
+        // Act - Reset builder
+        pdfBuilder.Reset();
+        
+        // Assert - Fallback elements should be cleared (logger history is not cleared by reset)
+        var fallbackElementsAfterReset = pdfBuilder.GetFallbackElements();
+        
+        fallbackElementsAfterReset.ShouldBeEmpty();
+    }
+
+    private static void VerifyWarningLogged(Moq.Mock<Microsoft.Extensions.Logging.ILogger> logger, string expectedFragment) =>
+        logger.Verify(l => l.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() != null && v.ToString()!.IndexOf(expectedFragment, StringComparison.OrdinalIgnoreCase) >= 0),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+            Times.AtLeastOnce());
 }
 

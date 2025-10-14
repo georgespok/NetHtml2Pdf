@@ -4,6 +4,101 @@
 
 This document defines the coding standards and best practices for the NetHtml2Pdf project, with a focus on maintainable, clean, and consistent code.
 
+## Testing Standards
+
+### Unit Test Coverage Strategy
+
+The project uses a **coverage scoring system** to maximize meaningful coverage of business-critical and complex code paths while minimizing test volume and maintenance overhead.
+
+#### Coverage Score Formula
+
+For each method, calculate the coverage score using:
+
+```
+Score = (0.4 × CyclomaticComplexity)
+      + (0.3 × BusinessCriticality)
+      + (0.2 × ChangeFrequency)
+      + (0.1 × DefectHistory)
+```
+
+#### Testing Priorities
+
+- **Score < 5**: Low priority - No tests required
+- **Score 5-7**: Medium priority - Standard test coverage
+- **Score > 7**: High priority - Comprehensive test coverage (must test)
+
+#### Implementation Rules
+
+1. **Calculate scores** for all methods in business-critical classes
+2. **Ignore Low priority methods** (Score < 5) to reduce maintenance overhead
+3. **Focus testing effort** on Medium and High priority methods (Score ≥ 5)
+4. **Use Theory tests** for High priority methods with multiple scenarios
+5. **Regularly review scores** as code evolves
+
+### Test Quality Standards
+
+- **Theory tests PRIORITY**: Use `[Theory]` with `[InlineData]` for parameterized tests
+- **Clean test code**: Apply same quality standards as production code
+- **Minimal maintenance**: Focus on business-critical paths only
+- **Regular analysis**: Review test organization and coverage quarterly
+
+### Integration Testing Standards
+
+#### Integration Test Coverage Strategy
+
+Integration tests focus on **cross-module communication** with minimal number of tests and maximum coverage of important interactions.
+
+#### Integration Score Formula
+
+For each integration scenario, calculate the score using:
+
+```
+IntegrationScore = (0.3 × CrossModule)
+                + (0.3 × ExternalDependency)
+                + (0.3 × Criticality)
+                + (0.1 × Transactional)
+```
+
+#### Integration Testing Priorities
+
+- **Score ≥ 7**: High priority - Must have integration test
+- **Score 5-6**: Medium priority - Desirable integration test
+- **Score < 5**: Low priority - Rely on unit tests only
+
+#### Integration Test Rules
+
+1. **One integration test per major use case**, not per method
+2. **Simulate full transaction flow**: request → domain → persistence
+3. **Test the "contract" not the "internals"**
+4. **Avoid duplicating unit-level assertions**; focus on integration outcomes
+5. **Focus on major use cases** rather than individual method combinations
+6. **Test end-to-end workflows** that span multiple modules
+7. **Verify integration contracts** between components
+8. **Minimize test duplication** with unit tests
+
+### Ultimate Integration Testing Standards
+
+#### Ultimate Test Requirements
+
+**Ultimate integration tests** are comprehensive, end-to-end tests that validate the complete HTML-to-PDF rendering pipeline with extensive HTML/CSS coverage.
+
+#### Ultimate Test Characteristics
+
+- **Comprehensive HTML Coverage**: Include many (but not all) supported HTML tags and CSS attributes
+- **Real-World Scenarios**: Simulate complex, realistic document structures
+- **Visual Validation**: Generate PDF files saved with `SavePdfForInspectionAsync()` for visual comparison
+- **Multi-Feature Integration**: Combine headers, footers, tables, lists, styling, and formatting
+- **Content Verification**: Validate both structure and styling through word extraction and analysis
+
+#### Ultimate Test Implementation Rules
+
+1. **HTML Structure Coverage**: Include document structure, typography, lists, tables, and containers
+2. **CSS Styling Coverage**: Include font, layout, visual, and table properties
+3. **Multi-Page Features**: Test headers, footers, and cross-page consistency
+4. **Visual Output**: Generate PDF files for manual inspection and validation
+5. **Comprehensive Validation**: Verify both content and styling through automated checks
+6. **Mandatory Status**: Ultimate tests are required regardless of integration score due to their comprehensive validation value
+
 ## Constants and String Management
 
 ### Core Principle

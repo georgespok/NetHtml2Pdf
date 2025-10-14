@@ -6,11 +6,6 @@ internal sealed class PdfRendererFactory(IBlockComposer blockComposer) : IPdfRen
 {
     private readonly IBlockComposer _blockComposer = blockComposer ?? throw new ArgumentNullException(nameof(blockComposer));
 
-    public PdfRendererFactory()
-        : this(PdfRenderer.CreateDefaultBlockComposer())
-    {
-    }
-
     public IPdfRenderer Create(RendererOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
