@@ -1,5 +1,7 @@
 using AngleSharp.Dom;
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
+using NetHtml2Pdf.Core.Enums;
 
 namespace NetHtml2Pdf.Parser;
 
@@ -7,28 +9,28 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver)
 {
     private static readonly IReadOnlyDictionary<string, DocumentNodeType> ElementTypeMap = new Dictionary<string, DocumentNodeType>(StringComparer.OrdinalIgnoreCase)
     {
-        ["DIV"] = DocumentNodeType.Div,
-        ["SECTION"] = DocumentNodeType.Section,
-        ["P"] = DocumentNodeType.Paragraph,
-        ["SPAN"] = DocumentNodeType.Span,
-        ["STRONG"] = DocumentNodeType.Strong,
-        ["B"] = DocumentNodeType.Bold,
-        ["I"] = DocumentNodeType.Italic,
-        ["UL"] = DocumentNodeType.UnorderedList,
-        ["OL"] = DocumentNodeType.OrderedList,
-        ["LI"] = DocumentNodeType.ListItem,
-        ["TABLE"] = DocumentNodeType.Table,
-        ["THEAD"] = DocumentNodeType.TableHead,
-        ["TBODY"] = DocumentNodeType.TableBody,
-        ["TR"] = DocumentNodeType.TableRow,
-        ["TH"] = DocumentNodeType.TableHeaderCell,
-        ["TD"] = DocumentNodeType.TableCell,
-        ["H1"] = DocumentNodeType.Heading1,
-        ["H2"] = DocumentNodeType.Heading2,
-        ["H3"] = DocumentNodeType.Heading3,
-        ["H4"] = DocumentNodeType.Heading4,
-        ["H5"] = DocumentNodeType.Heading5,
-        ["H6"] = DocumentNodeType.Heading6
+        [HtmlTagNames.Div] = DocumentNodeType.Div,
+        [HtmlTagNames.Section] = DocumentNodeType.Section,
+        [HtmlTagNames.Paragraph] = DocumentNodeType.Paragraph,
+        [HtmlTagNames.Span] = DocumentNodeType.Span,
+        [HtmlTagNames.Strong] = DocumentNodeType.Strong,
+        [HtmlTagNames.Bold] = DocumentNodeType.Bold,
+        [HtmlTagNames.Italic] = DocumentNodeType.Italic,
+        [HtmlTagNames.UnorderedList] = DocumentNodeType.UnorderedList,
+        [HtmlTagNames.OrderedList] = DocumentNodeType.OrderedList,
+        [HtmlTagNames.ListItem] = DocumentNodeType.ListItem,
+        [HtmlTagNames.Table] = DocumentNodeType.Table,
+        [HtmlTagNames.TableHead] = DocumentNodeType.TableHead,
+        [HtmlTagNames.TableBody] = DocumentNodeType.TableBody,
+        [HtmlTagNames.TableRow] = DocumentNodeType.TableRow,
+        [HtmlTagNames.TableHeaderCell] = DocumentNodeType.TableHeaderCell,
+        [HtmlTagNames.TableCell] = DocumentNodeType.TableCell,
+        [HtmlTagNames.Header1] = DocumentNodeType.Heading1,
+        [HtmlTagNames.Header2] = DocumentNodeType.Heading2,
+        [HtmlTagNames.Header3] = DocumentNodeType.Heading3,
+        [HtmlTagNames.Header4] = DocumentNodeType.Heading4,
+        [HtmlTagNames.Header5] = DocumentNodeType.Heading5,
+        [HtmlTagNames.Header6] = DocumentNodeType.Heading6
     };
 
     public DocumentNode? Convert(INode node, CssStyleMap inheritedStyles)
@@ -51,7 +53,7 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver)
 
     private DocumentNode CreateElementNode(IElement element, CssStyleMap inheritedStyles)
     {
-        if (string.Equals(element.TagName, "BR", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(element.TagName, HtmlTagNames.LineBreak, StringComparison.OrdinalIgnoreCase))
         {
             return new DocumentNode(DocumentNodeType.LineBreak, styles: inheritedStyles);
         }

@@ -1,4 +1,4 @@
-namespace NetHtml2Pdf.Core;
+namespace NetHtml2Pdf.Core.Enums;
 
 [Flags]
 internal enum TextDecorationStyle

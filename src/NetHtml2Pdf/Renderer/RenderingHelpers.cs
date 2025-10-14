@@ -1,4 +1,6 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
+using NetHtml2Pdf.Core.Enums;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 
@@ -12,7 +14,7 @@ internal static class RenderingHelpers
     /// <summary>
     /// Converts a CSS color value (named color or hex) to a hex color code.
     /// </summary>
-    /// <param name="color">The color value to convert (e.g., "red", Colors.Red).</param>
+    /// <param name="color">The color value to convert (e.g., "red", HexColors.Red).</param>
     /// <returns>A hex color code, or null if the color is invalid or unsupported.</returns>
     public static string? ConvertToHexColor(string? color)
     {
@@ -29,16 +31,16 @@ internal static class RenderingHelpers
         // Convert common named colors to hex
         return color.ToLowerInvariant() switch
         {
-            "red" => Colors.Red,
-            "blue" => Colors.Blue,
-            "green" => Colors.Green,
-            "yellow" => Colors.Yellow,
-            "black" => Colors.Black,
-            "white" => Colors.White,
-            "gray" or "grey" => Colors.Gray,
-            "orange" => Colors.Orange,
-            "purple" => Colors.Purple,
-            "pink" => Colors.Pink,
+            "red" => HexColors.Red,
+            "blue" => HexColors.Blue,
+            "green" => HexColors.Green,
+            "yellow" => HexColors.Yellow,
+            "black" => HexColors.Black,
+            "white" => HexColors.White,
+            "gray" or "grey" => HexColors.Gray,
+            "orange" => HexColors.Orange,
+            "purple" => HexColors.Purple,
+            "pink" => HexColors.Pink,
             _ => null
         };
     }

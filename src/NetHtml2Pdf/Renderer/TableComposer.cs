@@ -1,4 +1,6 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -76,19 +78,17 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
     {
         // Apply border first (outside)
         var borderedContainer = cellContainer;
-        if (!string.IsNullOrEmpty(cell.Styles.Border))
+        if (cell.Styles.Border.IsVisible)
         {
-            borderedContainer = borderedContainer.Border(1).BorderColor(Colors.Gray);
+            var borderWidth = (float)cell.Styles.Border.GetWidthInPixels();
+            var borderColor = cell.Styles.Border.GetColor();
+            borderedContainer = borderedContainer.Border(borderWidth).BorderColor(borderColor ?? HexColors.Gray);
         }
 
         // Apply background color
         if (!string.IsNullOrEmpty(cell.Styles.BackgroundColor))
         {
-            var bgColor = RenderingHelpers.ConvertToHexColor(cell.Styles.BackgroundColor);
-            if (bgColor != null)
-            {
-                borderedContainer = borderedContainer.Background(bgColor);
-            }
+            borderedContainer = borderedContainer.Background(cell.Styles.BackgroundColor);
         }
 
         // Apply cell spacing (padding) inside the border
