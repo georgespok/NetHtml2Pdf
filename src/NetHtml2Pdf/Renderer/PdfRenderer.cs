@@ -11,12 +11,16 @@ internal class PdfRenderer(RendererOptions? options = null,
     private readonly RendererOptions _options = options ?? RendererOptions.CreateDefault();
     private readonly IBlockComposer _blockComposer = blockComposer ?? CreateDefaultBlockComposer();
 
-    public byte[] Render(DocumentNode document)
+    public byte[] Render(DocumentNode document, DocumentNode? header = null, DocumentNode? footer = null) => 
+        Render([document], header, footer);
+
+    public byte[] Render(IEnumerable<DocumentNode> pages, 
+        DocumentNode? header = null, DocumentNode? footer = null)
     {
-        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(pages);
 
         ConfigureQuestPdf();
-        var pdfDocument = CreateDocument(document);
+        var pdfDocument = CreateMultiPageDocument(pages, header, footer);
 
         using var stream = new MemoryStream();
         pdfDocument.GeneratePdf(stream);
@@ -42,21 +46,50 @@ internal class PdfRenderer(RendererOptions? options = null,
         QuestPDF.Drawing.FontManager.RegisterFont(fontStream);
     }
 
-    private IDocument CreateDocument(DocumentNode document)
+    private IDocument CreateMultiPageDocument(IEnumerable<DocumentNode> pages, DocumentNode? header, DocumentNode? footer)
     {
         return Document.Create(container =>
         {
-            container.Page(page =>
+            foreach (var pageDocument in pages)
             {
-                page.Margin(40);
-                page.Content().Column(column =>
+                container.Page(page =>
                 {
-                    foreach (var child in document.Children)
+                    page.Margin(40);
+                    
+                    // Add header if provided
+                    if (header != null)
                     {
-                        _blockComposer.Compose(column, child);
+                        page.Header().Column(column =>
+                        {
+                            foreach (var child in header.Children)
+                            {
+                                _blockComposer.Compose(column, child);
+                            }
+                        });
                     }
+                    
+                    // Add footer if provided
+                    if (footer != null)
+                    {
+                        page.Footer().Column(column =>
+                        {
+                            foreach (var child in footer.Children)
+                            {
+                                _blockComposer.Compose(column, child);
+                            }
+                        });
+                    }
+                    
+                    // Add page content
+                    page.Content().Column(column =>
+                    {
+                        foreach (var child in pageDocument.Children)
+                        {
+                            _blockComposer.Compose(column, child);
+                        }
+                    });
                 });
-            });
+            }
         });
     }
 }

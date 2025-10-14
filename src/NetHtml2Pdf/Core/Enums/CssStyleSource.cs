@@ -1,4 +1,4 @@
-namespace NetHtml2Pdf.Core;
+namespace NetHtml2Pdf.Core.Enums;
 
 /// <summary>
 /// Indicates the source of CSS styling.

@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Test.Support;
 using Shouldly;
 using Xunit.Abstractions;
@@ -309,7 +310,7 @@ public class HtmlConverterTests : PdfRenderTestBase
         var html = $"""
             <p style="color: red;">Red text</p>
             <p style="background-color: yellow;">Yellow background</p>
-            <p style="color: {Colors.Blue}; background-color: {Colors.Yellow};">Blue on yellow</p>
+            <p style="color: {HexColors.Blue}; background-color: {HexColors.Yellow};">Blue on yellow</p>
             """;
         var builder = new PdfBuilder();
 
@@ -323,12 +324,12 @@ public class HtmlConverterTests : PdfRenderTestBase
         // Verify red text color
         var redWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Red"));
         redWord.ShouldNotBeNull();
-        redWord.HexColor.ShouldBe(Colors.Red);
+        redWord.HexColor.ShouldBe(HexColors.Red);
         
         // Verify blue text color
         var blueWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Blue"));
         blueWord.ShouldNotBeNull();
-        blueWord.HexColor.ShouldBe(Colors.Blue);
+        blueWord.HexColor.ShouldBe(HexColors.Blue);
     }
 
     [Fact]
@@ -354,7 +355,7 @@ public class HtmlConverterTests : PdfRenderTestBase
         // Verify CSS class color is applied
         var highlightedWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Highlighted"));
         highlightedWord.ShouldNotBeNull();
-        highlightedWord.HexColor.ShouldBe(Colors.Red);
+        highlightedWord.HexColor.ShouldBe(HexColors.Red);
         
         // Verify CSS class bold is applied
         var boldWord = pdfWords.FirstOrDefault(w => w.Text.Contains("Bold"));
@@ -454,7 +455,7 @@ public class HtmlConverterTests : PdfRenderTestBase
                         border-collapse: collapse;
                     }
                     .header-cell {
-                        background-color: {{Colors.LightGray}};
+                        background-color: {{HexColors.LightGray}};
                         text-align: center;
                         vertical-align: middle;
                     }
@@ -613,7 +614,7 @@ public class HtmlConverterTests : PdfRenderTestBase
             <table style="margin: 20px;">
                 <tbody>
                     <tr>
-                        <td style="background-color: {{Colors.LightGray}}; padding: 10px;">Styled Cell 1</td>
+                        <td style="background-color: {{HexColors.LightGray}}; padding: 10px;">Styled Cell 1</td>
                         <td style="text-align: center; padding: 10px;">Styled Cell 2</td>
                         <td style="text-align: right; padding: 10px;">Styled Cell 3</td>
                     </tr>

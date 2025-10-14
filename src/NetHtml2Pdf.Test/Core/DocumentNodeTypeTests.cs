@@ -1,4 +1,4 @@
-using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using Shouldly;
 
 namespace NetHtml2Pdf.Test.Core;

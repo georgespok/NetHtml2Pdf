@@ -8,7 +8,7 @@ namespace NetHtml2Pdf.Test.Support;
 /// Disables parallelization to prevent QuestPDF memory access violations during concurrent rendering.
 /// </summary>
 [CollectionDefinition("PdfRendering", DisableParallelization = true)]
-public abstract class PdfRenderTestBase(ITestOutputHelper output)
+public abstract class PdfRenderTestBase(ITestOutputHelper output) : PdfValidationTestBase
 {
     protected static readonly PdfWordParser WordParser = new();
 
@@ -25,34 +25,6 @@ public abstract class PdfRenderTestBase(ITestOutputHelper output)
     /// </summary>
     protected static string[] ExtractWords(byte[] pdfBytes) =>
         WordParser.GetWords(pdfBytes).Select(w => w.Text).ToArray();
-
-    #endregion
-
-    #region PDF Validation
-
-    private static class PdfHeader
-    {
-        public const byte Percent = 0x25;  // %
-        public const byte P = 0x50;        // P
-        public const byte D = 0x44;        // D
-        public const byte F = 0x46;        // F
-        public const int MinimumLength = 4;
-    }
-
-    /// <summary>
-    /// Asserts that the byte array is a valid PDF file by checking header signature.
-    /// </summary>
-    protected static void AssertValidPdf(byte[] pdfBytes)
-    {
-        Assert.NotNull(pdfBytes);
-        Assert.True(pdfBytes.Length >= PdfHeader.MinimumLength,
-            $"PDF must be at least {PdfHeader.MinimumLength} bytes");
-
-        Assert.Equal(PdfHeader.Percent, pdfBytes[0]);
-        Assert.Equal(PdfHeader.P, pdfBytes[1]);
-        Assert.Equal(PdfHeader.D, pdfBytes[2]);
-        Assert.Equal(PdfHeader.F, pdfBytes[3]);
-    }
 
     #endregion
 
