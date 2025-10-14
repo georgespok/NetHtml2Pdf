@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser.Interfaces;
 
 namespace NetHtml2Pdf.Parser;
@@ -23,7 +24,7 @@ internal sealed class CssStyleResolver(
 
     private CssStyleMap ApplyClassStyles(IElement element, CssStyleMap styles)
     {
-        var classAttribute = element.GetAttribute("class");
+        var classAttribute = element.GetAttribute(HtmlAttributes.Class);
         if (string.IsNullOrWhiteSpace(classAttribute))
         {
             return styles;
@@ -45,7 +46,7 @@ internal sealed class CssStyleResolver(
 
     private CssStyleMap ApplyInlineStyles(IElement element, CssStyleMap styles)
     {
-        var inlineStyle = element.GetAttribute("style");
+        var inlineStyle = element.GetAttribute(HtmlAttributes.Style);
         
         if (string.IsNullOrWhiteSpace(inlineStyle))
         {

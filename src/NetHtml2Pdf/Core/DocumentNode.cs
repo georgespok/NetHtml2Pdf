@@ -1,3 +1,5 @@
+using NetHtml2Pdf.Core.Enums;
+
 namespace NetHtml2Pdf.Core;
 
 internal class DocumentNode

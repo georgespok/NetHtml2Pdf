@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Test.Support;
@@ -104,13 +105,13 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
         
         var coloredWord = words.FirstOrDefault(w => w.Text.Contains("Colored"));
         coloredWord.ShouldNotBeNull();
-        coloredWord.HexColor.ShouldBe(Colors.Red);
+        coloredWord.HexColor.ShouldBe(HexColors.Red);
     }
 
     [Theory]
-    [InlineData("blue", Colors.Blue)]
-    [InlineData(Colors.BrightGreen, Colors.BrightGreen)]
-    [InlineData("purple", Colors.Purple)]
+    [InlineData("blue", HexColors.Blue)]
+    [InlineData(HexColors.BrightGreen, HexColors.BrightGreen)]
+    [InlineData("purple", HexColors.Purple)]
     public void ColorStyles_ShouldRenderVariousColors(string cssColor, string expectedHex)
     {
         // Arrange
@@ -130,7 +131,7 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
 
     [Theory]
     [InlineData("yellow")]
-    [InlineData(Colors.BrightGreen)]
+    [InlineData(HexColors.BrightGreen)]
     [InlineData("pink")]
     public void BackgroundColorStyles_ShouldRenderWithoutErrors(string backgroundColor)
     {
@@ -158,7 +159,7 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
             <div>
                 <p style="color: blue; background-color: yellow">Blue on Yellow</p>
                 <p style="color: white; background-color: red">White on Red</p>
-                <p style="color: {Colors.BrightGreen}; background-color: {Colors.Navy}">Green on Navy</p>
+                <p style="color: {HexColors.BrightGreen}; background-color: {HexColors.Navy}">Green on Navy</p>
             </div>
             """;
 
@@ -173,17 +174,17 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
         // Verify first paragraph - blue text
         var blueWord = words.FirstOrDefault(w => w.Text.Contains("Blue"));
         blueWord.ShouldNotBeNull();
-        blueWord.HexColor.ShouldBe(Colors.Blue);
+        blueWord.HexColor.ShouldBe(HexColors.Blue);
         
         // Verify second paragraph - white text
         var whiteWord = words.FirstOrDefault(w => w.Text.Contains("White"));
         whiteWord.ShouldNotBeNull();
-        whiteWord.HexColor.ShouldBe(Colors.White);
+        whiteWord.HexColor.ShouldBe(HexColors.White);
         
         // Verify third paragraph - green text
         var greenWord = words.FirstOrDefault(w => w.Text.Contains("Green"));
         greenWord.ShouldNotBeNull();
-        greenWord.HexColor.ShouldBe(Colors.BrightGreen);
+        greenWord.HexColor.ShouldBe(HexColors.BrightGreen);
     }
 
     [Fact]
@@ -616,7 +617,7 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
             <html>
             <head>
                 <style>
-                    .header-bg { background-color: {{Colors.LightGray}}; }
+                    .header-bg { background-color: {{HexColors.LightGray}}; }
                     .yellow-bg { background-color: yellow; }
                 </style>
             </head>
@@ -741,7 +742,7 @@ public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(outp
                 <style>
                     .full-style {
                         border: 2px solid black;
-                        background-color: {{Colors.LightGray}};
+                        background-color: {{HexColors.LightGray}};
                         text-align: center;
                         vertical-align: middle;
                         padding: 10px;
