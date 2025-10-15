@@ -23,7 +23,7 @@ public class PdfBuilderTests : PdfValidationTestBase
     private const string Page3Html = "<h2>Page 3</h2><p>Third page content</p>";
     private const string HeaderHtml = "<h1>Document Header</h1><p>This header should appear on all pages</p>";
     private const string FooterHtml = "<p>Document Footer</p><p>This footer should appear on all pages</p>";
-    
+
     // Additional test data constants
     private const string SimplePageHtml = "<h1>Page 1</h1><p>First page content</p>";
     private const string SimplePage2Html = "<h1>Page 2</h1><p>Second page content</p>";
@@ -31,7 +31,7 @@ public class PdfBuilderTests : PdfValidationTestBase
     private const string SimpleHeaderHtml = "<h1>Header</h1>";
     private const string SimplePageContentHtml = "<p>Page content</p>";
     private const string SimpleFooterHtml = "<p>Footer</p>";
-    
+
     // Dynamic height test constants
     private const string LargeHeaderHtml = "<div style='height: 200px; background-color: #f0f0f0;'><h1>Large Header</h1><p>This is a large header that should reduce the available page content area</p><p>Additional content to make it taller</p><p>More content to ensure it's large enough</p></div>";
     private const string LargeFooterHtml = "<div style='height: 150px; background-color: #e0e0e0;'><p>Large Footer</p><p>This is a large footer that should reduce the available page content area</p><p>Additional footer content</p></div>";
@@ -45,14 +45,14 @@ public class PdfBuilderTests : PdfValidationTestBase
         _options = new RendererOptions();
 
         var mockDocumentNode = new DocumentNode(DocumentNodeType.Paragraph, "Test");
-        _mockParser.Setup(p => p.Parse(It.IsAny<string>())).Returns(mockDocumentNode);
-        
+        _mockParser.Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<ILogger?>())).Returns(mockDocumentNode);
+
         _mockRenderer.Setup(r => r.Render(It.IsAny<DocumentNode>(), null, null))
             .Returns(StandardPdfBytes);
-        
+
         _mockRenderer.Setup(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()))
             .Returns(StandardPdfBytes);
-        
+
         _mockRendererFactory.Setup(f => f.Create(It.IsAny<RendererOptions>())).Returns(_mockRenderer.Object);
     }
 
@@ -79,15 +79,15 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Act & Assert
         var exception = Should.Throw<Exception>(() => builder.AddPage(input!));
-        
+
         exception.ShouldBeOfType(expectedExceptionType);
-        
+
         // Cast to ArgumentException to access ParamName property
         if (exception is ArgumentException argException)
         {
             argException.ParamName.ShouldBe(expectedParamName);
         }
-        
+
         if (expectedMessageFragment != null)
         {
             exception.Message.ShouldContain(expectedMessageFragment);
@@ -112,10 +112,10 @@ public class PdfBuilderTests : PdfValidationTestBase
         var result = builder.AddPage(TestContentHtml).Build();
 
         VerifyBasicPdfResult(result);
-        
+
         // Verify parser was called with the HTML content
-        _mockParser.Verify(p => p.Parse(TestContentHtml), Times.Once);
-        
+        _mockParser.Verify(p => p.Parse(TestContentHtml, It.IsAny<ILogger?>()), Times.Once);
+
         // Verify renderer calls
         VerifyRendererCalls();
     }
@@ -133,8 +133,8 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Verify PDF bytes returned
         VerifyBasicPdfResult(result);
-        
-        _mockParser.Verify(p => p.Parse(It.IsAny<string>()), Times.AtLeastOnce);
+
+        _mockParser.Verify(p => p.Parse(It.IsAny<string>(), It.IsAny<ILogger?>()), Times.AtLeastOnce);
         VerifyRendererCalls();
     }
 
@@ -153,12 +153,12 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Verify PDF bytes returned
         VerifyBasicPdfResult(result);
-        
+
         // Verify all methods return IPdfBuilder for fluent chaining
         // (If any method didn't return IPdfBuilder, the chain would break at compile time)
-        
+
         // Verify parser and renderer were called
-        _mockParser.Verify(p => p.Parse(It.IsAny<string>()), Times.AtLeastOnce);
+        _mockParser.Verify(p => p.Parse(It.IsAny<string>(), It.IsAny<ILogger?>()), Times.AtLeastOnce);
         VerifyRendererCalls();
     }
 
@@ -177,12 +177,12 @@ public class PdfBuilderTests : PdfValidationTestBase
         {
             builder = builder.SetHeader(headerHtml);
         }
-        
+
         if (footerHtml != null)
         {
             builder = builder.SetFooter(footerHtml);
         }
-        
+
         var result = builder
             .AddPage(Page1Html)
             .AddPage(Page2Html)
@@ -191,29 +191,29 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Assert - Verify PDF bytes returned
         VerifyBasicPdfResult(result);
-        
+
         // Verify parser calls based on configuration
         if (headerHtml != null)
         {
-            _mockParser.Verify(p => p.Parse(headerHtml), Times.Once);
+            _mockParser.Verify(p => p.Parse(headerHtml, It.IsAny<ILogger?>()), Times.Once);
         }
-        
+
         if (footerHtml != null)
         {
-            _mockParser.Verify(p => p.Parse(footerHtml), Times.Once);
+            _mockParser.Verify(p => p.Parse(footerHtml, It.IsAny<ILogger?>()), Times.Once);
         }
-        
+
         // Verify all pages were parsed
-        _mockParser.Verify(p => p.Parse(Page1Html), Times.Once);
-        _mockParser.Verify(p => p.Parse(Page2Html), Times.Once);
-        _mockParser.Verify(p => p.Parse(Page3Html), Times.Once);
-        
+        _mockParser.Verify(p => p.Parse(Page1Html, It.IsAny<ILogger?>()), Times.Once);
+        _mockParser.Verify(p => p.Parse(Page2Html, It.IsAny<ILogger?>()), Times.Once);
+        _mockParser.Verify(p => p.Parse(Page3Html, It.IsAny<ILogger?>()), Times.Once);
+
         // Verify total parser calls
-        _mockParser.Verify(p => p.Parse(It.IsAny<string>()), Times.Exactly(expectedParserCalls));
-        
+        _mockParser.Verify(p => p.Parse(It.IsAny<string>(), It.IsAny<ILogger?>()), Times.Exactly(expectedParserCalls));
+
         // Verify renderer calls
         VerifyRendererCalls();
-        
+
     }
 
     [Fact]
@@ -231,22 +231,22 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Assert - Verify PDF bytes returned
         VerifyBasicPdfResult(result);
-        
+
         // Verify header was parsed (should be called once for header)
-        _mockParser.Verify(p => p.Parse(LargeHeaderHtml), Times.Once);
-        
+        _mockParser.Verify(p => p.Parse(LargeHeaderHtml, It.IsAny<ILogger?>()), Times.Once);
+
         // Verify footer was parsed (should be called once for footer)
-        _mockParser.Verify(p => p.Parse(LargeFooterHtml), Times.Once);
-        
+        _mockParser.Verify(p => p.Parse(LargeFooterHtml, It.IsAny<ILogger?>()), Times.Once);
+
         // Verify page content was parsed
-        _mockParser.Verify(p => p.Parse(PageContentHtml), Times.Once);
-        
+        _mockParser.Verify(p => p.Parse(PageContentHtml, It.IsAny<ILogger?>()), Times.Once);
+
         // Verify total parser calls: 1 header + 1 footer + 1 page = 3 calls
-        _mockParser.Verify(p => p.Parse(It.IsAny<string>()), Times.Exactly(3));
-        
+        _mockParser.Verify(p => p.Parse(It.IsAny<string>(), It.IsAny<ILogger?>()), Times.Exactly(3));
+
         // Verify renderer calls
         VerifyRendererCalls();
-        
+
     }
 
     [Fact]
@@ -270,14 +270,14 @@ public class PdfBuilderTests : PdfValidationTestBase
         // Assert - Both PDFs should be valid and independent
         VerifyBasicPdfResult(pdf1);
         VerifyBasicPdfResult(pdf2);
-        
+
         // Verify both PDFs were generated (renderer called twice)
         _mockRendererFactory.Verify(f => f.Create(It.IsAny<RendererOptions>()), Times.Exactly(2));
         _mockRenderer.Verify(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()), Times.Exactly(2));
-        
+
         // Verify parser was called for both pages
-        _mockParser.Verify(p => p.Parse(SimplePageHtml), Times.Once);
-        _mockParser.Verify(p => p.Parse(SimplePage2Html), Times.Once);
+        _mockParser.Verify(p => p.Parse(SimplePageHtml, It.IsAny<ILogger?>()), Times.Once);
+        _mockParser.Verify(p => p.Parse(SimplePage2Html, It.IsAny<ILogger?>()), Times.Once);
     }
 
     // Helper methods for common setup and verification
@@ -336,23 +336,23 @@ public class PdfBuilderTests : PdfValidationTestBase
         var mockLogger = new Mock<ILogger>();
         var pdfBuilder = new PdfBuilder(_options, mockLogger.Object);
         var htmlWithUnsupportedElements = "<div><video>Unsupported element</video></div>";
-        
+
         // Act - Add page with unsupported element and build to trigger parsing/warnings
         pdfBuilder.AddPage(htmlWithUnsupportedElements).Build();
         var fallbackElementsBeforeReset = pdfBuilder.GetFallbackElements();
-        
+
         // Verify warnings were logged via ILogger
         VerifyWarningLogged(mockLogger, "VIDEO");
 
         // Verify fallback elements were tracked
         fallbackElementsBeforeReset.ShouldNotBeEmpty();
-        
+
         // Act - Reset builder
         pdfBuilder.Reset();
-        
+
         // Assert - Fallback elements should be cleared (logger history is not cleared by reset)
         var fallbackElementsAfterReset = pdfBuilder.GetFallbackElements();
-        
+
         fallbackElementsAfterReset.ShouldBeEmpty();
     }
 

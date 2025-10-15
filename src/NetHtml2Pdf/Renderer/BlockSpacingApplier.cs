@@ -85,7 +85,7 @@ internal sealed class BlockSpacingApplier : IBlockSpacingApplier
         {
             var borderWidth = (float)styles.Border.GetWidthInPixels();
             var borderColor = styles.Border.GetColor();
-            
+
             // QuestPDF doesn't support different border styles (solid, dashed, etc.) in the basic API
             // We'll render all visible borders as solid borders
             container = container.Border(borderWidth).BorderColor(borderColor);

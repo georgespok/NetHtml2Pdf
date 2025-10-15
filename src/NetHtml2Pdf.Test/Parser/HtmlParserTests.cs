@@ -220,11 +220,11 @@ public class HtmlParserTests
         // Assert
         var list = document.Children.Single();
         list.Children.Count.ShouldBe(2);
-        
+
         var firstItem = list.Children[0];
         firstItem.NodeType.ShouldBe(DocumentNodeType.ListItem);
         firstItem.Children.Single().TextContent.ShouldBe("First item");
-        
+
         var secondItem = list.Children[1];
         secondItem.NodeType.ShouldBe(DocumentNodeType.ListItem);
         secondItem.Children.Single().TextContent.ShouldBe("Second item");
@@ -253,10 +253,10 @@ public class HtmlParserTests
         var outerList = document.Children.Single();
         outerList.NodeType.ShouldBe(DocumentNodeType.UnorderedList);
         outerList.Children.Count.ShouldBe(2);
-        
+
         var firstParent = outerList.Children[0];
         firstParent.NodeType.ShouldBe(DocumentNodeType.ListItem);
-        
+
         var nestedList = firstParent.Children.FirstOrDefault(c => c.NodeType == DocumentNodeType.UnorderedList);
         nestedList.ShouldNotBeNull();
         nestedList.Children.Count.ShouldBe(2);
@@ -281,10 +281,10 @@ public class HtmlParserTests
         // Assert
         var list = document.Children.Single();
         list.Styles.Margin.Left.ShouldBe(20);
-        
+
         var boldItem = list.Children[0];
         boldItem.Styles.Bold.ShouldBeTrue();
-        
+
         var normalItem = list.Children[1];
         normalItem.Styles.Bold.ShouldBeFalse();
     }
@@ -325,10 +325,10 @@ public class HtmlParserTests
         // Assert
         var section = document.Children.Single();
         section.NodeType.ShouldBe(DocumentNodeType.Section);
-        
+
         var div = section.Children.Single();
         div.NodeType.ShouldBe(DocumentNodeType.Div);
-        
+
         var paragraph = div.Children.Single();
         paragraph.NodeType.ShouldBe(DocumentNodeType.Paragraph);
         paragraph.Children.Single().TextContent.ShouldBe("Nested content");
@@ -503,7 +503,7 @@ public class HtmlParserTests
         var thead = table.Children[0];
         thead.NodeType.ShouldBe(DocumentNodeType.TableHead);
         thead.Children.Count.ShouldBe(1);
-        
+
         var headerRow = thead.Children[0];
         headerRow.NodeType.ShouldBe(DocumentNodeType.TableRow);
         headerRow.Children.Count.ShouldBe(2);
@@ -514,7 +514,7 @@ public class HtmlParserTests
         var tbody = table.Children[1];
         tbody.NodeType.ShouldBe(DocumentNodeType.TableBody);
         tbody.Children.Count.ShouldBe(1);
-        
+
         var dataRow = tbody.Children[0];
         dataRow.NodeType.ShouldBe(DocumentNodeType.TableRow);
         dataRow.Children.Count.ShouldBe(2);
@@ -542,7 +542,7 @@ public class HtmlParserTests
         // Assert
         var table = document.Children.Single();
         table.Styles.Margin.Top.ShouldBe(10);
-        
+
         var tbody = table.Children[0];
         var row = tbody.Children[0];
         var cell = row.Children[0];
@@ -628,7 +628,7 @@ public class HtmlParserTests
         row.Children[0].NodeType.ShouldBe(DocumentNodeType.TableCell);
         row.Children[1].NodeType.ShouldBe(DocumentNodeType.TableCell);
         row.Children[2].NodeType.ShouldBe(DocumentNodeType.TableCell);
-        
+
         // Empty cell should have no children
         row.Children[1].Children.Count.ShouldBe(0);
     }
@@ -652,10 +652,10 @@ public class HtmlParserTests
         // Assert
         var table = document.Children.Single();
         table.NodeType.ShouldBe(DocumentNodeType.Table);
-        
+
         // AngleSharp should auto-insert tbody
         var firstChild = table.Children[0];
-        (firstChild.NodeType == DocumentNodeType.TableRow || 
+        (firstChild.NodeType == DocumentNodeType.TableRow ||
          firstChild.NodeType == DocumentNodeType.TableBody).ShouldBeTrue();
     }
 
@@ -682,17 +682,17 @@ public class HtmlParserTests
         var table = document.Children.Single();
         var tbody = table.Children[0];
         var row = tbody.Children[0];
-        
+
         row.Children.Count.ShouldBe(3);
-        
+
         // First cell should have text node
         var cell1 = row.Children[0];
         cell1.Children.Any(c => c.NodeType == DocumentNodeType.Text).ShouldBeTrue();
-        
+
         // Second cell should have strong node
         var cell2 = row.Children[1];
         cell2.Children.Any(c => c.NodeType == DocumentNodeType.Strong).ShouldBeTrue();
-        
+
         // Third cell should have span node
         var cell3 = row.Children[2];
         cell3.Children.Any(c => c.NodeType == DocumentNodeType.Span).ShouldBeTrue();
@@ -745,7 +745,7 @@ public class HtmlParserTests
 
         var thead = table.Children[0];
         var headerRow = thead.Children[0];
-        
+
         var headerCell1 = headerRow.Children[0];
         headerCell1.Styles.TextAlign.ShouldBe(CssAlignmentValues.Center);
         headerCell1.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Middle);
@@ -753,7 +753,7 @@ public class HtmlParserTests
 
         var tbody = table.Children[1];
         var dataRow = tbody.Children[0];
-        
+
         var dataCell1 = dataRow.Children[0];
         dataCell1.Styles.TextAlign.ShouldBe(CssAlignmentValues.Left);
         dataCell1.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Top);
@@ -866,11 +866,11 @@ public class HtmlParserTests
         container.Styles.Border.ShouldBe(BorderInfo.Empty);
         container.Styles.Border.HasValue.ShouldBeFalse();
         container.Styles.Border.IsVisible.ShouldBeFalse();
-        
+
         // Content should still be parsed and rendered (graceful fallback)
         var paragraph = container.Children.Single();
         paragraph.NodeType.ShouldBe(DocumentNodeType.Paragraph);
-        
+
         // Check if paragraph has text content directly or through children
         if (paragraph.TextContent != null)
         {
@@ -886,4 +886,33 @@ public class HtmlParserTests
             textNode.TextContent.ShouldContain("Content with invalid border shorthand");
         }
     }
+
+    [Fact]
+    public void Display_InlineBlock_ParsesCorrectly()
+    {
+        // Arrange 
+        const string html = """
+                            <style>
+                                .text-block { margin: 4px 0; padding: 2px; display: inline-block; border: 2px solid {{{HexColors.Orange}}};}
+                            </style>
+                            <div>
+                              <div class="text-block">
+                                  Should be displayed in line 1.
+                              </div>
+                              <div class="text-block">
+                                Should be displayed in line 2.
+                              </div>
+                            </div>
+                            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert 
+        var container = document.Children.Single();
+        container.Children[0].Styles.Display.ShouldBe(CssDisplay.InlineBlock);
+        container.Children[1].Styles.Display.ShouldBe(CssDisplay.InlineBlock);
+    }
+
+
 }

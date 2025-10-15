@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: Spacing Interactions - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+        
+        .spacing-demo {
+            background-color: #fff;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #333;
+        }
+        
+        .margin-demo {
+            background-color: lightblue;
+            padding: 15px;
+            border: 2px solid #333;
+        }
+        
+        .padding-demo {
+            background-color: lightcoral;
+            border: 2px solid #333;
+        }
+        
+        .border-demo {
+            background-color: lightgreen;
+            padding: 15px;
+        }
+        
+        .complex-demo {
+            background-color: lightyellow;
+            padding: 15px;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: Spacing Interactions - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates spacing interactions with different display types. This tests:
+        <ul>
+            <li>Margin collapsing between block elements</li>
+            <li>Spacing with inline-block elements</li>
+            <li>Border and padding effects on spacing</li>
+            <li>Complex spacing scenarios</li>
+            <li>Spacing with mixed display types</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Block Margin Collapsing</h2>
+        <div class="spacing-demo">
+            <div class="margin-demo" style="margin-bottom: 30px;">
+                Block with bottom margin (30px)
+            </div>
+            <div class="margin-demo" style="margin-top: 20px;">
+                Block with top margin (20px)
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Margins should collapse to 30px (larger value), not 50px total.
+            </div>
+        </div>
+        
+        <div class="spacing-demo">
+            <div class="margin-demo" style="margin-bottom: 15px;">
+                Block with bottom margin (15px)
+            </div>
+            <div class="margin-demo" style="margin-top: 25px;">
+                Block with top margin (25px)
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Margins should collapse to 25px (larger value).
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Margin Collapsing Prevention</h2>
+        <div class="spacing-demo">
+            <div class="margin-demo" style="margin-bottom: 30px; border-bottom: 3px solid black;">
+                Block with bottom margin (30px) and border
+            </div>
+            <div class="margin-demo" style="margin-top: 20px;">
+                Block with top margin (20px)
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Margins should NOT collapse due to border, total spacing should be 50px.
+            </div>
+        </div>
+        
+        <div class="spacing-demo">
+            <div class="margin-demo" style="margin-bottom: 25px; padding-bottom: 10px;">
+                Block with bottom margin (25px) and padding
+            </div>
+            <div class="margin-demo" style="margin-top: 15px;">
+                Block with top margin (15px)
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Margins should NOT collapse due to padding, total spacing should be 40px.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block Spacing</h2>
+        <div class="spacing-demo">
+            <div style="display: inline-block; width: 150px; background-color: lightblue; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+                Inline-block with margins
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightcoral; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+                Another inline-block with margins
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Inline-block elements should have proper spacing between them.
+            </div>
+        </div>
+        
+        <div class="spacing-demo">
+            <div style="display: inline-block; width: 120px; background-color: lightgreen; padding: 20px; margin: 15px; border: 3px solid red; vertical-align: middle;">
+                Inline-block with large margins
+            </div>
+            <div style="display: inline-block; width: 120px; background-color: lightyellow; padding: 20px; margin: 15px; border: 3px solid blue; vertical-align: middle;">
+                Another inline-block with large margins
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Larger margins and borders should be properly applied.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Complex Spacing Scenarios</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 25px; margin: 30px; border: 5px solid black;">
+                Block with complex spacing: margin: 30px, padding: 25px, border: 5px solid black
+            </div>
+            <div style="display: inline-block; width: 200px; background-color: lightcoral; padding: 20px; margin: 25px; border: 4px solid green; vertical-align: middle;">
+                Inline-block with complex spacing: margin: 25px, padding: 20px, border: 4px solid green
+            </div>
+            <div style="display: inline-block; width: 200px; background-color: lightgreen; padding: 20px; margin: 25px; border: 4px solid purple; vertical-align: middle;">
+                Another inline-block with complex spacing
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> All spacing properties should apply correctly with proper box model calculations.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Display Types with Spacing</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 20px; margin: 25px 0; border: 3px solid #333;">
+                Block element with spacing
+            </div>
+            <div style="display: inline-block; width: 180px; background-color: lightcoral; padding: 15px; margin: 20px; border: 2px solid #333; vertical-align: middle;">
+                Inline-block 1 with spacing
+            </div>
+            <div style="display: inline-block; width: 180px; background-color: lightgreen; padding: 15px; margin: 20px; border: 2px solid #333; vertical-align: middle;">
+                Inline-block 2 with spacing
+            </div>
+            <div style="display: none; background-color: lightyellow; padding: 15px; margin: 50px; border: 5px solid #333;">
+                Hidden element with spacing
+            </div>
+            <div style="display: block; background-color: lightpink; padding: 20px; margin: 25px 0; border: 3px solid #333;">
+                Another block element with spacing
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Spacing should apply correctly to visible elements, hidden element should not affect spacing.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Asymmetric Spacing</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 10px 20px 15px 25px; margin: 5px 10px 15px 20px; border: 2px solid #333;">
+                Block with asymmetric spacing: padding: 10px 20px 15px 25px, margin: 5px 10px 15px 20px
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightcoral; padding: 5px 15px 10px 20px; margin: 8px 12px 16px 20px; border: 2px solid #333; vertical-align: middle;">
+                Inline-block with asymmetric spacing
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightgreen; padding: 5px 15px 10px 20px; margin: 8px 12px 16px 20px; border: 2px solid #333; vertical-align: middle;">
+                Another inline-block with asymmetric spacing
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Asymmetric spacing should be applied correctly on all sides.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Zero and Negative Spacing</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 0; margin: 0; border: 2px solid #333;">
+                Block with zero spacing
+            </div>
+            <div style="display: block; background-color: lightcoral; padding: 15px; margin: 0; border: 2px solid #333;">
+                Block with zero margins
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightgreen; padding: 0; margin: 0; border: 2px solid #333; vertical-align: middle;">
+                Inline-block with zero spacing
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightyellow; padding: 15px; margin: 0; border: 2px solid #333; vertical-align: middle;">
+                Inline-block with zero margins
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Zero spacing should be handled correctly without errors.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Nested Spacing</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 30px; margin: 20px; border: 3px solid #333;">
+                Outer block with spacing
+                <div style="display: block; background-color: lightcoral; padding: 20px; margin: 15px; border: 2px solid #666;">
+                    Nested block with spacing
+                </div>
+                <div style="display: inline-block; width: 120px; background-color: lightgreen; padding: 15px; margin: 10px; border: 2px solid #666; vertical-align: middle;">
+                    Nested inline-block 1
+                </div>
+                <div style="display: inline-block; width: 120px; background-color: lightyellow; padding: 15px; margin: 10px; border: 2px solid #666; vertical-align: middle;">
+                    Nested inline-block 2
+                </div>
+                <div style="display: none; background-color: lightpink; padding: 15px; margin: 20px; border: 2px solid #666;">
+                    Hidden nested element
+                </div>
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Nested elements should have proper spacing within their parent containers.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Large Spacing Values</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 50px; margin: 100px 0; border: 10px solid #333;">
+                Block with large spacing: padding: 50px, margin: 100px 0, border: 10px solid #333
+            </div>
+            <div style="display: inline-block; width: 200px; background-color: lightcoral; padding: 40px; margin: 80px; border: 8px solid #333; vertical-align: middle;">
+                Inline-block with large spacing: padding: 40px, margin: 80px, border: 8px solid #333
+            </div>
+            <div style="display: inline-block; width: 200px; background-color: lightgreen; padding: 40px; margin: 80px; border: 8px solid #333; vertical-align: middle;">
+                Another inline-block with large spacing
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Large spacing values should be handled correctly without overflow issues.
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Decimal Spacing Values</h2>
+        <div class="spacing-demo">
+            <div style="display: block; background-color: lightblue; padding: 15.5px; margin: 12.3px 0; border: 2px solid #333;">
+                Block with decimal spacing: padding: 15.5px, margin: 12.3px 0
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightcoral; padding: 10.7px; margin: 8.9px; border: 2px solid #333; vertical-align: middle;">
+                Inline-block with decimal spacing: padding: 10.7px, margin: 8.9px
+            </div>
+            <div style="display: inline-block; width: 150px; background-color: lightgreen; padding: 10.7px; margin: 8.9px; border: 2px solid #333; vertical-align: middle;">
+                Another inline-block with decimal spacing
+            </div>
+            <div class="description">
+                <strong>Expected:</strong> Decimal spacing values should be handled correctly with proper precision.
+            </div>
+        </div>
+    </div>
+    
+    <div class="description">
+        <strong>Overall Expected Results:</strong>
+        <ul>
+            <li>Margin collapsing should work correctly between adjacent block elements</li>
+            <li>Borders and padding should prevent margin collapsing</li>
+            <li>Inline-block elements should have proper spacing between them</li>
+            <li>Complex spacing scenarios should be handled correctly</li>
+            <li>Mixed display types should interact properly with spacing</li>
+            <li>Asymmetric spacing should be applied correctly</li>
+            <li>Zero and decimal spacing values should be handled properly</li>
+            <li>Nested elements should respect their parent's spacing</li>
+            <li>Large spacing values should not cause overflow issues</li>
+        </ul>
+    </div>
+</body>
+</html>

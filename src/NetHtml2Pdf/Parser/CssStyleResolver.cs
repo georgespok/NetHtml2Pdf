@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -14,16 +15,16 @@ internal sealed class CssStyleResolver(
     ICssDeclarationParser declarationParser,
     ICssDeclarationUpdater declarationUpdater)
 {
-    public CssStyleMap Resolve(IElement element, CssStyleMap inherited)
+    public CssStyleMap Resolve(IElement element, CssStyleMap inherited, ILogger? logger = null)
     {
         // Start with inherited styles, but filter out non-inheritable box model properties
         // Box model properties (margin, padding, border) should NOT be inherited from parent
         var styles = inherited.WithMargin(BoxSpacing.Empty)
                               .WithPadding(BoxSpacing.Empty)
                               .WithBorder(BorderInfo.Empty);
-        
+
         styles = ApplyClassStyles(element, styles);
-        styles = ApplyInlineStyles(element, styles);
+        styles = ApplyInlineStyles(element, styles, logger);
         return styles;
     }
 
@@ -35,7 +36,7 @@ internal sealed class CssStyleResolver(
             return styles;
         }
 
-        var classes = classAttribute.Split([' '], 
+        var classes = classAttribute.Split([' '],
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         foreach (var className in classes)
@@ -49,10 +50,10 @@ internal sealed class CssStyleResolver(
         return styles;
     }
 
-    private CssStyleMap ApplyInlineStyles(IElement element, CssStyleMap styles)
+    private CssStyleMap ApplyInlineStyles(IElement element, CssStyleMap styles, ILogger? logger)
     {
         var inlineStyle = element.GetAttribute(HtmlAttributes.Style);
-        
+
         if (string.IsNullOrWhiteSpace(inlineStyle))
         {
             return styles;
@@ -60,7 +61,7 @@ internal sealed class CssStyleResolver(
 
         foreach (var declaration in declarationParser.Parse(inlineStyle))
         {
-            styles = declarationUpdater.UpdateStyles(styles, declaration);
+            styles = declarationUpdater.UpdateStyles(styles, declaration, logger);
         }
 
         return styles;

@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Core.Enums;
@@ -33,12 +34,12 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver, Action<s
         [HtmlTagNames.Header6] = DocumentNodeType.Heading6
     };
 
-    public DocumentNode? Convert(INode node, CssStyleMap inheritedStyles)
+    public DocumentNode? Convert(INode node, CssStyleMap inheritedStyles, ILogger? logger = null)
     {
         return node switch
         {
             IText textNode => CreateTextNode(textNode, inheritedStyles),
-            IElement element => CreateElementNode(element, inheritedStyles),
+            IElement element => CreateElementNode(element, inheritedStyles, logger),
             _ => null
         };
     }
@@ -46,25 +47,25 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver, Action<s
     private static DocumentNode? CreateTextNode(IText textNode, CssStyleMap styles)
     {
         var content = textNode.Text;
-        return string.IsNullOrWhiteSpace(content) 
-            ? null 
+        return string.IsNullOrWhiteSpace(content)
+            ? null
             : new DocumentNode(DocumentNodeType.Text, content, styles);
     }
 
-    private DocumentNode CreateElementNode(IElement element, CssStyleMap inheritedStyles)
+    private DocumentNode CreateElementNode(IElement element, CssStyleMap inheritedStyles, ILogger? logger)
     {
         if (string.Equals(element.TagName, HtmlTagNames.LineBreak, StringComparison.OrdinalIgnoreCase))
         {
             return new DocumentNode(DocumentNodeType.LineBreak, styles: inheritedStyles);
         }
 
-        var styles = styleResolver.Resolve(element, inheritedStyles);
+        var styles = styleResolver.Resolve(element, inheritedStyles, logger);
         var nodeType = MapElementType(element.TagName);
         var documentNode = new DocumentNode(nodeType, styles: styles);
 
         foreach (var child in element.ChildNodes)
         {
-            var childNode = Convert(child, styles);
+            var childNode = Convert(child, styles, logger);
             if (childNode == null)
             {
                 continue;
@@ -79,13 +80,13 @@ internal sealed class HtmlNodeConverter(CssStyleResolver styleResolver, Action<s
     private DocumentNodeType MapElementType(string tagName)
     {
         var nodeType = ElementTypeMap.GetValueOrDefault(tagName, DocumentNodeType.Div);
-        
+
         // If element is not supported (mapped to default Div), log warning
         if (!ElementTypeMap.ContainsKey(tagName) && !string.IsNullOrEmpty(tagName))
         {
             onFallbackElement?.Invoke(tagName.ToUpperInvariant());
         }
-        
+
         return nodeType;
     }
 }

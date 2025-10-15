@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: Block - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .block-element {
+            display: block;
+            background-color: lightblue;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .block-with-width {
+            display: block;
+            width: 300px;
+            background-color: lightcoral;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .block-with-margins {
+            display: block;
+            background-color: lightgreen;
+            padding: 15px;
+            margin: 20px 0;
+            border: 2px solid #333;
+        }
+        
+        .block-with-border {
+            display: block;
+            background-color: lightyellow;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid black;
+            border: 2px solid #333;
+        }
+        
+        .block-collapse-test {
+            display: block;
+            background-color: lightpink;
+            padding: 15px;
+            margin-top: 20px;
+            border: 2px solid #333;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: Block - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates basic block element behavior. Block elements should:
+        <ul>
+            <li>Start on new lines</li>
+            <li>Take full available width by default</li>
+            <li>Apply margins, padding, and borders correctly</li>
+            <li>Support margin collapsing with adjacent blocks</li>
+        </ul>
+    </div>
+    
+    <h2>Basic Block Elements</h2>
+    <div class="block-element">
+        Block element 1 - Should start on new line and take full width
+    </div>
+    <div class="block-element">
+        Block element 2 - Should start on new line and take full width
+    </div>
+    
+    <h2>Block with Fixed Width</h2>
+    <div class="block-with-width">
+        Block with fixed width (300px) - Should not take full width
+    </div>
+    <div class="block-element">
+        Another block element - Should take remaining width
+    </div>
+    
+    <h2>Block with Margins</h2>
+    <div class="block-with-margins">
+        Block with margins (20px top/bottom) - Should have proper spacing
+    </div>
+    <div class="block-element">
+        Block after margin - Should respect margin spacing
+    </div>
+    
+    <h2>Margin Collapsing Test</h2>
+    <div class="block-with-border">
+        Block with bottom margin (30px) and border - Border prevents margin collapse
+    </div>
+    <div class="block-collapse-test">
+        Block with top margin (20px) - Should not collapse due to border above
+    </div>
+    
+    <h2>Margin Collapsing (No Border)</h2>
+    <div style="display: block; background-color: lightcyan; padding: 15px; margin-bottom: 25px; border: 2px solid #333;">
+        Block with bottom margin (25px) - No border, should collapse
+    </div>
+    <div style="display: block; background-color: lightsteelblue; padding: 15px; margin-top: 15px; border: 2px solid #333;">
+        Block with top margin (15px) - Should collapse to 25px (larger margin)
+    </div>
+    
+    <h2>Block with Complex Spacing</h2>
+    <div style="display: block; margin: 25px; padding: 20px; border: 4px solid red; background-color: lightgoldenrodyellow;">
+        Block with complex spacing - margin: 25px, padding: 20px, border: 4px solid red
+    </div>
+    
+    <h2>Nested Block Elements</h2>
+    <div style="display: block; background-color: lavender; padding: 20px; margin: 15px; border: 2px solid #333;">
+        Outer block container
+        <div style="display: block; background-color: lightseagreen; padding: 10px; margin: 10px; border: 1px solid #666;">
+            Nested block element 1
+        </div>
+        <div style="display: block; background-color: lightsalmon; padding: 10px; margin: 10px; border: 1px solid #666;">
+            Nested block element 2
+        </div>
+    </div>
+    
+    <h2>Block Elements with Different HTML Tags</h2>
+    <p style="display: block; background-color: lightgray; padding: 10px; margin: 10px; border: 2px solid #333;">
+        Paragraph with display: block
+    </p>
+    <section style="display: block; background-color: lightcyan; padding: 10px; margin: 10px; border: 2px solid #333;">
+        Section with display: block
+    </section>
+    <article style="display: block; background-color: lightpink; padding: 10px; margin: 10px; border: 2px solid #333;">
+        Article with display: block
+    </article>
+    
+    <div class="description">
+        <strong>Expected Results:</strong>
+        <ul>
+            <li>All elements should start on new lines</li>
+            <li>Elements should take full width unless width is specified</li>
+            <li>Margins should collapse when no borders/padding interfere</li>
+            <li>Borders should prevent margin collapsing</li>
+            <li>Nested elements should respect their parent's block behavior</li>
+        </ul>
+    </div>
+</body>
+</html>

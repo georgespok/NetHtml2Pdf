@@ -35,4 +35,7 @@ public static class CssProperties
     // Border properties
     public const string Border = "border";
     public const string BorderCollapse = "border-collapse";
+
+    // Layout properties
+    public const string Display = "display";
 }

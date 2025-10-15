@@ -52,8 +52,8 @@ internal readonly struct BorderInfo(double? width, string? style, string? color)
 
     public bool Equals(BorderInfo other)
     {
-        return Nullable.Equals(Width, other.Width) && 
-               Style == other.Style && 
+        return Nullable.Equals(Width, other.Width) &&
+               Style == other.Style &&
                Color == other.Color;
     }
 

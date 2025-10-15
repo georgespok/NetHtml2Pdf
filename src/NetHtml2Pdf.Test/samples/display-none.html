@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: None - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .visible-element {
+            background-color: lightblue;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .hidden-element {
+            display: none;
+            background-color: lightcoral;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .hidden-with-layout {
+            display: none;
+            width: 200px;
+            height: 100px;
+            margin: 50px;
+            padding: 20px;
+            border: 5px solid black;
+            background-color: lightgreen;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: None - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates display: none behavior. Elements with display: none should:
+        <ul>
+            <li>Produce no boxes and no output</li>
+            <li>Occupy no space in the layout</li>
+            <li>Hide all descendants completely</li>
+            <li>Ignore layout properties without warnings</li>
+            <li>Not affect text extraction or PDF output</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Basic Display: None</h2>
+        <div class="visible-element">
+            Visible element 1 - Should be visible
+        </div>
+        <div class="hidden-element">
+            Hidden element - Should be completely hidden
+        </div>
+        <div class="visible-element">
+            Visible element 2 - Should be visible
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Only the visible elements should appear. The hidden element should occupy no space.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Element with Layout Properties</h2>
+        <div class="visible-element">
+            Visible element before hidden
+        </div>
+        <div class="hidden-with-layout">
+            Hidden element with width: 200px, height: 100px, margin: 50px, padding: 20px, border: 5px solid black
+        </div>
+        <div class="visible-element">
+            Visible element after hidden
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> The hidden element should be completely omitted despite having layout properties. Layout properties should be ignored without warnings.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Container with Nested Elements</h2>
+        <div class="visible-element">
+            Visible element before hidden container
+        </div>
+        <div class="hidden-element">
+            Hidden container
+            <div style="display: block; background-color: lightgreen; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Hidden nested block element
+            </div>
+            <div style="display: inline-block; background-color: lightcoral; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Hidden nested inline-block element
+            </div>
+            <div style="display: none; background-color: lightyellow; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Hidden nested none element
+            </div>
+            <span style="background-color: lightpink; padding: 5px; margin: 5px; border: 1px solid #666;">
+                Hidden nested span element
+            </span>
+        </div>
+        <div class="visible-element">
+            Visible element after hidden container
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> The entire hidden container and all its nested elements should be completely omitted from the output.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Hidden and Visible Elements</h2>
+        <div class="visible-element">
+            Visible element 1
+        </div>
+        <div class="hidden-element">
+            Hidden element 1
+        </div>
+        <div class="visible-element">
+            Visible element 2
+        </div>
+        <div class="hidden-element">
+            Hidden element 2
+        </div>
+        <div class="visible-element">
+            Visible element 3
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Only the visible elements should appear in sequence, with no gaps where hidden elements were.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Elements with Different HTML Tags</h2>
+        <div class="visible-element">
+            Visible div element
+        </div>
+        <p class="hidden-element">
+            Hidden paragraph element
+        </p>
+        <section class="hidden-element">
+            Hidden section element
+        </section>
+        <article class="hidden-element">
+            Hidden article element
+        </article>
+        <span class="hidden-element">
+            Hidden span element
+        </span>
+        <div class="visible-element">
+            Another visible div element
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> All hidden elements regardless of HTML tag should be completely omitted.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Elements with Complex Content</h2>
+        <div class="visible-element">
+            Visible element before complex hidden content
+        </div>
+        <div class="hidden-element">
+            <h2>Hidden Heading</h2>
+            <p>Hidden paragraph with <strong>bold text</strong> and <em>italic text</em>.</p>
+            <ul>
+                <li>Hidden list item 1</li>
+                <li>Hidden list item 2</li>
+                <li>Hidden list item 3</li>
+            </ul>
+            <table style="border-collapse: collapse; width: 100%;">
+                <tr>
+                    <th style="border: 1px solid #333; padding: 8px;">Hidden Header 1</th>
+                    <th style="border: 1px solid #333; padding: 8px;">Hidden Header 2</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #333; padding: 8px;">Hidden Cell 1</td>
+                    <td style="border: 1px solid #333; padding: 8px;">Hidden Cell 2</td>
+                </tr>
+            </table>
+        </div>
+        <div class="visible-element">
+            Visible element after complex hidden content
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> All complex content within the hidden element should be completely omitted, including headings, paragraphs, lists, and tables.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Elements with CSS Classes</h2>
+        <style>
+            .hidden-class { display: none; }
+            .visible-class { display: block; }
+        </style>
+        <div class="visible-class" style="background-color: lightblue; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Visible element with class
+        </div>
+        <div class="hidden-class" style="background-color: lightcoral; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Hidden element with class
+        </div>
+        <div class="visible-class" style="background-color: lightgreen; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Another visible element with class
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Elements with display: none applied via CSS class should be hidden just like inline styles.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hidden Elements with Inline Styles Override</h2>
+        <style>
+            .force-visible { display: block !important; }
+        </style>
+        <div class="hidden-element force-visible">
+            Hidden element forced visible with !important
+        </div>
+        <div class="hidden-element">
+            Hidden element with class only
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> The first element should be visible due to !important override, the second should remain hidden.
+        </div>
+    </div>
+    
+    <div class="warning">
+        <strong>Important Notes:</strong>
+        <ul>
+            <li>Hidden elements should not appear in PDF output at all</li>
+            <li>Hidden elements should not contribute to text extraction</li>
+            <li>Layout properties (width, height, margins, padding, borders) should be ignored without warnings</li>
+            <li>Hidden elements should not affect the positioning of other elements</li>
+            <li>All descendants of hidden elements should also be hidden</li>
+        </ul>
+    </div>
+    
+    <div class="description">
+        <strong>Overall Expected Results:</strong>
+        <ul>
+            <li>All elements with display: none should be completely omitted from output</li>
+            <li>No space should be occupied by hidden elements</li>
+            <li>Hidden elements should not affect the layout of visible elements</li>
+            <li>All nested content within hidden elements should also be hidden</li>
+            <li>Layout properties should be ignored without warnings</li>
+            <li>CSS classes and inline styles should both work for hiding elements</li>
+        </ul>
+    </div>
+</body>
+</html>

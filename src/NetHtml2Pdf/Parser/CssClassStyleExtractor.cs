@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -13,11 +14,11 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
 {
     public ICssDeclarationParser DeclarationParser { get; } = declarationParser;
     public ICssDeclarationUpdater DeclarationUpdater { get; } = declarationUpdater;
-    private static readonly Regex ClassRuleRegex = 
-        new(CssRegexPatterns.ClassRule, 
+    private static readonly Regex ClassRuleRegex =
+        new(CssRegexPatterns.ClassRule,
         RegexOptions.Compiled | RegexOptions.Multiline);
 
-    public IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document)
+    public IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document, ILogger? logger = null)
     {
         var result = new Dictionary<string, CssStyleMap>(StringComparer.OrdinalIgnoreCase);
         foreach (var styleElement in document.QuerySelectorAll("style"))
@@ -32,7 +33,7 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
                 }
 
                 var declarations = match.Groups["body"].Value;
-                var styleMap = BuildStyleMap(declarations);
+                var styleMap = BuildStyleMap(declarations, logger);
 
                 if (result.TryGetValue(className, out var existing))
                 {
@@ -48,12 +49,12 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
         return result;
     }
 
-    private CssStyleMap BuildStyleMap(string declarations)
+    private CssStyleMap BuildStyleMap(string declarations, ILogger? logger)
     {
         var styles = CssStyleMap.Empty;
         foreach (var declaration in DeclarationParser.Parse(declarations))
         {
-            styles = DeclarationUpdater.UpdateStyles(styles, declaration);
+            styles = DeclarationUpdater.UpdateStyles(styles, declaration, logger);
         }
 
         return styles;

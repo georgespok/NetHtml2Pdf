@@ -40,11 +40,11 @@ public class BorderInheritanceHtmlTests
 
         // Child paragraph should have no border
         var paragraph = container.Children.Single();
-        
+
         // Debug: Let's see what border the paragraph actually has
         Console.WriteLine($"Paragraph border - Width: {paragraph.Styles.Border.Width}, Style: {paragraph.Styles.Border.Style}, Color: {paragraph.Styles.Border.Color}");
         Console.WriteLine($"Paragraph border HasValue: {paragraph.Styles.Border.HasValue}, IsVisible: {paragraph.Styles.Border.IsVisible}");
-        
+
         paragraph.Styles.Border.ShouldBe(BorderInfo.Empty);
         paragraph.Styles.Border.HasValue.ShouldBeFalse();
         paragraph.Styles.Border.IsVisible.ShouldBeFalse();
