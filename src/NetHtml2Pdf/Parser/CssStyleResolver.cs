@@ -16,7 +16,12 @@ internal sealed class CssStyleResolver(
 {
     public CssStyleMap Resolve(IElement element, CssStyleMap inherited)
     {
-        var styles = inherited;
+        // Start with inherited styles, but filter out non-inheritable box model properties
+        // Box model properties (margin, padding, border) should NOT be inherited from parent
+        var styles = inherited.WithMargin(BoxSpacing.Empty)
+                              .WithPadding(BoxSpacing.Empty)
+                              .WithBorder(BorderInfo.Empty);
+        
         styles = ApplyClassStyles(element, styles);
         styles = ApplyInlineStyles(element, styles);
         return styles;

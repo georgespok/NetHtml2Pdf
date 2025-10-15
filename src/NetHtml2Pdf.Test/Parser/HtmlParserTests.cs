@@ -1,3 +1,4 @@
+using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser;
@@ -7,7 +8,16 @@ namespace NetHtml2Pdf.Test.Parser;
 
 public class HtmlParserTests
 {
-    private readonly HtmlParser _parser = new();
+    private readonly HtmlParser _parser;
+
+    public HtmlParserTests()
+    {
+        var angleSharp = new AngleSharp.Html.Parser.HtmlParser();
+        var cssParser = new CssDeclarationParser();
+        var cssUpdater = new CssStyleUpdater();
+        var classExtractor = new CssClassStyleExtractor(cssParser, cssUpdater);
+        _parser = new HtmlParser(angleSharp, classExtractor, null);
+    }
 
     [Fact]
     public void ParagraphsWithInlineStyles_ProducesInlineNodes()
@@ -751,5 +761,129 @@ public class HtmlParserTests
         var dataCell2 = dataRow.Children[1];
         dataCell2.Styles.TextAlign.ShouldBe(CssAlignmentValues.Right);
         dataCell2.Styles.VerticalAlign.ShouldBe(CssAlignmentValues.Top);
+    }
+
+    [Fact]
+    public void MarginShorthand_WithTwoParameters_ShouldParseVerticalAndHorizontal()
+    {
+        // Arrange - Test margin: 10px 0 (vertical: 10px, horizontal: 0)
+        const string html = """
+            <div style="margin: 10px 0;">
+                <p>Content with vertical and horizontal margin</p>
+            </div>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert - Two-value margin shorthand should expand to:
+        // margin-top: 10px, margin-right: 0, margin-bottom: 10px, margin-left: 0
+        var container = document.Children.Single();
+        container.Styles.Margin.Top.ShouldBe(10);
+        container.Styles.Margin.Right.ShouldBe(0);
+        container.Styles.Margin.Bottom.ShouldBe(10);
+        container.Styles.Margin.Left.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Border_AllComponentsShorthand_ParsesCorrectly()
+    {
+        // Arrange - Test border shorthand with all components (width, style, color)
+        const string html = """
+            <div style="border: 2px solid red;">
+                <p>Content with full border shorthand</p>
+            </div>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert - All border components should be parsed correctly
+        var container = document.Children.Single();
+        container.Styles.Border.Width.ShouldBe(2.0);
+        container.Styles.Border.Style.ShouldBe(CssBorderValues.Solid);
+        container.Styles.Border.Color.ShouldBe(HexColors.Red);
+        container.Styles.Border.IsVisible.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Border_AlternateOrderShorthand_ParsesCorrectly()
+    {
+        // Arrange - Test border shorthand with components in alternate order
+        const string html = """
+            <div style="border: dashed 3px blue;">
+                <p>Content with alternate order border shorthand</p>
+            </div>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert - Border components should be parsed regardless of order
+        var container = document.Children.Single();
+        container.Styles.Border.Width.ShouldBe(3.0);
+        container.Styles.Border.Style.ShouldBe(CssBorderValues.Dashed);
+        container.Styles.Border.Color.ShouldBe(HexColors.Blue);
+        container.Styles.Border.IsVisible.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Border_PartialShorthand_ParsesCorrectly()
+    {
+        // Arrange - Test border shorthand with only some components
+        const string html = """
+            <div style="border: 1px solid;">
+                <p>Content with partial border shorthand (width + style only)</p>
+            </div>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert - Available components should be parsed, others should be null/default
+        var container = document.Children.Single();
+        container.Styles.Border.Width.ShouldBe(1.0);
+        container.Styles.Border.Style.ShouldBe(CssBorderValues.Solid);
+        container.Styles.Border.Color.ShouldBeNull(); // Not specified in shorthand
+        container.Styles.Border.IsVisible.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Border_InvalidShorthand_EmitsWarningAndFallsBack()
+    {
+        // Arrange - Test invalid border shorthand that should be rejected
+        const string html = """
+            <div style="border: 99px rainbow magic;">
+                <p>Content with invalid border shorthand</p>
+            </div>
+            """;
+
+        // Act
+        var document = _parser.Parse(html);
+
+        // Assert - Invalid border shorthand should be rejected (entire declaration rejected)
+        var container = document.Children.Single();
+        container.Styles.Border.ShouldBe(BorderInfo.Empty);
+        container.Styles.Border.HasValue.ShouldBeFalse();
+        container.Styles.Border.IsVisible.ShouldBeFalse();
+        
+        // Content should still be parsed and rendered (graceful fallback)
+        var paragraph = container.Children.Single();
+        paragraph.NodeType.ShouldBe(DocumentNodeType.Paragraph);
+        
+        // Check if paragraph has text content directly or through children
+        if (paragraph.TextContent != null)
+        {
+            paragraph.TextContent.ShouldContain("Content with invalid border shorthand");
+        }
+        else
+        {
+            // Text might be in child text nodes
+            paragraph.Children.ShouldNotBeEmpty("Paragraph should have child nodes");
+            var textNode = paragraph.Children.FirstOrDefault(c => c.NodeType == DocumentNodeType.Text);
+            textNode.ShouldNotBeNull("Paragraph should have a text child node");
+            textNode.TextContent.ShouldNotBeNull("Text node content should not be null");
+            textNode.TextContent.ShouldContain("Content with invalid border shorthand");
+        }
     }
 }

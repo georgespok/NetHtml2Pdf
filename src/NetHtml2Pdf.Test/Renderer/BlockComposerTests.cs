@@ -2,13 +2,15 @@ using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
+using NetHtml2Pdf.Test.Support;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
-public class BlockComposerTests
+public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     [Fact]
     public void Compose_Paragraph_DelegatesToInlineComposerForEachChild()
@@ -19,12 +21,10 @@ public class BlockComposerTests
         var spacingApplier = new PassthroughSpacingApplier();
         var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
 
-        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
-        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Hello"));
-
-        var strong = new DocumentNode(DocumentNodeType.Strong);
-        strong.AddChild(new DocumentNode(DocumentNodeType.Text, "World"));
-        paragraph.AddChild(strong);
+        var paragraph = Paragraph(
+            Text("Hello"),
+            Strong(Text("World"))
+        );
 
         GenerateDocument(column => sut.Compose(column, paragraph));
 
@@ -46,7 +46,7 @@ public class BlockComposerTests
         var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
 
         var listNode = new DocumentNode(DocumentNodeType.List);
-        listNode.AddChild(new DocumentNode(DocumentNodeType.ListItem));
+        listNode.AddChild(ListItem());
 
         GenerateDocument(column => sut.Compose(column, listNode));
 
@@ -59,7 +59,7 @@ public class BlockComposerTests
         QuestPDF.Settings.License = LicenseType.Community;
         QuestPDF.Settings.UseEnvironmentFonts = false;
 
-        var document = Document.Create(container =>
+        var document = QuestPDF.Fluent.Document.Create(container =>
         {
             container.Page(page =>
             {
@@ -111,5 +111,7 @@ public class BlockComposerTests
     private sealed class PassthroughSpacingApplier : IBlockSpacingApplier
     {
         public IContainer ApplySpacing(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplyMargin(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplyBorder(IContainer container, CssStyleMap styles) => container;
     }
 }

@@ -1,8 +1,6 @@
-using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig.Core;
 
 namespace NetHtml2Pdf.Test.Support;
 
@@ -14,9 +12,9 @@ public class PdfWordParser
     private static readonly string DefaultBlackColor = HexColors.Black;
 
     /// <summary>
-    /// Extracts all words from a PDF with their styling attributes.
+    /// Extracts all words from a PDF with their styling attributes (all pages).
     /// </summary>
-    public IReadOnlyList<PdfWord> GetWords(byte[] pdfBytes)
+    public static IReadOnlyList<PdfWord> GetStyledWords(byte[] pdfBytes)
     {
         ArgumentNullException.ThrowIfNull(pdfBytes);
 
@@ -37,6 +35,14 @@ public class PdfWordParser
         }
 
         return words;
+    }
+
+    /// <summary>
+    /// Extracts all words from a PDF as text strings (all pages).
+    /// </summary>
+    public static string[] GetTextWords(byte[] pdfBytes)
+    {
+        return GetStyledWords(pdfBytes).Select(w => w.Text).ToArray();
     }
 
     private static PdfWord ExtractWordInfo(Word word)
@@ -158,6 +164,58 @@ public class PdfWordParser
 
         return fontSizes.Length > 0 ? fontSizes.Average() : 0;
     }
+
+    /// <summary>
+    /// Extracts raw PdfPig Word objects from a PDF document (first page only).
+    /// Used for positioning analysis and gap calculations.
+    /// </summary>
+    public static List<Word> GetRawWords(byte[] pdfBytes)
+    {
+        ArgumentNullException.ThrowIfNull(pdfBytes);
+
+        using var stream = new MemoryStream(pdfBytes);
+        using var pdf = PdfDocument.Open(stream);
+        var page = pdf.GetPage(1);
+        return page.GetWords().ToList();
+    }
+
+    /// <summary>
+    /// Finds a word by partial text match (case-insensitive).
+    /// </summary>
+    public static Word? FindWordByText(List<Word> words, string searchText)
+    {
+        return words.FirstOrDefault(w => 
+            CleanWordText(w.Text).Contains(searchText, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Finds multiple words by their partial text matches.
+    /// </summary>
+    public static WordLookupResult FindWords(List<Word> words, params string[] searchTexts)
+    {
+        var foundWords = new Dictionary<string, Word?>();
+        
+        foreach (var searchText in searchTexts)
+        {
+            var word = FindWordByText(words, searchText);
+            foundWords[searchText] = word;
+        }
+
+        return new WordLookupResult(foundWords);
+    }
+
+    /// <summary>
+    /// Logs word positions for debugging purposes.
+    /// </summary>
+    public static void LogWordPositions(List<Word> words, Action<string> writeLine)
+    {
+        writeLine("All words found in PDF:");
+        foreach (var word in words)
+        {
+            var cleanText = CleanWordText(word.Text);
+            writeLine($"  Original: '{word.Text}' -> Clean: '{cleanText}' at position ({word.BoundingBox.TopLeft.X:F1}, {word.BoundingBox.TopLeft.Y:F1})");
+        }
+    }
     
 }
 
@@ -171,5 +229,31 @@ public record PdfWord(
     bool IsItalic,
     double FontSize);
 
+/// <summary>
+/// Result of word lookup operations.
+/// </summary>
+public class WordLookupResult
+{
+    private readonly Dictionary<string, Word?> _words;
 
+    public WordLookupResult(Dictionary<string, Word?> words)
+    {
+        _words = words;
+    }
 
+    /// <summary>
+    /// Gets a word by its search text, throwing if not found.
+    /// </summary>
+    public Word GetWord(string searchText)
+    {
+        var word = _words.GetValueOrDefault(searchText);
+        if (word == null)
+            throw new InvalidOperationException($"Word '{searchText}' should be found in the PDF");
+        return word;
+    }
+
+    /// <summary>
+    /// Gets a word by its search text, returning null if not found.
+    /// </summary>
+    public Word? TryGetWord(string searchText) => _words.GetValueOrDefault(searchText);
+}
