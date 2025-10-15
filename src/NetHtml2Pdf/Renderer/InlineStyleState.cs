@@ -30,7 +30,7 @@ internal readonly struct InlineStyleState(bool bold,
 
     public InlineStyleState WithBold() =>
         Bold
-            ? this 
+            ? this
             : new InlineStyleState(true, Italic, Underline, LineHeight, Color, BackgroundColor, FontSize);
 
     public InlineStyleState WithItalic() =>

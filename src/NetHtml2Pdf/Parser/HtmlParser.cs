@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -23,7 +24,7 @@ internal class HtmlParser : IHtmlParser
         _onFallbackElement = onFallbackElement;
     }
 
-    public DocumentNode Parse(string html)
+    public DocumentNode Parse(string html, ILogger? logger = null)
     {
         if (string.IsNullOrWhiteSpace(html))
         {
@@ -31,7 +32,7 @@ internal class HtmlParser : IHtmlParser
         }
 
         var angleSharpDocument = _angleSharpParser.ParseDocument(html);
-        var classStyles = _classStyleExtractor.Extract(angleSharpDocument);
+        var classStyles = _classStyleExtractor.Extract(angleSharpDocument, logger);
         var styleResolver = new CssStyleResolver(classStyles, _classStyleExtractor.DeclarationParser, _classStyleExtractor.DeclarationUpdater);
         var nodeConverter = new HtmlNodeConverter(styleResolver, _onFallbackElement);
 
@@ -44,7 +45,7 @@ internal class HtmlParser : IHtmlParser
 
         foreach (var child in body.ChildNodes)
         {
-            var node = nodeConverter.Convert(child, CssStyleMap.Empty);
+            var node = nodeConverter.Convert(child, CssStyleMap.Empty, logger);
             if (node != null)
             {
                 root.AddChild(node);

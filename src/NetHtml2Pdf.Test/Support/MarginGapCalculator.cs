@@ -14,7 +14,7 @@ public static class MarginGapCalculator
     public static MarginGapResult CalculateGaps(List<Word> words, string topWordText, string testWordText, string bottomWordText)
     {
         var analyzer = PdfWordParser.FindWords(words, topWordText, testWordText, bottomWordText);
-        
+
         var topWord = analyzer.GetWord(topWordText);
         var testWord = analyzer.GetWord(testWordText);
         var bottomWord = analyzer.GetWord(bottomWordText);
@@ -54,7 +54,7 @@ public static class MarginGapCalculator
     public static MarginValidationResult ValidateGaps(MarginGapResult gaps, double expectedGapPoints, double tolerance = 2.0)
     {
         var minExpectedGap = expectedGapPoints - tolerance;
-        
+
         var gapAboveValid = gaps.GapAboveTest >= minExpectedGap;
         var gapBelowValid = gaps.GapBelowTest >= minExpectedGap;
 

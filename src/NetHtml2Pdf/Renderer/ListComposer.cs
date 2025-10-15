@@ -65,7 +65,7 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
         FlushInlineBuffer(inlineBuffer, column, inlineComposer);
     }
 
-    private static void FlushInlineBuffer(List<DocumentNode> inlineBuffer, 
+    private static void FlushInlineBuffer(List<DocumentNode> inlineBuffer,
         ColumnDescriptor column, IInlineComposer inlineComposer)
     {
         if (inlineBuffer.Count == 0)

@@ -14,7 +14,7 @@ public static class HorizontalPositionValidator
     public static void ValidateLeftEdgePositioning(Word word, double maxDistanceFromLeft = 50.0)
     {
         var wordLeft = word.BoundingBox.TopLeft.X;
-        wordLeft.ShouldBeLessThan(maxDistanceFromLeft, 
+        wordLeft.ShouldBeLessThan(maxDistanceFromLeft,
             $"With 0 horizontal margin, content should be positioned near the left edge (within {maxDistanceFromLeft} points), but was at {wordLeft:F1} points");
     }
 
@@ -25,7 +25,7 @@ public static class HorizontalPositionValidator
     {
         var wordLeft = word.BoundingBox.TopLeft.X;
         var wordRight = word.BoundingBox.TopRight.X;
-        
+
         writeLine($"Horizontal positioning:");
         writeLine($"  Left edge: {wordLeft:F1} points");
         writeLine($"  Right edge: {wordRight:F1} points");

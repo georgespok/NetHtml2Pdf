@@ -28,7 +28,7 @@ public static class ColorNormalizer
         }
 
         // RGB color function
-        if (trimmedColor.StartsWith(CssUnits.RgbFunction, StringComparison.OrdinalIgnoreCase) && 
+        if (trimmedColor.StartsWith(CssUnits.RgbFunction, StringComparison.OrdinalIgnoreCase) &&
             trimmedColor.EndsWith(CssUnits.RgbFunctionEnd))
         {
             return ParseRgbToHex(trimmedColor);
@@ -72,7 +72,7 @@ public static class ColorNormalizer
             // Extract values from rgb(255, 0, 0) format
             var startIndex = rgbColor.IndexOf('(') + 1;
             var endIndex = rgbColor.LastIndexOf(')');
-            
+
             if (startIndex <= 0 || endIndex <= startIndex)
                 return null;
 
@@ -83,8 +83,8 @@ public static class ColorNormalizer
                 return null;
 
             // Parse RGB values
-            if (int.TryParse(values[0], out var r) && 
-                int.TryParse(values[1], out var g) && 
+            if (int.TryParse(values[0], out var r) &&
+                int.TryParse(values[1], out var g) &&
                 int.TryParse(values[2], out var b))
             {
                 // Clamp values to 0-255 range

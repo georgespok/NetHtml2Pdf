@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: Mixed Types - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .block-element {
+            display: block;
+            background-color: lightblue;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .inline-block-element {
+            display: inline-block;
+            width: 150px;
+            background-color: lightcoral;
+            padding: 15px;
+            margin: 10px;
+            border: 2px solid #333;
+            vertical-align: middle;
+        }
+        
+        .hidden-element {
+            display: none;
+            background-color: lightgreen;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+        
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px dashed #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: Mixed Types - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates mixed display types working together. This tests:
+        <ul>
+            <li>Block elements starting new lines</li>
+            <li>Inline-block elements flowing side-by-side</li>
+            <li>Hidden elements being completely omitted</li>
+            <li>Proper interaction between different display types</li>
+            <li>Nested elements with different display values</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Basic Mixed Display Types</h2>
+        <div class="block-element">
+            Block element 1 - Should start new line
+        </div>
+        <div class="inline-block-element">
+            Inline-block 1
+        </div>
+        <div class="inline-block-element">
+            Inline-block 2
+        </div>
+        <div class="hidden-element">
+            Hidden element - Should be omitted
+        </div>
+        <div class="block-element">
+            Block element 2 - Should start new line
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Block elements start new lines, inline-block elements flow together, hidden element is omitted.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Types with Different Sizes</h2>
+        <div class="block-element">
+            Block element
+        </div>
+        <div style="display: inline-block; width: 100px; height: 60px; background-color: lightpink; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Small inline-block
+        </div>
+        <div style="display: inline-block; width: 200px; height: 60px; background-color: lightcyan; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Large inline-block
+        </div>
+        <div class="hidden-element">
+            Hidden element
+        </div>
+        <div style="display: inline-block; width: 150px; height: 60px; background-color: lightsteelblue; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Medium inline-block
+        </div>
+        <div class="block-element">
+            Another block element
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Block elements break the flow, inline-block elements of different sizes flow together, hidden element is omitted.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Nested Mixed Display Types</h2>
+        <div class="container">
+            <h3>Block Container with Mixed Children</h3>
+            <div class="block-element">
+                Nested block element
+            </div>
+            <div class="inline-block-element">
+                Nested inline-block 1
+            </div>
+            <div class="inline-block-element">
+                Nested inline-block 2
+            </div>
+            <div class="hidden-element">
+                Nested hidden element
+            </div>
+            <div class="block-element">
+                Another nested block element
+            </div>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Nested elements should follow the same rules as top-level elements.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block Container with Mixed Children</h2>
+        <div style="display: inline-block; background-color: lavender; padding: 20px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            <div class="block-element">
+                Block in inline-block container
+            </div>
+            <div class="inline-block-element">
+                Inline-block in inline-block container
+            </div>
+            <div class="hidden-element">
+                Hidden in inline-block container
+            </div>
+        </div>
+        <div style="display: inline-block; background-color: lightyellow; padding: 20px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            <div class="inline-block-element">
+                Another inline-block container
+            </div>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Inline-block containers should flow side-by-side, with their children following their own display rules.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Complex Mixed Layout</h2>
+        <div class="block-element">
+            Header block
+        </div>
+        <div class="inline-block-element">
+            Sidebar 1
+        </div>
+        <div class="inline-block-element">
+            Main content
+        </div>
+        <div class="inline-block-element">
+            Sidebar 2
+        </div>
+        <div class="hidden-element">
+            Hidden navigation
+        </div>
+        <div class="block-element">
+            Footer block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Header and footer should be full-width blocks, sidebars and main content should flow inline, hidden navigation should be omitted.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Types with Spacing</h2>
+        <div style="display: block; background-color: lightblue; padding: 20px; margin: 25px 0; border: 3px solid #333;">
+            Block with large margins
+        </div>
+        <div style="display: inline-block; width: 180px; background-color: lightcoral; padding: 15px; margin: 15px; border: 2px solid #333; vertical-align: middle;">
+            Inline-block with margins
+        </div>
+        <div style="display: inline-block; width: 180px; background-color: lightgreen; padding: 15px; margin: 15px; border: 2px solid #333; vertical-align: middle;">
+            Another inline-block with margins
+        </div>
+        <div style="display: none; background-color: lightyellow; padding: 15px; margin: 50px; border: 5px solid #333;">
+            Hidden element with large margins
+        </div>
+        <div style="display: block; background-color: lightpink; padding: 20px; margin: 25px 0; border: 3px solid #333;">
+            Another block with large margins
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Spacing should apply correctly to visible elements, hidden element should not affect spacing.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Types with Different HTML Elements</h2>
+        <div class="block-element">
+            Div block element
+        </div>
+        <p style="display: inline-block; width: 150px; background-color: lightcoral; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Paragraph inline-block
+        </p>
+        <section style="display: inline-block; width: 150px; background-color: lightgreen; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Section inline-block
+        </section>
+        <article style="display: none; background-color: lightyellow; padding: 15px; margin: 10px; border: 2px solid #333;">
+            Hidden article element
+        </article>
+        <span style="display: block; background-color: lightpink; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Span block element
+        </span>
+        <div class="description">
+            <strong>Expected:</strong> Different HTML elements should follow their CSS display properties, not their default HTML behavior.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Types with Text Content</h2>
+        <div class="block-element">
+            Block element with text content
+        </div>
+        <div class="inline-block-element">
+            <h4 style="margin: 0 0 10px 0;">Inline-block Title</h4>
+            <p style="margin: 0;">Inline-block paragraph content.</p>
+        </div>
+        <div class="inline-block-element">
+            <h4 style="margin: 0 0 10px 0;">Another Title</h4>
+            <p style="margin: 0;">Another inline-block paragraph.</p>
+        </div>
+        <div class="hidden-element">
+            <h4>Hidden Title</h4>
+            <p>Hidden paragraph content.</p>
+        </div>
+        <div class="block-element">
+            Final block element
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Text content within inline-block elements should flow properly, hidden content should be omitted.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Edge Case: All Hidden Elements</h2>
+        <div style="display: none; background-color: lightblue; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Hidden element 1
+        </div>
+        <div style="display: none; background-color: lightcoral; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Hidden element 2
+        </div>
+        <div style="display: none; background-color: lightgreen; padding: 15px; margin: 10px 0; border: 2px solid #333;">
+            Hidden element 3
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> All elements should be omitted, resulting in no visible content in this section.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Edge Case: All Inline-Block Elements</h2>
+        <div style="display: inline-block; width: 120px; background-color: lightblue; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Inline-block 1
+        </div>
+        <div style="display: inline-block; width: 120px; background-color: lightcoral; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Inline-block 2
+        </div>
+        <div style="display: inline-block; width: 120px; background-color: lightgreen; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Inline-block 3
+        </div>
+        <div style="display: inline-block; width: 120px; background-color: lightyellow; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Inline-block 4
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> All elements should flow side-by-side on the same line (or wrap as needed).
+        </div>
+    </div>
+    
+    <div class="description">
+        <strong>Overall Expected Results:</strong>
+        <ul>
+            <li>Block elements should start new lines and take full width</li>
+            <li>Inline-block elements should flow side-by-side when space allows</li>
+            <li>Hidden elements should be completely omitted from output</li>
+            <li>Mixed types should interact properly without conflicts</li>
+            <li>Nested elements should follow their own display properties</li>
+            <li>Spacing should apply correctly to visible elements only</li>
+            <li>Different HTML elements should follow CSS display properties</li>
+        </ul>
+    </div>
+</body>
+</html>

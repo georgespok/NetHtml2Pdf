@@ -5,6 +5,6 @@ namespace NetHtml2Pdf.Renderer.Interfaces;
 
 internal interface IListComposer
 {
-    void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered, 
+    void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered,
         Action<ColumnDescriptor, DocumentNode> composeBlock);
 }

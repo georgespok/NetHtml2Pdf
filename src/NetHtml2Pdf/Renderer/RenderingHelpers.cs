@@ -68,7 +68,7 @@ internal static class RenderingHelpers
     /// <param name="node">The document node to check.</param>
     /// <returns>True if the node is an inline element, false otherwise.</returns>
     public static bool IsInlineNode(DocumentNode node) =>
-        node.NodeType is DocumentNodeType.Text or DocumentNodeType.Span or DocumentNodeType.Strong 
+        node.NodeType is DocumentNodeType.Text or DocumentNodeType.Span or DocumentNodeType.Strong
         or DocumentNodeType.Bold or DocumentNodeType.Italic or DocumentNodeType.LineBreak;
 
     /// <summary>

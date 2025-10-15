@@ -1,6 +1,7 @@
 using NetHtml2Pdf.Core.Constants;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace NetHtml2Pdf.Test.Support;
 
@@ -24,7 +25,7 @@ public class PdfWordParser
         var words = new List<PdfWord>();
         foreach (var page in pdf.GetPages())
         {
-            foreach (var word in page.GetWords())
+            foreach (var word in page.GetWords(NearestNeighbourWordExtractor.Instance))
             {
                 var pdfWord = ExtractWordInfo(word);
                 if (!string.IsNullOrWhiteSpace(pdfWord.Text))
@@ -184,7 +185,7 @@ public class PdfWordParser
     /// </summary>
     public static Word? FindWordByText(List<Word> words, string searchText)
     {
-        return words.FirstOrDefault(w => 
+        return words.FirstOrDefault(w =>
             CleanWordText(w.Text).Contains(searchText, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -194,7 +195,7 @@ public class PdfWordParser
     public static WordLookupResult FindWords(List<Word> words, params string[] searchTexts)
     {
         var foundWords = new Dictionary<string, Word?>();
-        
+
         foreach (var searchText in searchTexts)
         {
             var word = FindWordByText(words, searchText);
@@ -216,7 +217,7 @@ public class PdfWordParser
             writeLine($"  Original: '{word.Text}' -> Clean: '{cleanText}' at position ({word.BoundingBox.TopLeft.X:F1}, {word.BoundingBox.TopLeft.Y:F1})");
         }
     }
-    
+
 }
 
 /// <summary>

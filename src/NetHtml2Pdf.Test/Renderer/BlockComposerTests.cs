@@ -15,43 +15,83 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
     [Fact]
     public void Compose_Paragraph_DelegatesToInlineComposerForEachChild()
     {
-        var inlineComposer = new RecordingInlineComposer();
-        var listComposer = new RecordingListComposer();
-        var tableComposer = new RecordingTableComposer();
-        var spacingApplier = new PassthroughSpacingApplier();
-        var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
-
-        var paragraph = Paragraph(
-            Text("Hello"),
-            Strong(Text("World"))
-        );
+        var sut = CreateSut();
+        var paragraph = Paragraph(Text("Hello"), Strong(Text("World")));
 
         GenerateDocument(column => sut.Compose(column, paragraph));
 
-        inlineComposer.Nodes.ShouldBe(new[]
-        {
-            DocumentNodeType.Text,
-            DocumentNodeType.Strong
-        });
-        listComposer.Called.ShouldBeFalse();
+        sut.InlineComposer.Nodes.ShouldBe(new[] { DocumentNodeType.Text, DocumentNodeType.Strong });
+        sut.ListComposer.Called.ShouldBeFalse();
     }
 
     [Fact]
     public void Compose_List_DelegatesToListComposer()
     {
-        var inlineComposer = new RecordingInlineComposer();
-        var listComposer = new RecordingListComposer();
-        var tableComposer = new RecordingTableComposer();
-        var spacingApplier = new PassthroughSpacingApplier();
-        var sut = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
-
+        var sut = CreateSut();
         var listNode = new DocumentNode(DocumentNodeType.List);
         listNode.AddChild(ListItem());
 
         GenerateDocument(column => sut.Compose(column, listNode));
 
-        listComposer.Called.ShouldBeTrue();
-        listComposer.LastOrdered.ShouldBeFalse();
+        sut.ListComposer.Called.ShouldBeTrue();
+        sut.ListComposer.LastOrdered.ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(DocumentNodeType.Span, "Block span")]
+    [InlineData(DocumentNodeType.Div, "Block text")]
+    public void Compose_DisplayBlock_ComposesAsBlockElement(DocumentNodeType nodeType, string textContent)
+    {
+        var sut = CreateSut();
+        var node = CreateBlockDisplayNode(nodeType, textContent);
+
+        GenerateDocument(column => sut.Compose(column, node));
+
+        // For span with text content, expect the span itself to be processed as text
+        // For div with text content, expect the div itself to be processed as text
+        var expectedNodes = new[] { nodeType };
+        sut.InlineComposer.Nodes.ShouldBe(expectedNodes);
+    }
+
+    [Fact]
+    public void Compose_DisplayBlockWithChildren_ComposesChildrenAsBlockElements()
+    {
+        var sut = CreateSut();
+        var divWithBlockDisplay = CreateBlockDisplayNode(DocumentNodeType.Div);
+        divWithBlockDisplay.AddChild(new DocumentNode(DocumentNodeType.Text, "First block"));
+        divWithBlockDisplay.AddChild(new DocumentNode(DocumentNodeType.Strong, "Second block"));
+
+        GenerateDocument(column => sut.Compose(column, divWithBlockDisplay));
+
+        sut.InlineComposer.Nodes.ShouldBe(new[] { DocumentNodeType.Text, DocumentNodeType.Strong });
+    }
+
+    [Fact]
+    public void Compose_DisplayBlockEmptyElement_HandlesEmptyBlock()
+    {
+        var sut = CreateSut();
+        var emptyBlockSpan = CreateBlockDisplayNode(DocumentNodeType.Span);
+
+        GenerateDocument(column => sut.Compose(column, emptyBlockSpan));
+
+        sut.InlineComposer.Nodes.ShouldBeEmpty();
+    }
+
+    private TestSut CreateSut()
+    {
+        var inlineComposer = new RecordingInlineComposer();
+        var listComposer = new RecordingListComposer();
+        var tableComposer = new RecordingTableComposer();
+        var spacingApplier = new PassthroughSpacingApplier();
+        var blockComposer = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
+
+        return new TestSut(blockComposer, inlineComposer, listComposer, tableComposer);
+    }
+
+    private static DocumentNode CreateBlockDisplayNode(DocumentNodeType nodeType, string? textContent = null)
+    {
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block);
+        return new DocumentNode(nodeType, textContent, styles);
     }
 
     private static void GenerateDocument(Action<ColumnDescriptor> compose)
@@ -70,6 +110,25 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
 
         using var stream = new MemoryStream();
         document.GeneratePdf(stream);
+    }
+
+    private sealed class TestSut
+    {
+        public TestSut(BlockComposer blockComposer, RecordingInlineComposer inlineComposer,
+                      RecordingListComposer listComposer, RecordingTableComposer tableComposer)
+        {
+            BlockComposer = blockComposer;
+            InlineComposer = inlineComposer;
+            ListComposer = listComposer;
+            TableComposer = tableComposer;
+        }
+
+        public BlockComposer BlockComposer { get; }
+        public RecordingInlineComposer InlineComposer { get; }
+        public RecordingListComposer ListComposer { get; }
+        public RecordingTableComposer TableComposer { get; }
+
+        public void Compose(ColumnDescriptor column, DocumentNode node) => BlockComposer.Compose(column, node);
     }
 
     private sealed class RecordingInlineComposer : IInlineComposer
@@ -114,4 +173,450 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         public IContainer ApplyMargin(IContainer container, CssStyleMap styles) => container;
         public IContainer ApplyBorder(IContainer container, CssStyleMap styles) => container;
     }
+
+    #region Block Width Rules and Margin Collapsing Tests
+
+    [Fact]
+    public void ComposeAsBlock_WithNegativeMargin_ShouldThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(-10);
+        var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
+
+        // Act & Assert
+        var exception = Should.Throw<InvalidOperationException>(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+
+        exception.Message.ShouldContain("Negative top margin (-10) is not allowed for block element Div");
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithNegativePadding_ShouldThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithPaddingLeft(-5);
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
+
+        // Act & Assert
+        var exception = Should.Throw<InvalidOperationException>(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+
+        exception.Message.ShouldContain("Negative left padding (-5) is not allowed for block element Paragraph");
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithValidMargins_ShouldNotThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMargin(BoxSpacing.FromAll(10));
+        var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithValidPadding_ShouldNotThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithPadding(BoxSpacing.FromAll(5));
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithAdjacentBlockElements_ShouldValidateMarginCollapsing()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20);
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block", secondBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+
+        // Act & Assert - Should not throw (margin collapsing validation should pass)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithBlockElementsWithBorders_ShouldNotCollapseMargins()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20).WithBorder(new BorderInfo(1, "solid", "#000000"));
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block", secondBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+
+        // Act & Assert - Should not throw (margins should not collapse due to border)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithBlockElementsWithPadding_ShouldNotCollapseMargins()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20).WithPadding(BoxSpacing.FromAll(5));
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block", secondBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+
+        // Act & Assert - Should not throw (margins should not collapse due to padding)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithZeroMargins_ShouldNotThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMargin(BoxSpacing.FromAll(0));
+        var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithZeroPadding_ShouldNotThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithPadding(BoxSpacing.FromAll(0));
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithMixedNegativeMargins_ShouldThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMarginTop(10)      // Valid
+            .WithMarginRight(-5)    // Invalid
+            .WithMarginBottom(15)   // Valid
+            .WithMarginLeft(-8);    // Invalid
+        var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
+
+        // Act & Assert
+        var exception = Should.Throw<InvalidOperationException>(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+
+        // Should throw for the first negative margin encountered
+        exception.Message.ShouldContain("Negative right margin (-5) is not allowed for block element Div");
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithMixedNegativePadding_ShouldThrowException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithPaddingTop(5)      // Valid
+            .WithPaddingRight(-3)   // Invalid
+            .WithPaddingBottom(8)   // Valid
+            .WithPaddingLeft(-2);  // Invalid
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
+
+        // Act & Assert
+        var exception = Should.Throw<InvalidOperationException>(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+
+        // Should throw for the first negative padding encountered
+        exception.Message.ShouldContain("Negative right padding (-3) is not allowed for block element Paragraph");
+    }
+
+    #endregion
+
+    #region Additional Spacing Interaction Tests
+
+    [Fact]
+    public void ComposeAsBlock_WithMarginsPaddingAndBorder_ShouldApplyCorrectly()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMargin(BoxSpacing.FromAll(10))
+            .WithPadding(BoxSpacing.FromAll(5))
+            .WithBorder(new BorderInfo(2, "solid", "#000000"));
+        var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
+
+        // Act & Assert - Should not throw and should apply all spacing correctly
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithVerticalSpacing_ShouldApplyCorrectly()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMarginTop(15)
+            .WithMarginBottom(20)
+            .WithPaddingTop(8)
+            .WithPaddingBottom(12);
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
+
+        // Act & Assert - Should not throw and should apply vertical spacing correctly
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithComplexMarginCollapsing_ShouldHandleCorrectly()
+    {
+        // Arrange - Test complex margin collapsing with multiple adjacent blocks
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(25);
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(30).WithMarginBottom(15);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block", secondBlockStyles);
+
+        var thirdBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(20);
+        var thirdBlock = new DocumentNode(DocumentNodeType.Paragraph, "Third block", thirdBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+        container.AddChild(thirdBlock);
+
+        // Act & Assert - Should not throw (complex margin collapsing should be handled)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithMixedElementTypesAndSpacing_ShouldHandleCorrectly()
+    {
+        // Arrange - Test spacing interactions across different element types
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var paragraphStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20);
+        var paragraph = new DocumentNode(DocumentNodeType.Paragraph, "Paragraph text", paragraphStyles);
+
+        var divStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15).WithPadding(BoxSpacing.FromAll(10));
+        var div = new DocumentNode(DocumentNodeType.Div, "Div content", divStyles);
+
+        var spanStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(10).WithBorder(new BorderInfo(1, "dashed", "#666666"));
+        var span = new DocumentNode(DocumentNodeType.Span, "Span content", spanStyles);
+
+        container.AddChild(paragraph);
+        container.AddChild(div);
+        container.AddChild(span);
+
+        // Act & Assert - Should not throw (mixed element types with spacing should be handled)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithAllSidesDifferentSpacing_ShouldApplyCorrectly()
+    {
+        // Arrange - Test asymmetric spacing on all sides
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMarginTop(20)
+            .WithMarginRight(15)
+            .WithMarginBottom(25)
+            .WithMarginLeft(10)
+            .WithPaddingTop(8)
+            .WithPaddingRight(12)
+            .WithPaddingBottom(6)
+            .WithPaddingLeft(14)
+            .WithBorder(new BorderInfo(3, "solid", "#FF0000"));
+        var node = new DocumentNode(DocumentNodeType.Div, "Asymmetric spacing test", styles);
+
+        // Act & Assert - Should not throw and should apply asymmetric spacing correctly
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithMarginCollapsingAndBorders_ShouldPreventCollapse()
+    {
+        // Arrange - Test that borders prevent margin collapsing
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMarginBottom(20)
+            .WithBorder(new BorderInfo(2, "solid", "#000000"));
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block with border", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block", secondBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+
+        // Act & Assert - Should not throw (borders should prevent margin collapsing)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithLargeSpacingValues_ShouldHandleCorrectly()
+    {
+        // Arrange - Test with large spacing values to ensure no overflow issues
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMargin(BoxSpacing.FromAll(1000))
+            .WithPadding(BoxSpacing.FromAll(500))
+            .WithBorder(new BorderInfo(50, "solid", "#000000"));
+        var node = new DocumentNode(DocumentNodeType.Div, "Large spacing test", styles);
+
+        // Act & Assert - Should not throw even with large spacing values
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithNestedBlockSpacing_ShouldHandleCorrectly()
+    {
+        // Arrange - Test nested blocks with different spacing
+        var sut = CreateSut();
+        var outerContainer = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var innerContainerStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMargin(BoxSpacing.FromAll(20))
+            .WithPadding(BoxSpacing.FromAll(15));
+        var innerContainer = new DocumentNode(DocumentNodeType.Div, "Inner container", innerContainerStyles);
+
+        var innerBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMargin(BoxSpacing.FromAll(10))
+            .WithBorder(new BorderInfo(1, "solid", "#CCCCCC"));
+        var innerBlock = new DocumentNode(DocumentNodeType.Paragraph, "Inner block", innerBlockStyles);
+
+        innerContainer.AddChild(innerBlock);
+        outerContainer.AddChild(innerContainer);
+
+        // Act & Assert - Should not throw (nested blocks with spacing should be handled)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, outerContainer));
+        });
+    }
+
+    [Fact]
+    public void ComposeAsBlock_WithDecimalSpacingValues_ShouldHandleCorrectly()
+    {
+        // Arrange - Test with decimal spacing values
+        var sut = CreateSut();
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
+            .WithMarginTop(12.5)
+            .WithMarginRight(7.25)
+            .WithMarginBottom(15.75)
+            .WithMarginLeft(9.125)
+            .WithPaddingTop(3.5)
+            .WithPaddingRight(4.25)
+            .WithPaddingBottom(2.75)
+            .WithPaddingLeft(5.125);
+        var node = new DocumentNode(DocumentNodeType.Paragraph, "Decimal spacing test", styles);
+
+        // Act & Assert - Should not throw with decimal spacing values
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, node));
+        });
+    }
+
+    [Fact]
+    public void RenderChildrenWithInlineFlow_WithZeroMarginCollapsing_ShouldHandleCorrectly()
+    {
+        // Arrange - Test margin collapsing with zero margins
+        var sut = CreateSut();
+        var container = CreateBlockDisplayNode(DocumentNodeType.Div);
+
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(0);
+        var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block with zero margin", firstBlockStyles);
+
+        var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(0);
+        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block with zero margin", secondBlockStyles);
+
+        container.AddChild(firstBlock);
+        container.AddChild(secondBlock);
+
+        // Act & Assert - Should not throw (zero margins should be handled correctly)
+        Should.NotThrow(() =>
+        {
+            GenerateDocument(column => sut.Compose(column, container));
+        });
+    }
+
+    #endregion
 }

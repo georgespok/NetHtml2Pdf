@@ -19,7 +19,9 @@ internal sealed class CssStyleMap
         string? textAlign,
         string? verticalAlign,
         BorderInfo border,
-        string? borderCollapse)
+        string? borderCollapse,
+        CssDisplay display,
+        bool displaySet)
     {
         FontStyle = fontStyle;
         FontStyleSet = fontStyleSet;
@@ -36,9 +38,11 @@ internal sealed class CssStyleMap
         VerticalAlign = verticalAlign;
         Border = border;
         BorderCollapse = borderCollapse;
+        Display = display;
+        DisplaySet = displaySet;
     }
 
-    public static CssStyleMap Empty { get; } = new(FontStyle.Normal, false, false, false, TextDecorationStyle.None, false, null, BoxSpacing.Empty, BoxSpacing.Empty, null, null, null, null, BorderInfo.Empty, null);
+    public static CssStyleMap Empty { get; } = new(FontStyle.Normal, false, false, false, TextDecorationStyle.None, false, null, BoxSpacing.Empty, BoxSpacing.Empty, null, null, null, null, BorderInfo.Empty, null, CssDisplay.Default, false);
 
     public FontStyle FontStyle { get; }
 
@@ -70,45 +74,51 @@ internal sealed class CssStyleMap
 
     public string? BorderCollapse { get; }
 
-    public CssStyleMap WithFontStyle(FontStyle fontStyle) => new(fontStyle, true, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssDisplay Display { get; }
 
-    public CssStyleMap WithBold(bool value = true) => new(FontStyle, FontStyleSet, value, true, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public bool DisplaySet { get; }
 
-    public CssStyleMap WithTextDecoration(TextDecorationStyle decoration) => new(FontStyle, FontStyleSet, Bold, BoldSet, decoration, true, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithFontStyle(FontStyle fontStyle) => new(fontStyle, true, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithLineHeight(double? lineHeight) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, lineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithBold(bool value = true) => new(FontStyle, FontStyleSet, value, true, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithMargin(BoxSpacing spacing) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, BoxSpacing.Merge(Margin, spacing), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithTextDecoration(TextDecorationStyle decoration) => new(FontStyle, FontStyleSet, Bold, BoldSet, decoration, true, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithPadding(BoxSpacing spacing) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, BoxSpacing.Merge(Padding, spacing), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithLineHeight(double? lineHeight) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, lineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithMarginTop(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithTop(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithMargin(BoxSpacing spacing) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, BoxSpacing.Merge(Margin, spacing), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithMarginRight(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithRight(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithPadding(BoxSpacing spacing) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, BoxSpacing.Merge(Padding, spacing), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithMarginBottom(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithBottom(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithMarginTop(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithTop(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithMarginLeft(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithLeft(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithMarginRight(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithRight(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithPaddingTop(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithTop(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithMarginBottom(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithBottom(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithPaddingRight(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithRight(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithMarginLeft(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin.WithLeft(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithPaddingBottom(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithBottom(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithPaddingTop(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithTop(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithPaddingLeft(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithLeft(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithPaddingRight(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithRight(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithColor(string? color) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithPaddingBottom(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithBottom(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithBackgroundColor(string? backgroundColor) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, backgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithPaddingLeft(double? value) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding.WithLeft(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithTextAlign(string? textAlign) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, textAlign, VerticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithColor(string? color) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithVerticalAlign(string? verticalAlign) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, verticalAlign, Border, BorderCollapse);
+    public CssStyleMap WithBackgroundColor(string? backgroundColor) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, backgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithBorder(BorderInfo border) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, border, BorderCollapse);
+    public CssStyleMap WithTextAlign(string? textAlign) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, textAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet);
 
-    public CssStyleMap WithBorderCollapse(string? borderCollapse) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, borderCollapse);
+    public CssStyleMap WithVerticalAlign(string? verticalAlign) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, verticalAlign, Border, BorderCollapse, Display, DisplaySet);
+
+    public CssStyleMap WithBorder(BorderInfo border) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, border, BorderCollapse, Display, DisplaySet);
+
+    public CssStyleMap WithBorderCollapse(string? borderCollapse) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, borderCollapse, Display, DisplaySet);
+
+    public CssStyleMap WithDisplay(CssDisplay display) => new(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin, Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, display, true);
 
     public CssStyleMap Merge(CssStyleMap? other)
     {
@@ -138,7 +148,9 @@ internal sealed class CssStyleMap
         var textAlign = other.TextAlign ?? TextAlign;
         var verticalAlign = other.VerticalAlign ?? VerticalAlign;
         var borderCollapse = other.BorderCollapse ?? BorderCollapse;
+        var display = other.DisplaySet ? other.Display : Display;
+        var displaySet = DisplaySet || other.DisplaySet;
 
-        return new CssStyleMap(fontStyle, fontStyleSet, bold, boldSet, decoration, decorationSet, lineHeight, margin, padding, color, backgroundColor, textAlign, verticalAlign, border, borderCollapse);
+        return new CssStyleMap(fontStyle, fontStyleSet, bold, boldSet, decoration, decorationSet, lineHeight, margin, padding, color, backgroundColor, textAlign, verticalAlign, border, borderCollapse, display, displaySet);
     }
 }

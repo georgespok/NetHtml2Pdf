@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Core.Enums;
@@ -11,7 +12,7 @@ namespace NetHtml2Pdf.Parser;
 /// </summary>
 internal sealed class CssStyleUpdater : ICssDeclarationUpdater
 {
-    public CssStyleMap UpdateStyles(CssStyleMap styles, CssDeclaration declaration)
+    public CssStyleMap UpdateStyles(CssStyleMap styles, CssDeclaration declaration, ILogger? logger = null)
     {
         return declaration.Name switch
         {
@@ -35,6 +36,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             CssProperties.VerticalAlign => styles.WithVerticalAlign(declaration.Value?.Trim()),
             CssProperties.Border => styles.WithBorder(ParseBorderShorthand(declaration.Value)),
             CssProperties.BorderCollapse => styles.WithBorderCollapse(declaration.Value?.Trim()),
+            CssProperties.Display => styles.WithDisplay(ParseDisplay(declaration.Value, logger)),
             _ => styles
         };
     }
@@ -101,7 +103,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         {
             var vertical = ParsePart(verticalPart);
             var horizontal = ParsePart(horizontalPart);
-            
+
             // If any part is invalid, reject entire declaration (CSS contract requirement)
             if (!vertical.HasValue || !horizontal.HasValue)
             {
@@ -116,7 +118,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             var top = ParsePart(topPart);
             var horizontal = ParsePart(horizontalPart);
             var bottom = ParsePart(bottomPart);
-            
+
             // If any part is invalid, reject entire declaration (CSS contract requirement)
             if (!top.HasValue || !horizontal.HasValue || !bottom.HasValue)
             {
@@ -132,7 +134,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             var right = ParsePart(rightPart);
             var bottom = ParsePart(bottomPart);
             var left = ParsePart(leftPart);
-            
+
             // If any part is invalid, reject entire declaration (CSS contract requirement)
             if (!top.HasValue || !right.HasValue || !bottom.HasValue || !left.HasValue)
             {
@@ -232,7 +234,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         var lowerValue = value.ToLowerInvariant();
 
         // Named colors (basic set)
-        if (lowerValue is CssColorNames.Black or CssColorNames.White or CssColorNames.Red or CssColorNames.Green or CssColorNames.Blue or CssColorNames.Yellow or 
+        if (lowerValue is CssColorNames.Black or CssColorNames.White or CssColorNames.Red or CssColorNames.Green or CssColorNames.Blue or CssColorNames.Yellow or
             CssColorNames.Orange or CssColorNames.Purple or CssColorNames.Pink or CssColorNames.Brown or CssColorNames.Gray or CssColorNames.Grey or CssColorNames.Cyan or CssColorNames.Magenta)
         {
             return true;
@@ -251,5 +253,30 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         }
 
         return false;
+    }
+
+    private static CssDisplay ParseDisplay(string value, ILogger? logger)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return CssDisplay.Default;
+        }
+
+        var trimmed = value.Trim().ToLowerInvariant();
+        var result = trimmed switch
+        {
+            CssDisplayValues.Block => CssDisplay.Block,
+            CssDisplayValues.InlineBlock => CssDisplay.InlineBlock,
+            CssDisplayValues.None => CssDisplay.None,
+            _ => CssDisplay.Default
+        };
+
+        // Emit warning for unsupported display values
+        if (result == CssDisplay.Default && trimmed != "default" && trimmed != "initial" && trimmed != "inherit" && trimmed != "unset")
+        {
+            logger?.LogWarning("Unsupported CSS display value '{DisplayValue}' encountered. Falling back to HTML semantic default.", trimmed);
+        }
+
+        return result;
     }
 }

@@ -21,7 +21,7 @@ public class BorderInheritanceTests : PdfRenderTestBase
     {
         // Arrange - Test that border on parent div doesn't affect child paragraph
         var document = Document(
-            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)), 
+            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)),
                 Paragraph(CssStyleMap.Empty, Text("No Border"))
             )
         );
@@ -53,8 +53,8 @@ public class BorderInheritanceTests : PdfRenderTestBase
     {
         // Arrange - Test that child element with its own border doesn't inherit parent border
         var document = Document(
-            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(3.0, CssBorderValues.Dashed, HexColors.Blue)), 
-                Paragraph(CssStyleMap.Empty.WithBorder(new BorderInfo(1.0, CssBorderValues.Dotted, HexColors.Green)), 
+            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(3.0, CssBorderValues.Dashed, HexColors.Blue)),
+                Paragraph(CssStyleMap.Empty.WithBorder(new BorderInfo(1.0, CssBorderValues.Dotted, HexColors.Green)),
                     Text("Child Border"))
             )
         );
@@ -86,7 +86,7 @@ public class BorderInheritanceTests : PdfRenderTestBase
     {
         // Arrange - Test border shorthand in HTML doesn't affect child elements
         var document = Document(
-            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)), 
+            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)),
                 Paragraph(CssStyleMap.Empty, Text("No Border from Parent"))
             )
         );
