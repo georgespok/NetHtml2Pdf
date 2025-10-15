@@ -2,13 +2,15 @@ using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
+using NetHtml2Pdf.Test.Support;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
-public class ListComposerTests
+public class ListComposerTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     [Fact]
     public void Compose_ListItemWithInlineAndBlockContent_FlushesInlineBuffer()
@@ -18,14 +20,11 @@ public class ListComposerTests
         var sut = new ListComposer(inlineComposer, spacingApplier);
 
         var listNode = new DocumentNode(DocumentNodeType.List);
-        var listItem = new DocumentNode(DocumentNodeType.ListItem);
-        listItem.AddChild(new DocumentNode(DocumentNodeType.Text, "First"));
-
-        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
-        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Nested"));
-        listItem.AddChild(paragraph);
-
-        listItem.AddChild(new DocumentNode(DocumentNodeType.Text, "Second"));
+        var listItem = ListItem(
+            Text("First"),
+            Paragraph(Text("Nested")),
+            Text("Second")
+        );
         listNode.AddChild(listItem);
 
         var forwarded = new List<DocumentNode>();
@@ -52,7 +51,7 @@ public class ListComposerTests
         var sut = new ListComposer(inlineComposer, spacingApplier);
 
         var listNode = new DocumentNode(DocumentNodeType.List);
-        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
+        var paragraph = Paragraph();
         listNode.AddChild(paragraph);
 
         var forwarded = new List<DocumentNode>();
@@ -72,7 +71,7 @@ public class ListComposerTests
         QuestPDF.Settings.License = LicenseType.Community;
         QuestPDF.Settings.UseEnvironmentFonts = false;
 
-        var document = Document.Create(container =>
+        var document = QuestPDF.Fluent.Document.Create(container =>
         {
             container.Page(page =>
             {
@@ -99,5 +98,7 @@ public class ListComposerTests
     private sealed class PassthroughSpacingApplier : IBlockSpacingApplier
     {
         public IContainer ApplySpacing(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplyMargin(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplyBorder(IContainer container, CssStyleMap styles) => container;
     }
 }

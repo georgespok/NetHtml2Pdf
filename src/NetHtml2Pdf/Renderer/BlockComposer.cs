@@ -15,10 +15,7 @@ internal sealed class BlockComposer(
         {
             case DocumentNodeType.Div:
             case DocumentNodeType.Section:
-                foreach (var child in node.Children)
-                {
-                    Compose(column, child);
-                }
+                ComposeContainer(column, node);
                 break;
             case DocumentNodeType.Paragraph:
                 ComposeParagraph(column, node);
@@ -70,9 +67,16 @@ internal sealed class BlockComposer(
 
     private void ComposeParagraph(ColumnDescriptor column, DocumentNode node)
     {
-        var container = spacingApplier.ApplySpacing(column.Item(), node.Styles);
+        // Apply margin at the parent level (affects positioning relative to siblings)
+        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        
+        // Apply border at the element level (wraps the content area)
+        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
+        
+        // Apply padding at the element level (affects positioning of children within this element)
+        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
 
-        container.Text(text =>
+        paddedContainer.Text(text =>
         {
             foreach (var child in node.Children)
             {
@@ -83,9 +87,16 @@ internal sealed class BlockComposer(
 
     private void ComposeHeading(ColumnDescriptor column, DocumentNode node, double fontSize, bool bold)
     {
-        var container = spacingApplier.ApplySpacing(column.Item(), node.Styles);
+        // Apply margin at the parent level (affects positioning relative to siblings)
+        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        
+        // Apply border at the element level (wraps the content area)
+        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
+        
+        // Apply padding at the element level (affects positioning of children within this element)
+        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
 
-        container.Text(text =>
+        paddedContainer.Text(text =>
         {
             var headingStyle = InlineStyleState.Empty.WithFontSize(fontSize);
             if (bold)
@@ -100,9 +111,37 @@ internal sealed class BlockComposer(
         });
     }
 
+    private void ComposeContainer(ColumnDescriptor column, DocumentNode node)
+    {
+        // Apply margin at the parent level (affects positioning relative to siblings)
+        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        
+        // Apply border at the element level (wraps the content area)
+        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
+        
+        // Apply padding at the element level (affects positioning of children within this element)
+        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
+        
+        paddedContainer.Column(containerColumn =>
+        {
+            foreach (var child in node.Children)
+            {
+                Compose(containerColumn, child);
+            }
+        });
+    }
+
     private void ComposeInlineContainer(ColumnDescriptor column, DocumentNode node)
     {
-        var container = spacingApplier.ApplySpacing(column.Item(), node.Styles);
-        container.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
+        // Apply margin at the parent level (affects positioning relative to siblings)
+        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        
+        // Apply border at the element level (wraps the content area)
+        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
+        
+        // Apply padding at the element level (affects positioning of children within this element)
+        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
+        
+        paddedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
     }
 }

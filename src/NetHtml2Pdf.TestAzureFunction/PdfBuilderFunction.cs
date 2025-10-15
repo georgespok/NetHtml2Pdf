@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NetHtml2Pdf.TestAzureFunction;
 
-public class HtmlConverterFunction(ILogger<HtmlConverterFunction> logger)
+public class PdfBuilderFunction(ILogger<PdfBuilderFunction> logger)
 {
     [Function("ConvertToPdf")]
     public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
@@ -27,8 +27,8 @@ public class HtmlConverterFunction(ILogger<HtmlConverterFunction> logger)
             var query = HttpUtility.ParseQueryString(req.Url.Query);
             string title = query["title"] ?? "HTML to PDF";
 
-            var converter = new HtmlConverter();
-            var bytes = converter.ConvertToPdf(html);
+            var builder = new PdfBuilder(logger);
+            var bytes = builder.AddPage(html).Build();
 
             var fileName = $"{SanitizeFileName(title)}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.pdf";
             var res = req.CreateResponse(HttpStatusCode.OK);

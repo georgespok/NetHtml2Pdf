@@ -1,182 +1,90 @@
-# Research: Iteration 1 - Core HTML parsing & rendering
+# Research: Iteration 1 – Core HTML parsing & rendering
 
-**Branch**: 001-iteration-1-parse | **Date**: 2025-01-27 | **Phase**: 0 Complete
+**Branch**: 001-iteration-1-parse | **Date**: 2025-10-14 | **Phase**: 0 Complete
 
 ## Technology Decisions
 
-### CSS-to-QuestPDF Mapping Strategy
+### Fluent Facade (PdfBuilder)  
+**Decision**: Expose all public HTML→PDF functionality via `IPdfBuilder`/`PdfBuilder`.  
+**Rationale**: Aligns with Constitution Principle III and spec FR-003; fluent chaining simplifies multi-page, header/footer workflows.  
+**Alternatives Considered**: Retaining `HtmlConverter` API (rejected – violates constitution, harder to extend to multi-page).  
+**Implementation**: Builder aggregates pages (unordered list of HTML strings), optional header/footer markup, and `Build()` orchestrates parsing and rendering. DI registers `IPdfBuilder` as transient.
 
-**Decision**: Use QuestPDF's built-in styling capabilities with custom CSS property mapping
-**Rationale**: QuestPDF provides comprehensive styling support including borders, alignment, and typography that aligns with our supported CSS properties
-**Alternatives considered**: 
-- Custom CSS engine (rejected: too complex for Iteration 1)
-- Direct style application without CSS parsing (rejected: doesn't meet FR-002 requirements)
+### HTML Parsing & Normalization  
+**Decision**: Use AngleSharp to parse HTML5, resolve classes, and normalize malformed markup.  
+**Rationale**: Mature, managed-only library; integrates with CSS extraction.  
+**Implementation**: `HtmlParser` converts AngleSharp nodes to `DocumentNode` graph, applying inheritance, merging adjacent text nodes, and tagging unsupported elements for fallback.
 
-**Implementation approach**:
-- Map CSS properties to QuestPDF style properties using `CssStyleMap`
-- Support CSS cascade rules (inline > class > inherited > default)
-- Handle table-specific properties (border-collapse, cell alignment) through QuestPDF table styling
+### CSS Processing (including shorthands)  
+**Decision**: Extend `CssStyleUpdater` to support FR-002/FR-002a properties including `margin` and `border` shorthands.  
+**Rationale**: Enables spec-mandated styling coverage without introducing a full CSS engine.  
+**Implementation**:  
+- Tokenize shorthand values, validate patterns (1–4 values for margin; width/style/color combinations for border).  
+- Expand to longhand entries stored in `CssStyleMap`.  
+- Reject invalid shorthand atomically, emit structured warning.
 
-### Fallback Rendering Strategy
+### Rendering Engine (QuestPDF)  
+**Decision**: QuestPDF composes pages, handles multi-page documents, and renders tables with borders/alignment.  
+**Rationale**: Managed-only dependency with rich layout primitives matching FR-001/FR-008/FR-011.  
+**Implementation**:  
+- `PdfRenderer` maps `DocumentNode` trees to QuestPDF containers.  
+- `BlockComposer`, `InlineComposer`, `TableComposer`, and forthcoming list/table helpers render nodes.  
+- Header/footer DocumentNodes rendered via `page.Header()` / `page.Footer()`.
 
-**Decision**: Generic fallback renderer that converts unsupported elements to plain text
-**Rationale**: Maintains document structure while providing clear degradation path for unsupported markup
-**Alternatives considered**:
-- Skip unsupported elements entirely (rejected: loses content)
-- Throw exceptions for unsupported elements (rejected: violates FR-005)
+### Fallback Strategy  
+**Decision**: Unsupported tags fall back to plain text while logging warnings.  
+**Rationale**: FR-005 requires graceful degradation without breaking render flow.  
+**Implementation**:  
+- `FallbackRenderer` transforms unsupported nodes, marks them as `DocumentNodeType.Fallback`.  
+- Logs use `ILogger` with structured properties (component, tag, context).  
+- Contract tests validate warning emission and content preservation.
 
-**Implementation approach**:
-- Process unsupported elements through `FallbackRenderer`
-- Convert element content to plain text with preserved structure
-- Mark elements with `HasFallback=true` in `HtmlFragment`
-- Emit structured warning logs for each fallback event
-
-### Cross-Platform Validation Strategy
-
-**Decision**: Visual/functional equivalence validation with platform-specific tolerance
-**Rationale**: Byte-level identical PDFs are unrealistic due to platform differences in font rendering and metadata
-**Alternatives considered**:
-- Byte-level comparison (rejected: impossible with QuestPDF)
-- Manual visual inspection (rejected: not scalable)
-
-**Implementation approach**:
-- Run regression test suite on both Windows and Linux
-- Execute integration test console on both platforms
-- Compare PDF outputs for visual/functional equivalence
-- Document platform differences in `research.md`
-- Accept tolerance for metadata differences (creation dates, producer strings, font rendering variations)
-
-### Empty Element Handling
-
-**Decision**: Differentiate between empty inline and block elements
-**Rationale**: Follows HTML5 rendering model and provides consistent PDF output
-**Alternatives considered**:
-- Treat all empty elements the same (rejected: violates HTML standards)
-- Skip all empty elements (rejected: loses document structure)
-
-**Implementation approach**:
-- Empty inline elements: collapse without content, no warning
-- Empty block elements: render as empty paragraph with minimal height (4pt)
-- Malformed markup: normalize using AngleSharp, fallback if normalization fails
-
-### Performance Monitoring Strategy
-
-**Decision**: Capture timing metrics without performance targets
-**Rationale**: Focus on measurement and data collection for future optimization
-**Alternatives considered**:
-- Set specific performance targets (rejected: premature optimization)
-- No performance monitoring (rejected: needed for future iterations)
-
-**Implementation approach**:
-- Capture render timing in milliseconds with 3 decimal precision
-- Store timing data in `PdfRenderSnapshot` entity
-- Log timing data to application logs
-- No quantitative performance targets for Iteration 1
+### Telemetry & Performance  
+**Decision**: Capture render duration, memory, and warning counts via `PdfRenderSnapshot`.  
+**Rationale**: FR-009/FR-015 require tracking without hard performance targets.  
+**Implementation**:  
+- Snapshot populated during `Build()`.  
+- Optional performance tests assert non-negative timing and warn counts are measurable.  
+- Values surfaced through logs and return objects for integration testing.
 
 ## Dependency Analysis
 
-### Managed-Only Constraint Validation
+| Component | Decision | Notes |
+|-----------|----------|-------|
+| QuestPDF | Keep | Primary renderer, managed-only. |
+| AngleSharp | Keep | HTML parsing and CSS extraction. |
+| Microsoft.Extensions.Logging.Abstractions | Keep | Structured logging for warnings/telemetry. |
+| PdfPig (tests) | Keep | PDF inspection in unit/integration tests. |
 
-**Decision**: Use `dotnet list package --include-transitive` for dependency audit
-**Rationale**: Ensures all dependencies are managed .NET libraries without native components
-**Implementation approach**:
-- Run dependency audit as part of build process
-- Document results in `research.md`
-- Fail build if native dependencies detected
-- Validate on both Windows and Linux platforms
+**Audit Plan**: Run `dotnet list package --include-transitive` weekly and before release; fail CI if unmanaged/native dependency detected.
 
-### QuestPDF Integration
+**Audit Results (2025-10-14 - T003)**: All dependencies confirmed managed-only .NET packages:
+- **Top-level packages**: AngleSharp 1.3.0, Microsoft.Extensions.DependencyInjection.Abstractions 8.0.0, Microsoft.Extensions.Logging.Abstractions 8.0.0, Microsoft.Extensions.Options 8.0.2, QuestPDF 2025.7.1
+- **Transitive packages**: Microsoft.Extensions.Primitives 8.0.0
+- **Status**: ✅ PASS - No native/unmanaged dependencies detected
 
-**Decision**: Use QuestPDF as primary PDF generation library
-**Rationale**: Provides managed-only PDF generation with comprehensive styling support
-**Alternatives considered**:
-- iTextSharp (rejected: licensing concerns)
-- PdfSharp (rejected: limited styling support)
-- Custom PDF generation (rejected: too complex)
+## Layering & Architecture
 
-**Integration approach**:
-- Use QuestPDF's document model for PDF structure
-- Leverage QuestPDF's styling capabilities for CSS property mapping
-- Utilize QuestPDF's table support for table rendering
-- Maintain QuestPDF's layering architecture
+- **Core**: `DocumentNode`, `CssStyleMap`, `PdfRenderSnapshot`, constants.  
+- **Parser**: `HtmlParser`, `CssStyleUpdater`, `CssClassStyleExtractor`.  
+- **Renderer**: `PdfRenderer`, composers (block/inline/list/table).  
+- **Facade**: `IPdfBuilder` (DI transient), `PdfBuilder` (stateful builder), `ConverterOptions`.
 
-### AngleSharp Integration
+All new work must respect this flow and avoid cross-layer leakage (e.g., renderer must not depend on AngleSharp types).
 
-**Decision**: Use AngleSharp for HTML parsing
-**Rationale**: Provides robust HTML5 parsing with managed-only implementation
-**Alternatives considered**:
-- HtmlAgilityPack (rejected: older HTML4 parsing)
-- Custom HTML parser (rejected: too complex)
+## Risk & Mitigation
 
-**Integration approach**:
-- Use AngleSharp for HTML document parsing
-- Leverage AngleSharp's CSS parsing for style extraction
-- Utilize AngleSharp's normalization for malformed markup
-- Convert AngleSharp DOM to internal `HtmlFragment` model
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Invalid CSS shorthands degrade output | Styling regressions | Reject invalid declarations atomically, emit warnings, add contract tests. |
+| Multi-page layout regressions | Headers/footers overlap content | Add unit + integration tests simulating tall headers/footers, assert page content shifts appropriately. |
+| Performance regressions with large documents | Timeout/memory | Enforce edge case rules (10 MB, 30 s, 500 MB) with integration tests; log telemetry for analysis. |
+| Fallback coverage gaps | Unsupported tags break output | Maintain contract `fallback-unsupported-tag`, ensure warnings logged and content preserved. |
 
-## Cross-Platform Considerations
+## Outstanding Research Items
 
-### Font Rendering Differences
+- Determine long-term font strategy (currently using QuestPDF defaults; evaluate embedding Inter/OpenSans for future parity).  
+- Investigate additional CSS shorthand expansions (e.g., `padding`, `border-radius`) for future iterations; out of scope for Iteration 1.  
+- Plan automated PDF visual diff tooling for Iteration 2 now that telemetry foundation exists.
 
-**Decision**: Accept platform-specific font rendering variations
-**Rationale**: Different platforms have different default fonts and rendering engines
-**Implementation approach**:
-- Document font rendering differences in validation reports
-- Use system default fonts for consistent rendering
-- Accept visual differences within reasonable tolerance
-
-### PDF Metadata Differences
-
-**Decision**: Accept platform-specific PDF metadata differences
-**Rationale**: PDF creation dates, producer strings, and other metadata vary by platform
-**Implementation approach**:
-- Focus validation on content and visual appearance
-- Ignore metadata differences in comparison
-- Document acceptable metadata variations
-
-## Error Handling Strategy
-
-### CSS Resolution Failures
-
-**Decision**: Continue processing with available valid styles
-**Rationale**: CSS errors shouldn't prevent document rendering
-**Implementation approach**:
-- Log CSS resolution warnings
-- Fall back to inherited or default styles
-- Continue processing without exceptions
-
-### Memory and Performance Constraints
-
-**Decision**: Set specific limits for memory usage and processing time
-**Rationale**: Prevent system resource exhaustion
-**Implementation approach**:
-- 500MB memory limit with `OutOfMemoryException`
-- 30-second timeout with `TimeoutException`
-- 10MB document size limit with chunked processing
-- Log resource usage and completion percentage
-
-## Validation Strategy
-
-### Test Coverage Approach
-
-**Decision**: Focus test coverage on business logic and complex behavior
-**Rationale**: Aligns with constitution's pragmatic testing approach
-**Implementation approach**:
-- High Priority: Parsing, rendering, validation, complex state management
-- Medium Priority: Data transformation, integration points
-- Low Priority: Simple data containers, property setters
-- Exempt: Auto-generated code, trivial getters/setters
-
-### Contract Testing
-
-**Decision**: Use contract tests for API boundaries
-**Rationale**: Ensures consistent behavior across different implementations
-**Implementation approach**:
-- Define contracts for paragraphs, tables, lists, fallback scenarios
-- Test expected parser/render outputs
-- Validate API boundaries with contract tests
-- Use PdfPig for PDF verification in tests
-
----
-
-**Research Complete**: All technology decisions documented with rationale and implementation approach. Ready for Phase 1 design.
+**Research Complete** – Ready to proceed to Phase 1 design artifacts.
