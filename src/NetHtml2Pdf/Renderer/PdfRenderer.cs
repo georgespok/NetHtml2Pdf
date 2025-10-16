@@ -1,4 +1,5 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -11,10 +12,10 @@ internal class PdfRenderer(RendererOptions? options = null,
     private readonly RendererOptions _options = options ?? RendererOptions.CreateDefault();
     private readonly IBlockComposer _blockComposer = blockComposer ?? CreateDefaultBlockComposer();
 
-    public byte[] Render(DocumentNode document, DocumentNode? header = null, DocumentNode? footer = null) => 
+    public byte[] Render(DocumentNode document, DocumentNode? header = null, DocumentNode? footer = null) =>
         Render([document], header, footer);
 
-    public byte[] Render(IEnumerable<DocumentNode> pages, 
+    public byte[] Render(IEnumerable<DocumentNode> pages,
         DocumentNode? header = null, DocumentNode? footer = null)
     {
         ArgumentNullException.ThrowIfNull(pages);
@@ -55,7 +56,7 @@ internal class PdfRenderer(RendererOptions? options = null,
                 container.Page(page =>
                 {
                     page.Margin(40);
-                    
+
                     // Add header if provided
                     if (header != null)
                     {
@@ -63,11 +64,14 @@ internal class PdfRenderer(RendererOptions? options = null,
                         {
                             foreach (var child in header.Children)
                             {
+                                if (IsDisplayNone(child))
+                                    continue;
+
                                 _blockComposer.Compose(column, child);
                             }
                         });
                     }
-                    
+
                     // Add footer if provided
                     if (footer != null)
                     {
@@ -75,21 +79,32 @@ internal class PdfRenderer(RendererOptions? options = null,
                         {
                             foreach (var child in footer.Children)
                             {
+                                if (IsDisplayNone(child))
+                                    continue;
+
                                 _blockComposer.Compose(column, child);
                             }
                         });
                     }
-                    
+
                     // Add page content
                     page.Content().Column(column =>
                     {
                         foreach (var child in pageDocument.Children)
                         {
+                            if (IsDisplayNone(child))
+                                continue;
+
                             _blockComposer.Compose(column, child);
                         }
                     });
                 });
             }
         });
+    }
+
+    private static bool IsDisplayNone(DocumentNode node)
+    {
+        return node.Styles.DisplaySet && node.Styles.Display == CssDisplay.None;
     }
 }

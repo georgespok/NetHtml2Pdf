@@ -17,10 +17,10 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
         {
             // Collect all rows from thead and tbody
             var allRows = new List<DocumentNode>();
-            
+
             foreach (var section in tableNode.Children)
             {
-                if (section.NodeType == DocumentNodeType.TableHead || 
+                if (section.NodeType == DocumentNodeType.TableHead ||
                     section.NodeType == DocumentNodeType.TableBody)
                 {
                     foreach (var row in section.Children)

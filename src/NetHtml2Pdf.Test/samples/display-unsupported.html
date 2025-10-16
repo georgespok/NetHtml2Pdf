@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: Unsupported Values - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .unsupported-demo {
+            background-color: lightblue;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .fallback-demo {
+            background-color: lightcoral;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        
+        .class-demo {
+            background-color: lightgreen;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: Unsupported Values - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates unsupported CSS display values and their fallback behavior. This tests:
+        <ul>
+            <li>Structured warnings for unsupported values</li>
+            <li>Fallback to HTML semantic default</li>
+            <li>Class-based unsupported values</li>
+            <li>Inline style unsupported values</li>
+            <li>Mixed supported and unsupported values</li>
+        </ul>
+    </div>
+    
+    <div class="warning">
+        <strong>Important:</strong> This fixture is designed to test warning behavior and fallback functionality. 
+        Unsupported display values should emit structured warnings and fall back to HTML semantic defaults 
+        (e.g., div=block, span=inline) without causing errors.
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline Style Unsupported Values</h2>
+        <div class="unsupported-demo" style="display: flex;">
+            Div with display: flex (unsupported) - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: grid;">
+            Div with display: grid (unsupported) - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: table;">
+            Div with display: table (unsupported) - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: inline-flex;">
+            Div with display: inline-flex (unsupported) - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: inline-grid;">
+            Div with display: inline-grid (unsupported) - Should fallback to block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Each element should emit a structured warning and fallback to block behavior (div semantic default).
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Class-Based Unsupported Values</h2>
+        <style>
+            .flex-item { display: flex; }
+            .grid-item { display: grid; }
+            .table-item { display: table; }
+            .inline-flex-item { display: inline-flex; }
+            .inline-grid-item { display: inline-grid; }
+            .flexbox-item { display: flexbox; }
+            .webkit-flex-item { display: -webkit-flex; }
+            .webkit-box-item { display: -webkit-box; }
+        </style>
+        <div class="flex-item class-demo">
+            Div with class display: flex (unsupported) - Should fallback to block
+        </div>
+        <div class="grid-item class-demo">
+            Div with class display: grid (unsupported) - Should fallback to block
+        </div>
+        <div class="table-item class-demo">
+            Div with class display: table (unsupported) - Should fallback to block
+        </div>
+        <div class="inline-flex-item class-demo">
+            Div with class display: inline-flex (unsupported) - Should fallback to block
+        </div>
+        <div class="inline-grid-item class-demo">
+            Div with class display: inline-grid (unsupported) - Should fallback to block
+        </div>
+        <div class="flexbox-item class-demo">
+            Div with class display: flexbox (unsupported) - Should fallback to block
+        </div>
+        <div class="webkit-flex-item class-demo">
+            Div with class display: -webkit-flex (unsupported) - Should fallback to block
+        </div>
+        <div class="webkit-box-item class-demo">
+            Div with class display: -webkit-box (unsupported) - Should fallback to block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Each element should emit a structured warning and fallback to block behavior.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Span Elements with Unsupported Values</h2>
+        <span class="unsupported-demo" style="display: flex;">
+            Span with display: flex (unsupported) - Should fallback to inline
+        </span>
+        <span class="unsupported-demo" style="display: grid;">
+            Span with display: grid (unsupported) - Should fallback to inline
+        </span>
+        <span class="unsupported-demo" style="display: table;">
+            Span with display: table (unsupported) - Should fallback to inline
+        </span>
+        <div class="description">
+            <strong>Expected:</strong> Span elements should fallback to inline behavior (span semantic default).
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Supported and Unsupported Values</h2>
+        <div class="fallback-demo" style="display: block;">
+            Div with display: block (supported) - Should work normally
+        </div>
+        <div class="unsupported-demo" style="display: flex;">
+            Div with display: flex (unsupported) - Should fallback to block
+        </div>
+        <div class="fallback-demo" style="display: inline-block;">
+            Div with display: inline-block (supported) - Should work normally
+        </div>
+        <div class="unsupported-demo" style="display: grid;">
+            Div with display: grid (unsupported) - Should fallback to block
+        </div>
+        <div class="fallback-demo" style="display: none;">
+            Div with display: none (supported) - Should be hidden
+        </div>
+        <div class="unsupported-demo" style="display: table;">
+            Div with display: table (unsupported) - Should fallback to block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Supported values should work normally, unsupported values should emit warnings and fallback.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Unsupported Values with Layout Properties</h2>
+        <div class="unsupported-demo" style="display: flex; width: 200px; height: 100px; margin: 20px; padding: 15px; border: 3px solid black;">
+            Div with display: flex and layout properties - Should fallback to block with layout properties
+        </div>
+        <div class="unsupported-demo" style="display: grid; width: 300px; height: 80px; margin: 25px; padding: 20px; border: 2px solid red;">
+            Div with display: grid and layout properties - Should fallback to block with layout properties
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Layout properties should be preserved when falling back to semantic default.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Unsupported Values with Nested Elements</h2>
+        <div class="unsupported-demo" style="display: flex;">
+            Container with display: flex (unsupported)
+            <div style="display: block; background-color: lightcoral; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Nested block element
+            </div>
+            <div style="display: inline-block; background-color: lightgreen; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Nested inline-block element
+            </div>
+            <div style="display: none; background-color: lightyellow; padding: 10px; margin: 5px; border: 1px solid #666;">
+                Nested hidden element
+            </div>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Container should fallback to block, nested elements should follow their own display properties.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Unsupported Values with Different HTML Elements</h2>
+        <p class="unsupported-demo" style="display: flex;">
+            Paragraph with display: flex (unsupported) - Should fallback to block
+        </p>
+        <section class="unsupported-demo" style="display: grid;">
+            Section with display: grid (unsupported) - Should fallback to block
+        </section>
+        <article class="unsupported-demo" style="display: table;">
+            Article with display: table (unsupported) - Should fallback to block
+        </article>
+        <header class="unsupported-demo" style="display: inline-flex;">
+            Header with display: inline-flex (unsupported) - Should fallback to block
+        </header>
+        <footer class="unsupported-demo" style="display: inline-grid;">
+            Footer with display: inline-grid (unsupported) - Should fallback to block
+        </footer>
+        <div class="description">
+            <strong>Expected:</strong> All block-level HTML elements should fallback to block behavior.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Unsupported Values with CSS Classes Override</h2>
+        <style>
+            .override-flex { display: block !important; }
+        </style>
+        <div class="unsupported-demo override-flex" style="display: flex;">
+            Div with display: flex but overridden by !important - Should be block
+        </div>
+        <div class="unsupported-demo" style="display: flex;">
+            Div with display: flex without override - Should fallback to block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> !important should override unsupported values, normal unsupported values should fallback.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Edge Case: Invalid Display Values</h2>
+        <div class="unsupported-demo" style="display: invalid-value;">
+            Div with display: invalid-value - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: random-text;">
+            Div with display: random-text - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: 123;">
+            Div with display: 123 - Should fallback to block
+        </div>
+        <div class="unsupported-demo" style="display: ;">
+            Div with display: (empty) - Should fallback to block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Invalid display values should emit warnings and fallback to semantic default.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Unsupported Values with Text Content</h2>
+        <div class="unsupported-demo" style="display: flex;">
+            <h3 style="margin: 0 0 10px 0;">Title in Flex Container</h3>
+            <p style="margin: 0;">This is a paragraph inside a container with display: flex (unsupported).</p>
+        </div>
+        <div class="unsupported-demo" style="display: grid;">
+            <h3 style="margin: 0 0 10px 0;">Title in Grid Container</h3>
+            <p style="margin: 0;">This is a paragraph inside a container with display: grid (unsupported).</p>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Text content should be preserved when falling back to semantic default.
+        </div>
+    </div>
+    
+    <div class="warning">
+        <strong>Warning Behavior Expected:</strong>
+        <ul>
+            <li>Each unsupported display value should emit exactly one structured warning</li>
+            <li>Warnings should include the unsupported value and fallback information</li>
+            <li>Warnings should not be emitted for supported values (block, inline-block, none)</li>
+            <li>Warnings should not be emitted for valid CSS keywords (initial, inherit, unset)</li>
+            <li>Fallback behavior should be consistent and predictable</li>
+        </ul>
+    </div>
+    
+    <div class="description">
+        <strong>Overall Expected Results:</strong>
+        <ul>
+            <li>Unsupported display values should emit structured warnings</li>
+            <li>Elements should fallback to their HTML semantic default (div=block, span=inline)</li>
+            <li>Layout properties should be preserved during fallback</li>
+            <li>Nested elements should follow their own display properties</li>
+            <li>Text content should be preserved</li>
+            <li>Supported values should work normally without warnings</li>
+            <li>Invalid values should be handled gracefully</li>
+            <li>CSS class and inline style unsupported values should both work</li>
+        </ul>
+    </div>
+</body>
+</html>

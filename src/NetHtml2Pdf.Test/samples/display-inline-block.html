@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Display: Inline-Block - Test Fixture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .inline-block-element {
+            display: inline-block;
+            width: 150px;
+            background-color: lightblue;
+            padding: 15px;
+            margin: 10px;
+            border: 2px solid #333;
+            vertical-align: middle;
+        }
+        
+        .inline-block-wide {
+            display: inline-block;
+            width: 250px;
+            background-color: lightcoral;
+            padding: 15px;
+            margin: 10px;
+            border: 2px solid #333;
+            vertical-align: middle;
+        }
+        
+        .inline-block-tall {
+            display: inline-block;
+            width: 120px;
+            height: 80px;
+            background-color: lightgreen;
+            padding: 15px;
+            margin: 10px;
+            border: 2px solid #333;
+            vertical-align: middle;
+        }
+        
+        .inline-block-short {
+            display: inline-block;
+            width: 120px;
+            height: 40px;
+            background-color: lightyellow;
+            padding: 15px;
+            margin: 10px;
+            border: 2px solid #333;
+            vertical-align: middle;
+        }
+        
+        .description {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            font-style: italic;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Display: Inline-Block - Test Fixture</h1>
+    
+    <div class="description">
+        This fixture demonstrates inline-block element behavior. Inline-block elements should:
+        <ul>
+            <li>Flow inline (side-by-side) when space allows</li>
+            <li>Wrap as whole units when space runs out</li>
+            <li>Support width, height, margins, padding, and borders</li>
+            <li>Align vertically to middle by default</li>
+            <li>Participate in inline flow as atomic boxes</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Basic Inline-Block Elements</h2>
+        <div class="inline-block-element">
+            Inline-block 1
+        </div>
+        <div class="inline-block-element">
+            Inline-block 2
+        </div>
+        <div class="inline-block-element">
+            Inline-block 3
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> All three elements should appear side-by-side on the same line.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block Wrapping</h2>
+        <div class="inline-block-wide">
+            Wide inline-block 1
+        </div>
+        <div class="inline-block-wide">
+            Wide inline-block 2
+        </div>
+        <div class="inline-block-wide">
+            Wide inline-block 3
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Elements should wrap as whole units when insufficient space remains.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Vertical Alignment Test</h2>
+        <div class="inline-block-tall">
+            Tall inline-block
+        </div>
+        <div class="inline-block-short">
+            Short inline-block
+        </div>
+        <div class="inline-block-element">
+            Normal inline-block
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Elements should align to middle by default (vertical-align: middle).
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Block and Inline-Block</h2>
+        <div style="display: block; background-color: lightgray; padding: 15px; margin: 10px; border: 2px solid #333;">
+            Block element - should start new line
+        </div>
+        <div class="inline-block-element">
+            Inline-block 1
+        </div>
+        <div class="inline-block-element">
+            Inline-block 2
+        </div>
+        <div style="display: block; background-color: lightgray; padding: 15px; margin: 10px; border: 2px solid #333;">
+            Another block element - should start new line
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Block elements start new lines, inline-block elements flow together.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block with Different Sizes</h2>
+        <div style="display: inline-block; width: 80px; height: 60px; background-color: lightpink; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Small
+        </div>
+        <div style="display: inline-block; width: 120px; height: 60px; background-color: lightcyan; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Medium
+        </div>
+        <div style="display: inline-block; width: 160px; height: 60px; background-color: lightsteelblue; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Large
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Elements of different widths should align properly and wrap as needed.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block with Complex Spacing</h2>
+        <div style="display: inline-block; width: 140px; margin: 15px; padding: 12px; border: 3px solid red; background-color: lightgoldenrodyellow; vertical-align: middle;">
+            Complex spacing 1
+        </div>
+        <div style="display: inline-block; width: 140px; margin: 15px; padding: 12px; border: 3px solid blue; background-color: lightseagreen; vertical-align: middle;">
+            Complex spacing 2
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Spacing should apply correctly, elements should flow inline with proper spacing.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Nested Inline-Block Elements</h2>
+        <div style="display: inline-block; background-color: lavender; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            Outer inline-block
+            <div style="display: inline-block; width: 80px; background-color: lightseagreen; padding: 8px; margin: 5px; border: 1px solid #666; vertical-align: middle;">
+                Nested 1
+            </div>
+            <div style="display: inline-block; width: 80px; background-color: lightsalmon; padding: 8px; margin: 5px; border: 1px solid #666; vertical-align: middle;">
+                Nested 2
+            </div>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Nested inline-block elements should flow within their parent.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block with Text Content</h2>
+        <div style="display: inline-block; width: 200px; background-color: lightcoral; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            <h3 style="margin: 0 0 10px 0;">Title</h3>
+            <p style="margin: 0;">This is a paragraph inside an inline-block element.</p>
+        </div>
+        <div style="display: inline-block; width: 200px; background-color: lightgreen; padding: 15px; margin: 10px; border: 2px solid #333; vertical-align: middle;">
+            <h3 style="margin: 0 0 10px 0;">Another Title</h3>
+            <p style="margin: 0;">Another paragraph in a different inline-block.</p>
+        </div>
+        <div class="description">
+            <strong>Expected:</strong> Inline-block elements can contain block-level content and should flow side-by-side.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Inline-Block with Different HTML Tags</h2>
+        <span style="display: inline-block; width: 100px; background-color: lightpink; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Span inline-block
+        </span>
+        <div style="display: inline-block; width: 100px; background-color: lightcyan; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Div inline-block
+        </div>
+        <section style="display: inline-block; width: 100px; background-color: lightyellow; padding: 10px; margin: 5px; border: 2px solid #333; vertical-align: middle;">
+            Section inline-block
+        </section>
+        <div class="description">
+            <strong>Expected:</strong> Different HTML elements with display: inline-block should behave consistently.
+        </div>
+    </div>
+    
+    <div class="description">
+        <strong>Overall Expected Results:</strong>
+        <ul>
+            <li>Inline-block elements should flow side-by-side when space allows</li>
+            <li>Elements should wrap as whole units when space runs out</li>
+            <li>Vertical alignment should be to middle by default</li>
+            <li>Width, height, margins, padding, and borders should all apply correctly</li>
+            <li>Block elements should break the inline flow and start new lines</li>
+            <li>Nested content should work properly within inline-block containers</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -9,17 +9,17 @@ public enum CssStyleSource
     /// Applied via style attribute
     /// </summary>
     Inline,
-    
+
     /// <summary>
     /// Applied via CSS class
     /// </summary>
     Class,
-    
+
     /// <summary>
     /// Inherited from parent element
     /// </summary>
     Inherited,
-    
+
     /// <summary>
     /// Browser default styling
     /// </summary>

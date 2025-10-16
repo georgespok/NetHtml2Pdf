@@ -45,7 +45,7 @@ namespace NetHtml2Pdf.TestConsole
             {
                 Directory.CreateDirectory(outputDir);
             }
-            
+
             try
             {
                 // Read HTML content from file
@@ -64,10 +64,10 @@ namespace NetHtml2Pdf.TestConsole
                 });
                 var builder = new PdfBuilder(loggerFactory.CreateLogger<PdfBuilder>());
                 var pdfBytes = builder.AddPage(htmlContent).Build();
-                
+
                 // Write PDF to output file
                 await File.WriteAllBytesAsync(outputPath, pdfBytes);
-                
+
                 Console.WriteLine("✅ PDF created successfully!");
                 Console.WriteLine($"📄 File size: {pdfBytes.Length:N0} bytes");
                 Console.WriteLine();
@@ -79,7 +79,7 @@ namespace NetHtml2Pdf.TestConsole
                 Console.WriteLine($"❌ Error creating PDF: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
-        }        
+        }
 
         private static void ShowUsage()
         {

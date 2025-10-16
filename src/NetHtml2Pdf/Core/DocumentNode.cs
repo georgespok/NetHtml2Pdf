@@ -6,8 +6,8 @@ internal class DocumentNode
 {
     private readonly List<DocumentNode> _children = [];
 
-    public DocumentNode(DocumentNodeType nodeType, 
-        string? textContent = null, 
+    public DocumentNode(DocumentNodeType nodeType,
+        string? textContent = null,
         CssStyleMap? styles = null)
     {
         if (nodeType == DocumentNodeType.Text && textContent is null)

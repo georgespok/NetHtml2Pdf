@@ -10,7 +10,7 @@ public abstract class PdfValidationTestBase
 {
     #region PDF Validation Constants
 
-    
+
     private static class PdfHeader
     {
         public const byte Percent = 0x25;  // %

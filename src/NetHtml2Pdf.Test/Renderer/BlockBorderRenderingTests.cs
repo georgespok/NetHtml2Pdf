@@ -21,7 +21,7 @@ public class BlockBorderRenderingTests : PdfRenderTestBase
     {
         // Arrange - Test that border on div is actually rendered in the PDF
         var document = Document(
-            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)), 
+            Div(CssStyleMap.Empty.WithBorder(new BorderInfo(2.0, CssBorderValues.Solid, HexColors.Red)),
                 Paragraph(CssStyleMap.Empty, Text("Content with red border"))
             )
         );
@@ -37,10 +37,10 @@ public class BlockBorderRenderingTests : PdfRenderTestBase
 
         // Verify the document was created successfully and contains the expected content
         words.ShouldNotBeEmpty("PDF should contain text content");
-        
+
         var contentWord = PdfWordParser.FindWordByText(words, "Content");
         contentWord.ShouldNotBeNull("Should find 'Content' word in PDF");
-        
+
         Output.WriteLine("✅ Border rendering is now implemented for block elements!");
         Output.WriteLine($"Content word position: Top={contentWord.BoundingBox.TopLeft.Y:F1}, Left={contentWord.BoundingBox.TopLeft.X:F1}");
     }
@@ -52,7 +52,7 @@ public class BlockBorderRenderingTests : PdfRenderTestBase
         var document = Document(
             Table(
                 TableRow(
-                    TableCell(CssStyleMap.Empty.WithBorder(new BorderInfo(1.0, CssBorderValues.Solid, HexColors.Blue)), 
+                    TableCell(CssStyleMap.Empty.WithBorder(new BorderInfo(1.0, CssBorderValues.Solid, HexColors.Blue)),
                         Text("Table cell with border"))
                 )
             )
@@ -68,7 +68,7 @@ public class BlockBorderRenderingTests : PdfRenderTestBase
         PdfWordParser.LogWordPositions(words, Output.WriteLine);
 
         words.ShouldNotBeEmpty("PDF should contain table content");
-        
+
         Output.WriteLine("✅ Table borders should be rendered correctly");
-    }    
+    }
 }

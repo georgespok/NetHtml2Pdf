@@ -30,7 +30,7 @@ public class PdfBuilder : IPdfBuilder
 
     public PdfBuilder(
         RendererOptions rendererOptions,
-        ILogger logger) 
+        ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(rendererOptions);
         ArgumentNullException.ThrowIfNull(logger);
@@ -165,7 +165,7 @@ public class PdfBuilder : IPdfBuilder
     /// <returns>The parsed document node.</returns>
     private DocumentNode ParseWithWarnings(string html)
     {
-        return _parser.Parse(html);
+        return _parser.Parse(html, _logger);
     }
 
     /// <summary>

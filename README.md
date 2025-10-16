@@ -9,9 +9,9 @@ NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports
 ## Defaults
 - Font: Inter (bundled) for deterministic rendering
 - CSS subset:
-  - Inline and class-based: color, font-size, font-weight, font-style, text-align, margin, padding, width/height (blocks only), background-color, border width/color (per-side supported)
+  - Inline and class-based: color, font-size, font-weight, font-style, text-align, margin, padding, width/height (blocks only), background-color, border width/color (per-side supported), **display** (block, inline-block, none)
   - Precedence: multiple classes merge in attribute order (later wins) → inline overrides class-derived values
-  - Unsupported properties are ignored
+  - Unsupported properties are ignored with structured warnings
 - Unsupported elements: ignored, inner text preserved
 - Pagination: explicit via builder (no auto-pagination)
 - Style preprocessing: a preprocessing pass computes per-node styles (inheritance, class merge, inline override), resolves percentages to absolute points, and applies vertical margin collapsing semantics.
@@ -32,11 +32,28 @@ using NetHtml2Pdf;
 var html = @"
     <style>
       .city { color: white; margin: 20px; padding: 20px; }
+      .inline-box { display: inline-block; width: 150px; background-color: lightblue; margin: 10px; padding: 15px; }
+      .hidden { display: none; }
     </style>
     <section>
         <h1>My Document</h1>
         <div class='city' style='color: yellow; background-color: #333; border: 2px solid #444; width: 300; height: 120;'>
             <p>This is a sample document.</p>
+        </div>
+        
+        <!-- CSS Display Examples -->
+        <div style='display: block; background-color: lightgreen; padding: 15px; margin: 10px;'>
+            Block element - starts new line
+        </div>
+        
+        <div class='inline-box'>Inline-block 1</div>
+        <div class='inline-box'>Inline-block 2</div>
+        <div class='inline-box'>Inline-block 3</div>
+        
+        <div class='hidden'>This content is hidden</div>
+        
+        <div style='display: block; background-color: lightcoral; padding: 15px; margin: 10px;'>
+            Another block element
         </div>
     </section>
     
@@ -61,8 +78,13 @@ await File.WriteAllBytesAsync("output.pdf", pdfBytes);
 
 #### Styling notes
 - Supported inline/class CSS in header/footer is the same minimal subset as body:
-  - text-align, padding, margin, color, font-size, font-weight/font-style, background-color, border width/color
+  - text-align, padding, margin, color, font-size, font-weight/font-style, background-color, border width/color, **display** (block, inline-block, none)
 - Height adapts to content; keep header/footer concise for predictable layout.
+- **CSS Display Support**:
+  - `display: block` - Elements start on new lines and take full width
+  - `display: inline-block` - Elements flow side-by-side when space allows, wrap as whole units
+  - `display: none` - Elements are completely hidden and occupy no space
+  - Unsupported display values (flex, grid, etc.) emit warnings and fallback to HTML semantic defaults
 
 Example (right-aligned header, centered footer):
 
@@ -78,6 +100,12 @@ var pdf = builder
 
 - `src/NetHtml2Pdf.TestConsole/samples/headings.html`
 - `src/NetHtml2Pdf.TestConsole/samples/table.html`
+- `src/NetHtml2Pdf.Test/samples/display-block.html` - CSS display: block examples
+- `src/NetHtml2Pdf.Test/samples/display-inline-block.html` - CSS display: inline-block examples
+- `src/NetHtml2Pdf.Test/samples/display-none.html` - CSS display: none examples
+- `src/NetHtml2Pdf.Test/samples/display-mixed.html` - Mixed display types
+- `src/NetHtml2Pdf.Test/samples/display-spacing.html` - Spacing interactions
+- `src/NetHtml2Pdf.Test/samples/display-unsupported.html` - Unsupported values and warnings
 
 Run them with the console app:
 
@@ -86,6 +114,31 @@ cd src/NetHtml2Pdf.TestConsole
 dotnet run samples/headings.html
 dotnet run samples/table.html
 ```
+
+## Features
+
+### CSS Display Support
+NetHtml2Pdf now supports CSS `display` properties for enhanced layout control:
+
+- **`display: block`** - Elements start on new lines and take full available width
+- **`display: inline-block`** - Elements flow side-by-side when space allows, wrap as whole units
+- **`display: none`** - Elements are completely hidden and occupy no space
+- **Margin Collapsing** - Proper CSS margin collapsing between adjacent block elements
+- **Structured Warnings** - Unsupported display values emit warnings and fallback to HTML semantic defaults
+- **Spacing Interactions** - Correct handling of margins, padding, and borders with different display types
+
+### Supported HTML Elements
+- Tables with headers, rows, and cells
+- Paragraphs, headings (h1-h6), divisions, and sections
+- Line breaks and text formatting
+- Lists (ordered and unordered)
+- Images and other inline elements
+
+### CSS Properties
+- **Text**: color, font-size, font-weight, font-style, text-align
+- **Layout**: margin, padding, width/height (blocks only), **display** (block, inline-block, none)
+- **Visual**: background-color, border width/color (per-side supported)
+- **Precedence**: Multiple classes merge in attribute order (later wins) → inline overrides class-derived values
 
 ## Dependencies
 

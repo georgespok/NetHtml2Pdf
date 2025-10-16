@@ -20,7 +20,7 @@ public class MarginInheritanceTests : PdfRenderTestBase
     {
         // Arrange - Test that margin on parent div doesn't affect child paragraph
         var document = Document(
-            Div(CssStyleMap.Empty.WithMargin(BoxSpacing.FromVerticalHorizontal(24, 0)), 
+            Div(CssStyleMap.Empty.WithMargin(BoxSpacing.FromVerticalHorizontal(24, 0)),
                 Paragraph(CssStyleMap.Empty, Text("No Margin"))
             )
         );
@@ -43,8 +43,8 @@ public class MarginInheritanceTests : PdfRenderTestBase
         var wordBottom = paragraphWord.BoundingBox.BottomLeft.Y;
 
         // Log positioning for analysis
-        Output.WriteLine($"Paragraph word position: Top={wordTop:F1}, Bottom={wordBottom:F1}");       
-        
+        Output.WriteLine($"Paragraph word position: Top={wordTop:F1}, Bottom={wordBottom:F1}");
+
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class MarginInheritanceTests : PdfRenderTestBase
     {
         // Arrange - Test that padding on parent div doesn't affect child paragraph
         var document = Document(
-            Div(CssStyleMap.Empty.WithPadding(BoxSpacing.FromVerticalHorizontal(24, 0)), 
+            Div(CssStyleMap.Empty.WithPadding(BoxSpacing.FromVerticalHorizontal(24, 0)),
                 Paragraph(CssStyleMap.Empty, Text("No Padding"))
             )
         );
