@@ -31,13 +31,13 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- Layered boundaries respected: Core ↔ Parser ↔ Renderer ↔ Facade (`PdfBuilder`).
-- Public surface via `PdfBuilder` only; no leakage of internal types.
-- Managed‑only deps: QuestPDF, AngleSharp; no GDI+/native libs.
-- Input validation present with specific exceptions and parameter names.
-- Structured warnings for unsupported tags/CSS; inner text preserved when sensible.
-- Tests written first (fail → implement → refactor) with `[Theory]`/`[InlineData]`.
-- Docs/contracts updated: supported tags/CSS and fixtures included.
+- Respect documented architectural layering; cross-layer access only via interfaces/adapters.
+- Public surface via approved facades/entry points; no leakage of internal types.
+- Prefer managed-only dependencies; native/platform deps require an ADR with rollback plan.
+- Validate inputs with explicit exceptions and parameter names.
+- Emit structured warnings for unsupported features; preserve content when sensible.
+- Use TDD where practical; parameterized tests for multi-scenario logic.
+- Keep docs/specs/contracts in sync with behavior and supported capabilities.
 
 ## Project Structure
 
