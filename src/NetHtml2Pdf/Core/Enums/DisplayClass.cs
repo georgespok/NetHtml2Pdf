@@ -1,9 +1,9 @@
 namespace NetHtml2Pdf.Core.Enums;
 
-public enum CssDisplay
+public enum DisplayClass
 {
-    Default,
     Block,
+    Inline,
     InlineBlock,
     None
 }

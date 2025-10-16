@@ -1,4 +1,7 @@
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using NetHtml2Pdf.Renderer;
+
 namespace NetHtml2Pdf.TestConsole
 {
     /// <summary>
@@ -60,10 +63,21 @@ namespace NetHtml2Pdf.TestConsole
                 using var loggerFactory = LoggerFactory.Create(b =>
                 {
                     b.AddSimpleConsole();
-                    b.SetMinimumLevel(LogLevel.Information);
+                    b.SetMinimumLevel(LogLevel.Debug);
                 });
-                var builder = new PdfBuilder(loggerFactory.CreateLogger<PdfBuilder>());
+
+                var logger = loggerFactory.CreateLogger<Program>();
+                var options = RendererOptions.CreateDefault();
+                options.EnableClassifierTraceLogging = true;
+                var stopwatch = Stopwatch.StartNew();
+                var builder = new PdfBuilder(
+                    options,
+                    loggerFactory.CreateLogger<PdfBuilder>());
                 var pdfBytes = builder.AddPage(htmlContent).Build();
+                stopwatch.Stop();
+
+                logger.LogDebug("PDF build completed in {Duration}ms, output size: {Size} bytes", 
+                    stopwatch.ElapsedMilliseconds, pdfBytes.Length);
 
                 // Write PDF to output file
                 await File.WriteAllBytesAsync(outputPath, pdfBytes);

@@ -1,6 +1,8 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer.Interfaces;
+using NetHtml2Pdf.Layout.Display;
+using NetHtml2Pdf.Renderer.Spacing;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 
@@ -8,31 +10,43 @@ namespace NetHtml2Pdf.Renderer;
 
 internal sealed class BlockComposer(
     IInlineComposer inlineComposer, IListComposer listComposer,
-    ITableComposer tableComposer, IBlockSpacingApplier spacingApplier) : IBlockComposer
+    ITableComposer tableComposer, IBlockSpacingApplier spacingApplier,
+    RendererOptions? options = null, IDisplayClassifier? displayClassifier = null) : IBlockComposer
 {
+    private readonly IDisplayClassifier _displayClassifier = displayClassifier ?? new DisplayClassifier(options: options);
     public void Compose(ColumnDescriptor column, DocumentNode node)
     {
-        // Skip rendering for nodes with display:none
-        if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.None)
-            return;
+        // Use centralized display classification
+        var displayClass = _displayClassifier.Classify(node, node.Styles);
 
-        // Check CSS display property first - it overrides HTML element semantics
-        if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.Block)
+        // Map classification to rendering path
+        switch (displayClass)
         {
-            ComposeAsBlock(column, node);
-            return;
+            case DisplayClass.None:
+                return; // skip
+
+            case DisplayClass.Inline:
+                ComposeInlineContainer(column, node);
+                return;
+
+            case DisplayClass.InlineBlock:
+                // Current simplified path: render as block at this level
+                ComposeAsBlock(column, node);
+                return;
+
+            case DisplayClass.Block:
+                // Preserve behavior: explicit CSS display:block uses generic block path
+                if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.Block)
+                {
+                    ComposeAsBlock(column, node);
+                    return;
+                }
+                break; // fall through to semantic block handling below
+            default:
+                break;
         }
 
-        // Check for inline-block display - these should be rendered as inline elements
-        // But only if they're not being handled by a parent container's inline rendering
-        if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.InlineBlock)
-        {
-            // Inline-block elements are handled by their parent container's RenderChildrenWithInlineFlow
-            // If this is a standalone inline-block, treat it as a block element
-            ComposeAsBlock(column, node);
-            return;
-        }
-
+        // Block handling (semantic defaults and containers)
         switch (node.NodeType)
         {
             case DocumentNodeType.Div:
@@ -65,40 +79,24 @@ internal sealed class BlockComposer(
                 tableComposer.Compose(column, node);
                 break;
 
-            case DocumentNodeType.ListItem:
-            case DocumentNodeType.Document:
-            case DocumentNodeType.Span:
-            case DocumentNodeType.Strong:
-            case DocumentNodeType.Bold:
-            case DocumentNodeType.Italic:
-            case DocumentNodeType.Text:
-            case DocumentNodeType.LineBreak:
-            case DocumentNodeType.TableHead:
-            case DocumentNodeType.TableBody:
-            case DocumentNodeType.TableSection:
-            case DocumentNodeType.TableRow:
-            case DocumentNodeType.TableHeaderCell:
-            case DocumentNodeType.TableCell:
-            case DocumentNodeType.Fallback:
-            case DocumentNodeType.Generic:
+            // For nodes not explicitly handled but classified as Block (e.g., span with CSS display:block),
+            // use the generic block path to preserve behavior parity.
             default:
-                ComposeInlineContainer(column, node);
+                ComposeAsBlock(column, node);
                 break;
         }
     }
 
     private void ComposeParagraph(ColumnDescriptor column, DocumentNode node)
     {
-        // Apply margin at the parent level (affects positioning relative to siblings)
-        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        // Helper preserves margin -> border -> padding order to maintain parity.
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            column.Item(),
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
-        // Apply border at the element level (wraps the content area)
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level (affects positioning of children within this element)
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
-
-        paddedContainer.Text(text =>
+        spacedContainer.Text(text =>
         {
             foreach (var child in node.Children)
             {
@@ -109,16 +107,13 @@ internal sealed class BlockComposer(
 
     private void ComposeHeading(ColumnDescriptor column, DocumentNode node, double fontSize, bool bold)
     {
-        // Apply margin at the parent level (affects positioning relative to siblings)
-        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            column.Item(),
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
-        // Apply border at the element level (wraps the content area)
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level (affects positioning of children within this element)
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
-
-        paddedContainer.Text(text =>
+        spacedContainer.Text(text =>
         {
             var headingStyle = InlineStyleState.Empty.WithFontSize(fontSize);
             if (bold)
@@ -135,31 +130,25 @@ internal sealed class BlockComposer(
 
     private void ComposeContainer(ColumnDescriptor column, DocumentNode node)
     {
-        // Apply margin at the parent level (affects positioning relative to siblings)
-        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
-
-        // Apply border at the element level (wraps the content area)
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level (affects positioning of children within this element)
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            column.Item(),
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
         // Render children with proper inline-block flow logic
-        RenderChildrenWithInlineFlow(paddedContainer, node);
+        RenderChildrenWithInlineFlow(spacedContainer, node);
     }
 
     private void ComposeInlineContainer(ColumnDescriptor column, DocumentNode node)
     {
-        // Apply margin at the parent level (affects positioning relative to siblings)
-        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            column.Item(),
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
-        // Apply border at the element level (wraps the content area)
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level (affects positioning of children within this element)
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
-
-        paddedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
+        spacedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
     }
 
     private void ComposeAsBlock(ColumnDescriptor column, DocumentNode node)
@@ -170,19 +159,16 @@ internal sealed class BlockComposer(
         // Validate block element sizing constraints
         ValidateBlockSizing(node);
 
-        // Apply margin at the parent level (affects positioning relative to siblings)
-        var marginContainer = spacingApplier.ApplyMargin(column.Item(), node.Styles);
-
-        // Apply border at the element level (wraps the content area)
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level (affects positioning of children within this element)
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            column.Item(),
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
         // If node has children, compose them as block elements
         if (node.Children.Count > 0)
         {
-            paddedContainer.Column(containerColumn =>
+            spacedContainer.Column(containerColumn =>
             {
                 foreach (var child in node.Children)
                 {
@@ -193,12 +179,12 @@ internal sealed class BlockComposer(
         else if (!string.IsNullOrEmpty(node.TextContent))
         {
             // If it's a leaf node with text content, render as text
-            paddedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
+            spacedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
         }
         else
         {
             // Empty block element - just render the container for spacing
-            paddedContainer.Shrink();
+            spacedContainer.Shrink();
         }
     }
 
@@ -209,19 +195,16 @@ internal sealed class BlockComposer(
         // This allows proper rendering of borders while maintaining side-by-side positioning
         // The container will automatically fit to available space due to RelativeItem() usage
 
-        // Apply margin at the element level
-        var marginContainer = spacingApplier.ApplyMargin(container, node.Styles);
-
-        // Apply border at the element level
-        var borderedContainer = spacingApplier.ApplyBorder(marginContainer, node.Styles);
-
-        // Apply padding at the element level
-        var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, node.Styles);
+        var spacedContainer = WrapWithSpacing.ApplySpacing(
+            container,
+            node.Styles,
+            node.Styles,
+            spacingApplier);
 
         if (node.Children.Count > 0)
         {
             // If node has children, compose them as inline elements within this block
-            paddedContainer.Text(text =>
+            spacedContainer.Text(text =>
             {
                 foreach (var child in node.Children)
                 {
@@ -232,7 +215,7 @@ internal sealed class BlockComposer(
         else if (!string.IsNullOrEmpty(node.TextContent))
         {
             // If it's a leaf node with text content, render as text
-            paddedContainer.Text(text =>
+            spacedContainer.Text(text =>
             {
                 var textStyle = InlineStyleState.Empty.ApplyCss(node.Styles);
                 inlineComposer.Compose(text, node, textStyle);
@@ -241,7 +224,7 @@ internal sealed class BlockComposer(
         else
         {
             // Empty inline-block element - render as empty space
-            paddedContainer.Text(text => text.Span(" "));
+            spacedContainer.Text(text => text.Span(" "));
         }
     }
 

@@ -10,7 +10,7 @@ internal class PdfRenderer(RendererOptions? options = null,
     IBlockComposer? blockComposer = null) : IPdfRenderer
 {
     private readonly RendererOptions _options = options ?? RendererOptions.CreateDefault();
-    private readonly IBlockComposer _blockComposer = blockComposer ?? CreateDefaultBlockComposer();
+    private readonly IBlockComposer _blockComposer = blockComposer ?? CreateDefaultBlockComposer(options ?? RendererOptions.CreateDefault());
 
     public byte[] Render(DocumentNode document, DocumentNode? header = null, DocumentNode? footer = null) =>
         Render([document], header, footer);
@@ -28,14 +28,14 @@ internal class PdfRenderer(RendererOptions? options = null,
         return stream.ToArray();
     }
 
-    internal static IBlockComposer CreateDefaultBlockComposer()
+    internal static IBlockComposer CreateDefaultBlockComposer(RendererOptions? options = null)
     {
         var spacingApplier = new BlockSpacingApplier();
         var inlineComposer = new InlineComposer();
         var listComposer = new ListComposer(inlineComposer, spacingApplier);
         var tableComposer = new TableComposer(inlineComposer, spacingApplier);
 
-        return new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
+        return new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier, options);
     }
 
     private void ConfigureQuestPdf()
