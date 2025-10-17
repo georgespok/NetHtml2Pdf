@@ -1,5 +1,9 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
+using NetHtml2Pdf.Layout.Contexts;
+using NetHtml2Pdf.Layout.Display;
+using NetHtml2Pdf.Layout.Engines;
+using NetHtml2Pdf.Renderer.Inline;
 using NetHtml2Pdf.Renderer.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -30,12 +34,27 @@ internal class PdfRenderer(RendererOptions? options = null,
 
     internal static IBlockComposer CreateDefaultBlockComposer(RendererOptions? options = null)
     {
+        options ??= RendererOptions.CreateDefault();
+
         var spacingApplier = new BlockSpacingApplier();
-        var inlineComposer = new InlineComposer();
+        var inlineFlowLayoutEngine = new InlineFlowLayoutEngine();
+        var displayClassifier = new DisplayClassifier(options: options);
+        var inlineComposer = new InlineComposer(displayClassifier, inlineFlowLayoutEngine);
         var listComposer = new ListComposer(inlineComposer, spacingApplier);
         var tableComposer = new TableComposer(inlineComposer, spacingApplier);
 
-        return new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier, options);
+        var inlineFormattingContext = new InlineFormattingContext(inlineFlowLayoutEngine);
+        var blockFormattingContext = new BlockFormattingContext(inlineFormattingContext);
+        var layoutEngine = new LayoutEngine(displayClassifier, blockFormattingContext, inlineFormattingContext);
+
+        return new BlockComposer(
+            inlineComposer,
+            listComposer,
+            tableComposer,
+            spacingApplier,
+            options,
+            displayClassifier,
+            layoutEngine);
     }
 
     private void ConfigureQuestPdf()

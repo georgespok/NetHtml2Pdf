@@ -13,8 +13,8 @@ internal sealed class DisplayClassifier : IDisplayClassifier
 {
     private readonly ILogger<DisplayClassifier>? _logger;
     private readonly bool _enableTraceLogging;
-    private static readonly HashSet<DocumentNodeType> WarnedNodeTypes = new();
-    private static readonly HashSet<string> WarnedDisplayValues = new();
+    private static readonly HashSet<DocumentNodeType> WarnedNodeTypes = [];
+    private static readonly HashSet<string> WarnedDisplayValues = [];
 
     public DisplayClassifier(ILogger<DisplayClassifier>? logger = null, RendererOptions? options = null)
     {

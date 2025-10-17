@@ -147,7 +147,12 @@ public class PdfBuilder : IPdfBuilder
         }
 
         var rendererOptions = options != null
-            ? new RendererOptions { FontPath = options.FontPath }
+            ? new RendererOptions
+            {
+                FontPath = options.FontPath,
+                EnableNewLayoutForTextBlocks = options.EnableNewLayoutForTextBlocks,
+                EnableLayoutDiagnostics = options.EnableLayoutDiagnostics
+            }
             : _rendererOptions;
 
         var renderer = _rendererFactory.Create(rendererOptions);

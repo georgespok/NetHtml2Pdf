@@ -104,13 +104,17 @@ public interface IMeasureContext
 
 ## Feature Flags & Fallbacks
 
-- Flags: `EnableMarginCollapsing`, `EnableTableBorderCollapse`, `EnableInlineBlockBorders`, `EnablePaginationTrace`.
-- Fallbacks: degrade to block formatting when unsupported; predictable behavior.
+- Flags:
+  - `EnableNewLayoutForTextBlocks` (Phase 2) – toggles the layout-engine path for paragraphs, headings, and span-level inline text while lists/tables remain on legacy composers.
+  - `EnableMarginCollapsing`, `EnableTableBorderCollapse`, `EnableInlineBlockBorders`, `EnablePaginationTrace`.
+- Fallbacks: degrade to block formatting when unsupported; predictable behavior and logged when diagnostics are enabled.
 
 ## Observability
 
-- Structured logs: node path, computed display, chosen context, measured sizes.
-- Optional trace dumps of layout tree and fragment trees for debugging.
+- Structured logs:
+  - `DisplayClassifier` trace logging (debug) includes node type, chosen display, and whether the decision came from explicit CSS.
+  - `LayoutEngine.FragmentMeasured` (information) logs node path, display, measured size, applied constraints, and metadata for each fragment when diagnostics are enabled.
+- Optional trace dumps of layout tree and fragment trees for debugging can be added on demand; keep payloads JSON for tooling.
 
 ## Migration Plan (Incremental)
 
@@ -143,4 +147,3 @@ Phase 4: Extend Context Coverage
 
 Document path: `docs/architecture-layout-pipeline.md`
 This file is the authoritative reference for the layout architecture and migration.
-

@@ -47,7 +47,8 @@ We will incrementally introduce a layout layer between the DOM and rendering, mi
   - Adapt composers to consume fragments for supported elements; tables/lists remain legacy.
 - Deliverables
   - Geometry tests for block/inline fragments (positions, sizes, baselines, wraps).
-  - Trace dump option for boxes/fragments.
+  - Parity tests comparing legacy vs new layout flag on representative HTML samples.
+  - Structured diagnostics logging (`LayoutEngine.FragmentMeasured`) capturing node path, context, constraints, and measured size for troubleshooting.
 - Flags
   - `EnableNewLayoutForTextBlocks` (default off → on in CI after parity).
 
@@ -122,4 +123,3 @@ We will incrementally introduce a layout layer between the DOM and rendering, mi
 
 - Architecture: `docs/architecture-layout-pipeline.md`
 - Standards: `docs/coding-standards.md`, `docs/testing-guidelines.md`
-

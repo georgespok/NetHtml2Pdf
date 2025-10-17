@@ -1,7 +1,9 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
-using NetHtml2Pdf.Renderer.Interfaces;
 using NetHtml2Pdf.Layout.Display;
+using NetHtml2Pdf.Layout.Engines;
+using NetHtml2Pdf.Layout.Model;
+using NetHtml2Pdf.Renderer.Interfaces;
 using NetHtml2Pdf.Renderer.Spacing;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -9,44 +11,71 @@ using QuestPDF.Infrastructure;
 namespace NetHtml2Pdf.Renderer;
 
 internal sealed class BlockComposer(
-    IInlineComposer inlineComposer, IListComposer listComposer,
-    ITableComposer tableComposer, IBlockSpacingApplier spacingApplier,
-    RendererOptions? options = null, IDisplayClassifier? displayClassifier = null) : IBlockComposer
+    IInlineComposer inlineComposer,
+    IListComposer listComposer,
+    ITableComposer tableComposer,
+    IBlockSpacingApplier spacingApplier,
+    RendererOptions? options = null,
+    IDisplayClassifier? displayClassifier = null,
+    ILayoutEngine? layoutEngine = null) : IBlockComposer
 {
-    private readonly IDisplayClassifier _displayClassifier = displayClassifier ?? new DisplayClassifier(options: options);
-    public void Compose(ColumnDescriptor column, DocumentNode node)
+    private static readonly HashSet<DocumentNodeType> LayoutEligibleNodeTypes = new()
     {
-        // Use centralized display classification
+        DocumentNodeType.Paragraph,
+        DocumentNodeType.Heading1,
+        DocumentNodeType.Heading2,
+        DocumentNodeType.Heading3,
+        DocumentNodeType.Heading4,
+        DocumentNodeType.Heading5,
+        DocumentNodeType.Heading6
+    };
+
+    private static readonly LayoutConstraints DefaultConstraints = new(0, 600, 0, 1000, 1000, allowBreaks: true);
+
+    private readonly RendererOptions _options = options ?? RendererOptions.CreateDefault();
+    private readonly ILayoutEngine? _layoutEngine = layoutEngine;
+    private readonly IDisplayClassifier _displayClassifier = displayClassifier ?? new DisplayClassifier(options: options);
+    public void Compose(ColumnDescriptor column, DocumentNode node) => ComposeInternal(column, node, bypassLayout: false);
+
+    private void ComposeInternal(ColumnDescriptor column, DocumentNode node, bool bypassLayout)
+    {
+        ArgumentNullException.ThrowIfNull(column);
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (!bypassLayout && ShouldUseLayoutEngine(node) && TryComposeWithLayoutEngine(column, node))
+        {
+            return;
+        }
+
+        ComposeLegacy(column, node);
+    }
+
+    private void ComposeLegacy(ColumnDescriptor column, DocumentNode node)
+    {
         var displayClass = _displayClassifier.Classify(node, node.Styles);
 
-        // Map classification to rendering path
         switch (displayClass)
         {
             case DisplayClass.None:
-                return; // skip
+                return;
 
             case DisplayClass.Inline:
                 ComposeInlineContainer(column, node);
                 return;
 
             case DisplayClass.InlineBlock:
-                // Current simplified path: render as block at this level
                 ComposeAsBlock(column, node);
                 return;
 
             case DisplayClass.Block:
-                // Preserve behavior: explicit CSS display:block uses generic block path
                 if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.Block)
                 {
                     ComposeAsBlock(column, node);
                     return;
                 }
-                break; // fall through to semantic block handling below
-            default:
                 break;
         }
 
-        // Block handling (semantic defaults and containers)
         switch (node.NodeType)
         {
             case DocumentNodeType.Div:
@@ -78,13 +107,51 @@ internal sealed class BlockComposer(
             case DocumentNodeType.Table:
                 tableComposer.Compose(column, node);
                 break;
-
-            // For nodes not explicitly handled but classified as Block (e.g., span with CSS display:block),
-            // use the generic block path to preserve behavior parity.
             default:
                 ComposeAsBlock(column, node);
                 break;
         }
+    }
+
+    private bool ShouldUseLayoutEngine(DocumentNode node)
+    {
+        return _layoutEngine is not null
+            && _options.EnableNewLayoutForTextBlocks
+            && LayoutEligibleNodeTypes.Contains(node.NodeType);
+    }
+
+    private bool TryComposeWithLayoutEngine(ColumnDescriptor column, DocumentNode node)
+    {
+        if (_layoutEngine is null)
+        {
+            return false;
+        }
+
+        var engineResult = _layoutEngine.Layout(
+            node,
+            DefaultConstraints,
+            new LayoutEngineOptions
+            {
+                EnableNewLayoutForTextBlocks = _options.EnableNewLayoutForTextBlocks,
+                EnableDiagnostics = _options.EnableLayoutDiagnostics
+            });
+
+        if (engineResult.IsDisabled || engineResult.IsFallback || !engineResult.IsSuccess)
+        {
+            return false;
+        }
+
+        foreach (var fragment in engineResult.Fragments)
+        {
+            ComposeFragment(column, fragment);
+        }
+
+        return true;
+    }
+
+    private void ComposeFragment(ColumnDescriptor column, LayoutFragment fragment)
+    {
+        ComposeInternal(column, fragment.Node, bypassLayout: true);
     }
 
     private void ComposeParagraph(ColumnDescriptor column, DocumentNode node)
@@ -245,7 +312,7 @@ internal sealed class BlockComposer(
                     // Single block element - render as block
                     Compose(column, line[0]);
                 }
-                else if (line.All(child => IsInlineBlockElement(child)))
+                else if (line.All(IsInlineBlockElement))
                 {
                     // All elements in this line are inline-block - render them side-by-side
                     // Use RelativeItem() to allow elements to fit available space

@@ -11,6 +11,16 @@ public class RendererOptions
     /// </summary>
     public bool EnableClassifierTraceLogging { get; set; } = false;
 
+    /// <summary>
+    /// Enables the Phase 2 layout pipeline for paragraphs/headings/spans.
+    /// </summary>
+    public bool EnableNewLayoutForTextBlocks { get; set; } = false;
+
+    /// <summary>
+    /// Enables structured layout diagnostics (fragment logging).
+    /// </summary>
+    public bool EnableLayoutDiagnostics { get; set; } = false;
+
     public static RendererOptions CreateDefault() => new();
 
     internal static string DetermineDefaultFontPath()

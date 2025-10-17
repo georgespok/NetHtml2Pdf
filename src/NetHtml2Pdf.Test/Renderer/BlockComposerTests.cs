@@ -1,5 +1,8 @@
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
+using NetHtml2Pdf.Layout.Display;
+using NetHtml2Pdf.Layout.Engines;
+using NetHtml2Pdf.Layout.Model;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
 using NetHtml2Pdf.Test.Support;
@@ -22,6 +25,31 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
 
         sut.InlineComposer.Nodes.ShouldBe(new[] { DocumentNodeType.Text, DocumentNodeType.Strong });
         sut.ListComposer.Called.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Compose_Paragraph_WithLayoutEngineEnabled_InvokesLayoutEngine()
+    {
+        var sut = CreateSut(enableNewLayout: true);
+        var paragraph = Paragraph(Text("Hello"));
+
+        GenerateDocument(column => sut.Compose(column, paragraph));
+
+        sut.LayoutEngine.Calls.ShouldBeGreaterThan(0);
+        sut.InlineComposer.Nodes.ShouldBe(new[] { DocumentNodeType.Text });
+    }
+
+    [Fact]
+    public void Compose_Paragraph_LayoutEngineFallback_UsesLegacyPath()
+    {
+        var sut = CreateSut(enableNewLayout: true);
+        sut.LayoutEngine.OverrideResult = LayoutResult.Fallback("unsupported");
+        var paragraph = Paragraph(Text("Hello"));
+
+        GenerateDocument(column => sut.Compose(column, paragraph));
+
+        sut.LayoutEngine.Calls.ShouldBe(1);
+        sut.InlineComposer.Nodes.ShouldBe(new[] { DocumentNodeType.Text });
     }
 
     [Fact]
@@ -77,15 +105,28 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         sut.InlineComposer.Nodes.ShouldBeEmpty();
     }
 
-    private TestSut CreateSut()
+    private TestSut CreateSut(bool enableNewLayout = false)
     {
         var inlineComposer = new RecordingInlineComposer();
         var listComposer = new RecordingListComposer();
         var tableComposer = new RecordingTableComposer();
         var spacingApplier = new PassthroughSpacingApplier();
-        var blockComposer = new BlockComposer(inlineComposer, listComposer, tableComposer, spacingApplier);
+        var rendererOptions = new RendererOptions
+        {
+            EnableNewLayoutForTextBlocks = enableNewLayout
+        };
+        var layoutEngine = new RecordingLayoutEngine();
+        var displayClassifier = new DisplayClassifier(options: rendererOptions);
+        var blockComposer = new BlockComposer(
+            inlineComposer,
+            listComposer,
+            tableComposer,
+            spacingApplier,
+            rendererOptions,
+            displayClassifier,
+            layoutEngine);
 
-        return new TestSut(blockComposer, inlineComposer, listComposer, tableComposer);
+        return new TestSut(blockComposer, inlineComposer, listComposer, tableComposer, layoutEngine, rendererOptions);
     }
 
     private static DocumentNode CreateBlockDisplayNode(DocumentNodeType nodeType, string? textContent = null)
@@ -115,18 +156,23 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
     private sealed class TestSut
     {
         public TestSut(BlockComposer blockComposer, RecordingInlineComposer inlineComposer,
-                      RecordingListComposer listComposer, RecordingTableComposer tableComposer)
+                      RecordingListComposer listComposer, RecordingTableComposer tableComposer,
+                      RecordingLayoutEngine layoutEngine, RendererOptions rendererOptions)
         {
             BlockComposer = blockComposer;
             InlineComposer = inlineComposer;
             ListComposer = listComposer;
             TableComposer = tableComposer;
+            LayoutEngine = layoutEngine;
+            RendererOptions = rendererOptions;
         }
 
         public BlockComposer BlockComposer { get; }
         public RecordingInlineComposer InlineComposer { get; }
         public RecordingListComposer ListComposer { get; }
         public RecordingTableComposer TableComposer { get; }
+        public RecordingLayoutEngine LayoutEngine { get; }
+        public RendererOptions RendererOptions { get; }
 
         public void Compose(ColumnDescriptor column, DocumentNode node) => BlockComposer.Compose(column, node);
     }
@@ -164,6 +210,27 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         {
             Called = true;
             column.Item().Text("table");
+        }
+    }
+
+    private sealed class RecordingLayoutEngine : ILayoutEngine
+    {
+        public int Calls { get; private set; }
+        public LayoutResult? OverrideResult { get; set; }
+
+        public LayoutResult Layout(DocumentNode root, LayoutConstraints constraints, LayoutEngineOptions options)
+        {
+            Calls++;
+            if (OverrideResult is not null)
+            {
+                return OverrideResult;
+            }
+
+            var spacing = LayoutSpacing.FromStyles(root.Styles);
+            var box = new LayoutBox(root, DisplayClass.Block, root.Styles, spacing, $"{root.NodeType}:0", Array.Empty<LayoutBox>());
+            var diagnostics = new LayoutDiagnostics("Test", constraints, constraints.InlineMax, constraints.BlockMax);
+            var fragment = LayoutFragment.CreateBlock(box, constraints.InlineMax, constraints.BlockMax, Array.Empty<LayoutFragment>(), diagnostics);
+            return LayoutResult.Success(new[] { fragment });
         }
     }
 
