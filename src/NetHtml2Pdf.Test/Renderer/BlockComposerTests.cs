@@ -227,10 +227,10 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
             }
 
             var spacing = LayoutSpacing.FromStyles(root.Styles);
-            var box = new LayoutBox(root, DisplayClass.Block, root.Styles, spacing, $"{root.NodeType}:0", Array.Empty<LayoutBox>());
+            var box = new LayoutBox(root, DisplayClass.Block, root.Styles, spacing, $"{root.NodeType}:0", []);
             var diagnostics = new LayoutDiagnostics("Test", constraints, constraints.InlineMax, constraints.BlockMax);
-            var fragment = LayoutFragment.CreateBlock(box, constraints.InlineMax, constraints.BlockMax, Array.Empty<LayoutFragment>(), diagnostics);
-            return LayoutResult.Success(new[] { fragment });
+            var fragment = LayoutFragment.CreateBlock(box, constraints.InlineMax, constraints.BlockMax, [], diagnostics);
+            return LayoutResult.Success([fragment]);
         }
     }
 

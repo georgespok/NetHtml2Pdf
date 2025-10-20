@@ -501,7 +501,7 @@ public class PdfRendererTests : PdfRenderTestBase
 
         var words = ExtractWords(pdfBytes);
         words.Any(w => w.Contains("Text", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
-        words.Count().ShouldBeGreaterThan(2);
+        words.Length.ShouldBeGreaterThan(2);
     }
 
     [Fact]
@@ -575,7 +575,7 @@ public class PdfRendererTests : PdfRenderTestBase
 
         var words = ExtractWords(pdfBytes);
         words.Any(w => w.Contains("Content", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
-        words.Count().ShouldBeGreaterThan(2);
+        words.Length.ShouldBeGreaterThan(2);
     }
 
     [Fact]
@@ -671,7 +671,7 @@ public class PdfRendererTests : PdfRenderTestBase
         Output.WriteLine($"Extracted words: [{string.Join(", ", words.Select(w => $"'{w}'"))}]");
 
         // For inline-block elements, both words should be present and positioned side-by-side
-        words.Count().ShouldBe(2, "Inline-block elements should be rendered as separate side-by-side elements");
+        words.Count.ShouldBe(2, "Inline-block elements should be rendered as separate side-by-side elements");
 
         var aaaWord = words.FirstOrDefault(w => w.Text == "aaa");
         var bbbWord = words.FirstOrDefault(w => w.Text == "bbb");
@@ -811,7 +811,7 @@ public class PdfRendererTests : PdfRenderTestBase
         var visibleWords = words.Where(w => w.Contains("Visible") || w.Contains("More")).ToList();
         visibleWords.Count.ShouldBe(2, "Should have exactly 2 visible text elements");
 
-        Output.WriteLine($"✅ Display:none test completed - hidden content omitted");
+        Output.WriteLine("✅ Display:none test completed - hidden content omitted");
     }
 
     [Fact]
@@ -851,7 +851,7 @@ public class PdfRendererTests : PdfRenderTestBase
         words.ShouldNotContain("child");
         words.ShouldNotContain("bold");
 
-        Output.WriteLine($"✅ Display:none nested children test completed - all hidden content omitted");
+        Output.WriteLine("✅ Display:none nested children test completed - all hidden content omitted");
     }
 
     [Fact]
@@ -893,7 +893,7 @@ public class PdfRendererTests : PdfRenderTestBase
         words.ShouldContain("content");
         words.ShouldNotContain("Hidden");
 
-        Output.WriteLine($"✅ Display:none in header/footer test completed - hidden content omitted");
+        Output.WriteLine("✅ Display:none in header/footer test completed - hidden content omitted");
     }
 }
 

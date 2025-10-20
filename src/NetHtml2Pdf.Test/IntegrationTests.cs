@@ -52,19 +52,19 @@ public class IntegrationTests : PdfRenderTestBase
             RendererOptions.CreateDefault(),
             NullLogger<PdfBuilder>.Instance);
 
-        const string htmlPage = $$"""
-                                    <style>
-                                        .text-block { margin: 4px 0; padding: 2px; display: inline-block; border: 2px solid red;}
-                                    </style>
-                                    <div>
-                                      <div class="text-block">
-                                        aaa
-                                      </div>
-                                      <div class="text-block">
-                                        bbb
-                                      </div>
-                                    </div>
-                                    """;
+        const string htmlPage = """
+                                <style>
+                                    .text-block { margin: 4px 0; padding: 2px; display: inline-block; border: 2px solid red;}
+                                </style>
+                                <div>
+                                  <div class="text-block">
+                                    aaa
+                                  </div>
+                                  <div class="text-block">
+                                    bbb
+                                  </div>
+                                </div>
+                                """;
 
         // Act
         var pdfBytes = builder.AddPage(htmlPage).Build();
@@ -74,7 +74,7 @@ public class IntegrationTests : PdfRenderTestBase
 
         // Debug: Extract and log all words to see what's being rendered
         var words = PdfWordParser.GetRawWords(pdfBytes);
-        Output.WriteLine($"Extracted {words.Count()} words from PDF:");
+        Output.WriteLine($"Extracted {words.Count} words from PDF:");
         foreach (var word in words)
         {
             Output.WriteLine($"  Word: '{word.Text}' at position ({word.BoundingBox.TopLeft.X:F1}, {word.BoundingBox.TopLeft.Y:F1})");
@@ -108,14 +108,9 @@ public class IntegrationTests : PdfRenderTestBase
                 // Debug: Check if the text is concatenated (which would indicate inline rendering)
                 var combinedText = string.Join("", extractedWords);
                 Output.WriteLine($"Combined text: '{combinedText}'");
-                if (combinedText == "aaabbb")
-                {
-                    Output.WriteLine("✅ Text is concatenated - inline rendering is working!");
-                }
-                else
-                {
-                    Output.WriteLine("❌ Text is not concatenated - elements are rendered as separate blocks");
-                }
+                Output.WriteLine(combinedText == "aaabbb"
+                    ? "✅ Text is concatenated - inline rendering is working!"
+                    : "❌ Text is not concatenated - elements are rendered as separate blocks");
             }
         }
 
@@ -327,7 +322,7 @@ public class IntegrationTests : PdfRenderTestBase
 
         // Get raw words for positioning analysis
         var rawWords = PdfWordParser.GetRawWords(pdfBytes);
-        Output.WriteLine($"Raw words count: {rawWords.Count()}");
+        Output.WriteLine($"Raw words count: {rawWords.Count}");
         Output.WriteLine($"Raw words containing 'Le': [{string.Join(", ", rawWords.Where(w => w.Text.Contains("Le")).Select(w => $"'{w.Text}'"))}]");
         Output.WriteLine($"Raw words containing 'Right': [{string.Join(", ", rawWords.Where(w => w.Text.Contains("Right")).Select(w => $"'{w.Text}'"))}]");
 
@@ -344,14 +339,9 @@ public class IntegrationTests : PdfRenderTestBase
             Output.WriteLine($"Y difference: {yDifference:F1} (should be < 5 for same line)");
             Output.WriteLine($"X difference: {xDifference:F1} (should be > 50 for side-by-side)");
 
-            if (yDifference < 5)
-            {
-                Output.WriteLine("✅ Inline-block elements are on the same line!");
-            }
-            else
-            {
-                Output.WriteLine("❌ Inline-block elements are NOT on the same line - structure issue");
-            }
+            Output.WriteLine(yDifference < 5
+                ? "✅ Inline-block elements are on the same line!"
+                : "❌ Inline-block elements are NOT on the same line - structure issue");
         }
 
         Output.WriteLine($"✅ Multi-page PDF generated successfully with {words.Length} words across 3 pages");
@@ -395,7 +385,7 @@ public class IntegrationTests : PdfRenderTestBase
         var wordC = rawWords.FirstOrDefault(w => w.Text.Contains("C"));
         var wordD = rawWords.FirstOrDefault(w => w.Text.Contains("D"));
 
-        Output.WriteLine($"Word positions:");
+        Output.WriteLine("Word positions:");
         if (wordA != null) Output.WriteLine($"  A: ({wordA.BoundingBox.TopLeft.X:F1}, {wordA.BoundingBox.TopLeft.Y:F1})");
         if (wordB != null) Output.WriteLine($"  B: ({wordB.BoundingBox.TopLeft.X:F1}, {wordB.BoundingBox.TopLeft.Y:F1})");
         if (wordBlock != null) Output.WriteLine($"  Block: ({wordBlock.BoundingBox.TopLeft.X:F1}, {wordBlock.BoundingBox.TopLeft.Y:F1})");

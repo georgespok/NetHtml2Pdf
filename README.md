@@ -13,7 +13,7 @@ NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports
   - Precedence: multiple classes merge in attribute order (later wins) → inline overrides class-derived values
   - Unsupported properties are ignored with structured warnings
 - Unsupported elements: ignored, inner text preserved
-- Pagination: explicit via builder (no auto-pagination)
+- Pagination: opt-in auto-pagination (Phase 3) or manual pages via builder
 - Style preprocessing: a preprocessing pass computes per-node styles (inheritance, class merge, inline override), resolves percentages to absolute points, and applies vertical margin collapsing semantics.
 
 ## Quick Start
@@ -24,7 +24,7 @@ NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports
 dotnet add package NetHtml2Pdf
 ```
 
-### 2. Basic Usage (single page)
+### 2. Basic Usage (auto-pagination pipeline)
 
 ```csharp
 using NetHtml2Pdf;
@@ -70,7 +70,11 @@ var html = @"
 
 var builder = new PdfBuilder();
 var pdfBytes = builder
-    .AddPage(html)
+    .EnablePagination()
+    .EnableQuestPdfAdapter()
+    .SetHeader("<div style='text-align:right;font-size:12px;'>My Company</div>")
+    .SetFooter("<div style='text-align:center;font-size:10px;'>Confidential</div>")
+    .AddPage(html)            // Add DOM fragments; auto-pagination will split them
     .Build();
 
 await File.WriteAllBytesAsync("output.pdf", pdfBytes);
@@ -86,10 +90,12 @@ await File.WriteAllBytesAsync("output.pdf", pdfBytes);
   - `display: none` - Elements are completely hidden and occupy no space
   - Unsupported display values (flex, grid, etc.) emit warnings and fallback to HTML semantic defaults
 
-Example (right-aligned header, centered footer):
+Example (auto-pagination with header and footer):
 
 ```csharp
-var pdf = builder
+var pdf = new PdfBuilder()
+    .EnablePagination()
+    .EnableQuestPdfAdapter()
     .SetHeader("<div style='text-align: right; padding: 8px; color: #333; font-size: 12px;'>My Company</div>")
     .SetFooter("<div style='text-align: center; padding: 6px; color: #666; font-size: 10px;'><em>Confidential</em></div>")
     .AddPage(html)
@@ -117,8 +123,8 @@ dotnet run samples/table.html
 
 ## Features
 
-### CSS Display Support
-NetHtml2Pdf now supports CSS `display` properties for enhanced layout control:
+### CSS Display & Pagination Support
+NetHtml2Pdf supports CSS `display` properties and an opt-in pagination pipeline for enhanced layout control:
 
 - **`display: block`** - Elements start on new lines and take full available width
 - **`display: inline-block`** - Elements flow side-by-side when space allows, wrap as whole units
@@ -218,3 +224,7 @@ This produces `NetHtml2Pdf.<VersionPrefix>-beta.1.nupkg` in `nuget/`.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+
+

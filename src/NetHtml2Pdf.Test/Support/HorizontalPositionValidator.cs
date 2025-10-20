@@ -26,7 +26,7 @@ public static class HorizontalPositionValidator
         var wordLeft = word.BoundingBox.TopLeft.X;
         var wordRight = word.BoundingBox.TopRight.X;
 
-        writeLine($"Horizontal positioning:");
+        writeLine("Horizontal positioning:");
         writeLine($"  Left edge: {wordLeft:F1} points");
         writeLine($"  Right edge: {wordRight:F1} points");
         writeLine($"  Width: {wordRight - wordLeft:F1} points");

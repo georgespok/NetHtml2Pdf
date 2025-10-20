@@ -423,8 +423,8 @@ public class InlineFlowLayoutEngineTests
     // Test helper classes
     private class TestTextDescriptor
     {
-        public List<string> Spans { get; } = new();
-        public List<string> LineBreaks { get; } = new();
+        public List<string> Spans { get; } = [];
+        public List<string> LineBreaks { get; } = [];
 
         public void Span(string text)
         {

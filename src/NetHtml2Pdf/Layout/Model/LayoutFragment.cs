@@ -22,7 +22,7 @@ internal sealed class LayoutFragment
         Width = width;
         Height = height;
         Baseline = baseline;
-        Children = children ?? Array.Empty<LayoutFragment>();
+        Children = children ?? [];
         Diagnostics = diagnostics;
     }
 
@@ -54,10 +54,5 @@ internal sealed class LayoutFragment
     public static LayoutFragment CreateInline(LayoutBox box, float width, float height, float? baseline, IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
     {
         return new LayoutFragment(LayoutFragmentKind.Inline, box, width, height, baseline, children, diagnostics);
-    }
-
-    public static LayoutFragment CreateLine(LayoutBox box, float width, float height, float baseline, IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
-    {
-        return new LayoutFragment(LayoutFragmentKind.Line, box, width, height, baseline, children, diagnostics);
     }
 }

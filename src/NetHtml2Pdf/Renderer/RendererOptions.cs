@@ -21,6 +21,21 @@ public class RendererOptions
     /// </summary>
     public bool EnableLayoutDiagnostics { get; set; } = false;
 
+    /// <summary>
+    /// Enables the pagination pass that slices layout fragments into page-scoped trees.
+    /// </summary>
+    public bool EnablePagination { get; set; } = false;
+
+    /// <summary>
+    /// Routes rendering through the QuestPDF adapter instead of legacy composers (requires pagination).
+    /// </summary>
+    public bool EnableQuestPdfAdapter { get; set; } = false;
+
+    /// <summary>
+    /// Enables detailed pagination diagnostics (per-page and fragment logging).
+    /// </summary>
+    public bool EnablePaginationDiagnostics { get; set; } = false;
+
     public static RendererOptions CreateDefault() => new();
 
     internal static string DetermineDefaultFontPath()

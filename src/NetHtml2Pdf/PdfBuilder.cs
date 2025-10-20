@@ -37,8 +37,8 @@ public class PdfBuilder : IPdfBuilder
 
         _rendererOptions = rendererOptions;
         _logger = logger;
-        _pages = new List<string>();
-        _fallbackElements = new List<string>();
+        _pages = [];
+        _fallbackElements = [];
 
         // Centralized dependency instantiation
         var angleSharpParser = new AngleSharp.Html.Parser.HtmlParser();
@@ -65,8 +65,8 @@ public class PdfBuilder : IPdfBuilder
         _rendererFactory = rendererFactory;
         _rendererOptions = rendererOptions;
         _logger = logger;
-        _pages = new List<string>();
-        _fallbackElements = new List<string>();
+        _pages = [];
+        _fallbackElements = [];
     }
 
     public IPdfBuilder Reset()
@@ -101,6 +101,24 @@ public class PdfBuilder : IPdfBuilder
         }
 
         _footer = html;
+        return this;
+    }
+
+    public IPdfBuilder EnablePagination(bool enabled = true)
+    {
+        _rendererOptions.EnablePagination = enabled;
+        return this;
+    }
+
+    public IPdfBuilder EnableQuestPdfAdapter(bool enabled = true)
+    {
+        _rendererOptions.EnableQuestPdfAdapter = enabled;
+        return this;
+    }
+
+    public IPdfBuilder EnablePaginationDiagnostics(bool enabled = true)
+    {
+        _rendererOptions.EnablePaginationDiagnostics = enabled;
         return this;
     }
 
@@ -151,7 +169,10 @@ public class PdfBuilder : IPdfBuilder
             {
                 FontPath = options.FontPath,
                 EnableNewLayoutForTextBlocks = options.EnableNewLayoutForTextBlocks,
-                EnableLayoutDiagnostics = options.EnableLayoutDiagnostics
+                EnableLayoutDiagnostics = options.EnableLayoutDiagnostics,
+                EnablePagination = options.EnablePagination,
+                EnableQuestPdfAdapter = options.EnableQuestPdfAdapter,
+                EnablePaginationDiagnostics = options.EnablePaginationDiagnostics
             }
             : _rendererOptions;
 

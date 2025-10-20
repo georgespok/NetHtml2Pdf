@@ -16,7 +16,7 @@ public static class ValidationValues
     public const long MaxOutputSize = 100L * 1024 * 1024; // 100MB
 
     // Date constraints
-    public static readonly DateTime MinDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static readonly DateTime MinDate = new(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     // Memory constraints
     public const long MinMemoryUsage = 0;

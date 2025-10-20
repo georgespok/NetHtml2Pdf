@@ -39,9 +39,13 @@ internal sealed class BlockFormattingContext
         }
 
         var height = Math.Max(constraints.BlockMin, childFragments.Sum(fragment => fragment.Height));
-        if (height == 0 && childFragments.Count > 0)
+        if (height <= 0 && childFragments.Count > 0)
         {
-            height = childFragments.Sum(fragment => fragment.Height);
+            height = Math.Max(constraints.BlockMin, 16f * childFragments.Count);
+        }
+        else if (height <= 0)
+        {
+            height = Math.Max(constraints.BlockMin, 16f);
         }
 
         var diagnostics = new LayoutDiagnostics(
@@ -61,6 +65,6 @@ internal sealed class BlockFormattingContext
             constraints.InlineMax,
             0);
 
-        return LayoutFragment.CreateInline(child, constraints.InlineMax, 0, baseline: null, Array.Empty<LayoutFragment>(), diagnostics);
+        return LayoutFragment.CreateInline(child, constraints.InlineMax, 0, baseline: null, [], diagnostics);
     }
 }

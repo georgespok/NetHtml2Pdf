@@ -14,6 +14,4 @@ public static class CssRegexPatterns
     // CSS property name pattern (for validation)
     public const string CssPropertyName = @"^[a-zA-Z][a-zA-Z0-9-]*$";
 
-    // CSS value pattern (basic validation)
-    public const string CssValue = @"^[^;{}]+$";
 }

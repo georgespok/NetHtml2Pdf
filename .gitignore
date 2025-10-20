@@ -60,3 +60,4 @@ nunit-*.xml
 /.vscode
 /nuget.config
 /.cursor
+/src/NetHtml2Pdf.Test/coveragereport/**

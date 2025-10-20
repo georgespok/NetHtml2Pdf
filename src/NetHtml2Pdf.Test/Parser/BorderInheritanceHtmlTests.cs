@@ -2,15 +2,18 @@ using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Constants;
 using NetHtml2Pdf.Parser;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Parser;
 
 public class BorderInheritanceHtmlTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly HtmlParser _parser;
 
-    public BorderInheritanceHtmlTests()
+    public BorderInheritanceHtmlTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         var angleSharp = new AngleSharp.Html.Parser.HtmlParser();
         var cssParser = new CssDeclarationParser();
         var cssUpdater = new CssStyleUpdater();
@@ -42,8 +45,8 @@ public class BorderInheritanceHtmlTests
         var paragraph = container.Children.Single();
 
         // Debug: Let's see what border the paragraph actually has
-        Console.WriteLine($"Paragraph border - Width: {paragraph.Styles.Border.Width}, Style: {paragraph.Styles.Border.Style}, Color: {paragraph.Styles.Border.Color}");
-        Console.WriteLine($"Paragraph border HasValue: {paragraph.Styles.Border.HasValue}, IsVisible: {paragraph.Styles.Border.IsVisible}");
+        _testOutputHelper.WriteLine($"Paragraph border - Width: {paragraph.Styles.Border.Width}, Style: {paragraph.Styles.Border.Style}, Color: {paragraph.Styles.Border.Color}");
+        _testOutputHelper.WriteLine($"Paragraph border HasValue: {paragraph.Styles.Border.HasValue}, IsVisible: {paragraph.Styles.Border.IsVisible}");
 
         paragraph.Styles.Border.ShouldBe(BorderInfo.Empty);
         paragraph.Styles.Border.HasValue.ShouldBeFalse();

@@ -275,6 +275,6 @@ public class WrapWithSpacingContractTests
 
     private class TestResult
     {
-        public List<string> Applications { get; } = new();
+        public List<string> Applications { get; } = [];
     }
 }

@@ -97,7 +97,7 @@ public class DisplayClassifierTraceLoggingTests
 // Test logger implementation
 public class TestLogger<T> : ILogger<T>
 {
-    public List<LogEntry> LogEntries { get; } = new();
+    public List<LogEntry> LogEntries { get; } = [];
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 

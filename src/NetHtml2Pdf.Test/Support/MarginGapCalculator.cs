@@ -87,7 +87,7 @@ public static class MarginGapCalculator
         writeLine("Gaps:");
         writeLine($"  Gap above Test: {gaps.GapAboveTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
         writeLine($"  Gap below Test: {gaps.GapBelowTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
-        writeLine($"Validation:");
+        writeLine("Validation:");
         writeLine($"  Gap above valid: {validation.GapAboveValid} (min required: {validation.MinExpectedGap})");
         writeLine($"  Gap below valid: {validation.GapBelowValid} (min required: {validation.MinExpectedGap})");
     }

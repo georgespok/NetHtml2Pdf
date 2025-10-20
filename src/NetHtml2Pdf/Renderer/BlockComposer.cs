@@ -19,8 +19,8 @@ internal sealed class BlockComposer(
     IDisplayClassifier? displayClassifier = null,
     ILayoutEngine? layoutEngine = null) : IBlockComposer
 {
-    private static readonly HashSet<DocumentNodeType> LayoutEligibleNodeTypes = new()
-    {
+    private static readonly HashSet<DocumentNodeType> LayoutEligibleNodeTypes =
+    [
         DocumentNodeType.Paragraph,
         DocumentNodeType.Heading1,
         DocumentNodeType.Heading2,
@@ -28,7 +28,7 @@ internal sealed class BlockComposer(
         DocumentNodeType.Heading4,
         DocumentNodeType.Heading5,
         DocumentNodeType.Heading6
-    };
+    ];
 
     private static readonly LayoutConstraints DefaultConstraints = new(0, 600, 0, 1000, 1000, allowBreaks: true);
 
@@ -361,9 +361,9 @@ internal sealed class BlockComposer(
                 if (currentLine.Count > 0)
                 {
                     lines.Add(currentLine);
-                    currentLine = new List<DocumentNode>();
+                    currentLine = [];
                 }
-                lines.Add(new List<DocumentNode> { child });
+                lines.Add([child]);
             }
             else if (IsInlineElement(child) || IsInlineBlockElement(child))
             {
@@ -376,9 +376,9 @@ internal sealed class BlockComposer(
                 if (currentLine.Count > 0)
                 {
                     lines.Add(currentLine);
-                    currentLine = new List<DocumentNode>();
+                    currentLine = [];
                 }
-                lines.Add(new List<DocumentNode> { child });
+                lines.Add([child]);
             }
         }
 

@@ -57,8 +57,7 @@ public class PdfWordParser
         return new PdfWord(cleanText, hexColor, isBold, isItalic, fontSize);
     }
 
-    private static string CleanWordText(string text) =>
-        new string(text.Where(ch => ch != 0).ToArray());
+    private static string CleanWordText(string text) => new(text.Where(ch => ch != 0).ToArray());
 
     private static string GetMostCommonTextColor(Word word)
     {
@@ -252,9 +251,4 @@ public class WordLookupResult
             throw new InvalidOperationException($"Word '{searchText}' should be found in the PDF");
         return word;
     }
-
-    /// <summary>
-    /// Gets a word by its search text, returning null if not found.
-    /// </summary>
-    public Word? TryGetWord(string searchText) => _words.GetValueOrDefault(searchText);
 }

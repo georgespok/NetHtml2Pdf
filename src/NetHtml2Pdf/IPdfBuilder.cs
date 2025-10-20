@@ -10,4 +10,3 @@ public interface IPdfBuilder
     IPdfBuilder AddPage(string htmlContent);
     byte[] Build(ConverterOptions? options = null);
 }
-

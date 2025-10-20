@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-rendering-parity`  
 **Created**: 2025-10-17  
-**Status**: Draft  
+**Status**: Completed  
 **Input**: User description: "Goals & Guardrails
 - Keep external behavior identical. Only paragraphs, headings, and span-level inline text switch to the new pipeline.
 - Introduce a minimal layout layer that can coexist with the legacy composers. All new machinery runs behind a feature flag (EnableNewLayoutForTextBlocks), default-off until parity is proven.

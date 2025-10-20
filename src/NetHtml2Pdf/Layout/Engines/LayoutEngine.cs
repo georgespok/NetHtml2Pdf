@@ -18,8 +18,8 @@ internal sealed class LayoutEngine : ILayoutEngine
     private readonly IInlineFormattingContext _inlineFormattingContext;
     private readonly ILogger<LayoutEngine>? _logger;
 
-    private static readonly HashSet<DocumentNodeType> SupportedBlockNodes = new()
-    {
+    private static readonly HashSet<DocumentNodeType> SupportedBlockNodes =
+    [
         DocumentNodeType.Paragraph,
         DocumentNodeType.Heading1,
         DocumentNodeType.Heading2,
@@ -27,17 +27,17 @@ internal sealed class LayoutEngine : ILayoutEngine
         DocumentNodeType.Heading4,
         DocumentNodeType.Heading5,
         DocumentNodeType.Heading6
-    };
+    ];
 
-    private static readonly HashSet<DocumentNodeType> SupportedInlineNodes = new()
-    {
+    private static readonly HashSet<DocumentNodeType> SupportedInlineNodes =
+    [
         DocumentNodeType.Span,
         DocumentNodeType.Strong,
         DocumentNodeType.Bold,
         DocumentNodeType.Italic,
         DocumentNodeType.Text,
         DocumentNodeType.LineBreak
-    };
+    ];
 
     public LayoutEngine(
         IDisplayClassifier displayClassifier,

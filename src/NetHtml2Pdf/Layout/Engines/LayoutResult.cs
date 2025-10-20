@@ -31,11 +31,11 @@ internal sealed class LayoutResult
 
     public static LayoutResult Disabled()
     {
-        return new LayoutResult(isSuccess: false, isFallback: false, isDisabled: true, fallbackReason: "Layout engine disabled.", Array.Empty<LayoutFragment>());
+        return new LayoutResult(isSuccess: false, isFallback: false, isDisabled: true, fallbackReason: "Layout engine disabled.", []);
     }
 
     public static LayoutResult Fallback(string reason)
     {
-        return new LayoutResult(isSuccess: false, isFallback: true, isDisabled: false, fallbackReason: reason, Array.Empty<LayoutFragment>());
+        return new LayoutResult(isSuccess: false, isFallback: true, isDisabled: false, fallbackReason: reason, []);
     }
 }
