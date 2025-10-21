@@ -64,17 +64,32 @@ We will incrementally introduce a layout layer between the DOM and rendering, mi
 - Flags
   - `EnablePagination`, `EnableQuestPdfAdapter` (default off → on after tests).
 
-### Phase 4 — Extend Context Coverage
+### Phase 4 - Extend Context Coverage
 - Objectives
-  - Add `InlineBlockFormattingContext`; migrate inline‑block behavior.
+  - Add `InlineBlockFormattingContext`; migrate inline-block behavior.
   - Migrate tables into `TableFormattingContext`; add initial border model.
   - Prepare Flex (and Grid later) behind flags.
 - Changes
   - Implement contexts incrementally; provide graceful block fallback when disabled/unsupported.
 - Deliverables
-  - Context‑specific geometry tests; feature-flag integration tests.
+  - Context-specific geometry tests; feature-flag integration tests.
 - Flags
   - `EnableInlineBlock`, `EnableTableContext`, `EnableTableBorderCollapse`, `EnableFlexContext`.
+
+### Phase 5 - Legacy Composer Retirement
+- Objectives
+  - Remove the legacy composer pipeline once new contexts cover targeted scenarios.
+  - Eliminate direct QuestPDF dependencies from composer classes; keep rendering behind adapters only.
+  - Simplify public configuration (remove obsolete flags / flip defaults).
+- Changes
+  - Delete unused composer code paths and associated feature toggles.
+  - Update `PdfRenderer` to rely solely on layout + pagination + adapters.
+  - Refresh docs/quickstart to reflect the adapter-only architecture; mark migration complete.
+- Deliverables
+  - Passing regression suite with legacy path removed.
+  - Documentation updates (quickstart, architecture, release notes) describing the new default pipeline.
+- Flags
+  - Retire `EnableQuestPdfAdapter`/legacy flags; optional temporary opt-out flag during release window if required.
 
 ## Testing Strategy
 

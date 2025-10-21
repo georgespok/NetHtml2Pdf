@@ -15,33 +15,28 @@ The goal is to maximize meaningful coverage of business-critical and complex cod
 For each method of each class, calculate the "score" using the following formula:
 
 ```
-Score = (0.4 × CyclomaticComplexity)
-      + (0.3 × BusinessCriticality)
-      + (0.2 × ChangeFrequency)
+Score = (0.5 x BusinessCriticality)
+      + (0.3 x ChangeFrequency)
+      + (0.2 x DefectHistory)
       + (0.1 × DefectHistory)
 ```
 
 #### Score Components
 
-- **Cyclomatic Complexity (40% weight)**: Number of independent paths through the code
-  - Simple method (1-3 paths): 1-3 points
-  - Moderate complexity (4-6 paths): 4-6 points
-  - High complexity (7+ paths): 7+ points
+- **Business Criticality**: 5 (core CSS parsing functionality) - 5 points
+- **Change Frequency**: 3 (occasionally modified) - 3 points
+- **Defect History**: 2 (some parsing issues in past) - 2 points
+ - High impact (core business logic): 5-6 points
 
-- **Business Criticality (30% weight)**: Impact on core business functionality
-  - Low impact (utility methods): 1-2 points
-  - Medium impact (feature methods): 3-4 points
-  - High impact (core business logic): 5-6 points
+- **Change Frequency (30% weight)**: How often the code is modified
+ - Stable (rarely changed): 1-2 points
+ - Moderate (occasionally changed): 3-4 points
+ - Volatile (frequently changed): 5-6 points
 
-- **Change Frequency (20% weight)**: How often the code is modified
-  - Stable (rarely changed): 1-2 points
-  - Moderate (occasionally changed): 3-4 points
-  - Volatile (frequently changed): 5-6 points
-
-- **Defect History (10% weight)**: Historical bug frequency
-  - No known issues: 1 point
-  - Some issues in past: 2-3 points
-  - Problematic (multiple bugs): 4-6 points
+- **Defect History (20% weight)**: Historical bug frequency
+ - No known issues: 1 point
+ - Some issues in past: 2-3 points
+ - Problematic (multiple bugs): 4-6 points
 
 #### Testing Priority Thresholds
 
@@ -81,14 +76,13 @@ public CssStyleMap ParseBorderShorthand(string value)
 ```
 
 **Score Calculation:**
-- **Cyclomatic Complexity**: 6 (multiple if/else branches) → 6 points
-- **Business Criticality**: 5 (core CSS parsing functionality) → 5 points  
-- **Change Frequency**: 3 (occasionally modified) → 3 points
-- **Defect History**: 2 (some parsing issues in past) → 2 points
+- **Business Criticality**: 5 (core CSS parsing functionality) - 5 points  
+- **Change Frequency**: 3 (occasionally modified) - 3 points
+- **Defect History**: 2 (some parsing issues in past) - 2 points
 
-**Total Score**: (0.4 × 6) + (0.3 × 5) + (0.2 × 3) + (0.1 × 2) = 2.4 + 1.5 + 0.6 + 0.2 = **4.7**
+**Total Score**: (0.5 x 5) + (0.3 x 3) + (0.2 x 2) = 2.5 + 0.9 + 0.4 = **3.8**
 
-**Result**: Score 4.7 < 5 → **Low priority** → **No tests required**
+**Result**: Score 3.8 < 5 → **Low priority** → **No tests required**
 
 This method would be ignored for testing, reducing maintenance overhead while focusing effort on higher-impact methods.
 
@@ -119,24 +113,24 @@ IntegrationScore = (0.3 × CrossModule)
 #### Score Components
 
 - **Cross-Module Communication (30% weight)**: Number of modules/components involved
-  - Single module (1 component): 1-2 points
-  - Two modules (2 components): 3-4 points
-  - Multiple modules (3+ components): 5-6 points
+ - Single module (1 component): 1-2 points
+ - Two modules (2 components): 3-4 points
+ - Multiple modules (3+ components): 5-6 points
 
 - **External Dependencies (30% weight)**: External systems or services involved
-  - No external dependencies: 1-2 points
-  - File system, database: 3-4 points
-  - External APIs, services: 5-6 points
+ - No external dependencies: 1-2 points
+ - File system, database: 3-4 points
+ - External APIs, services: 5-6 points
 
-- **Business Criticality (30% weight)**: Impact on core business functionality
-  - Low impact (utility features): 1-2 points
-  - Medium impact (feature workflows): 3-4 points
-  - High impact (core business processes): 5-6 points
+- **Business Criticality (50% weight)**: Impact on core business functionality
+ - Low impact (utility features): 1-2 points
+ - Medium impact (feature workflows): 3-4 points
+ - High impact (core business processes): 5-6 points
 
 - **Transactional Nature (10% weight)**: Multi-step transaction complexity
-  - Simple operation: 1-2 points
-  - Multi-step process: 3-4 points
-  - Complex transaction with rollback: 5-6 points
+ - Simple operation: 1-2 points
+ - Multi-step process: 3-4 points
+ - Complex transaction with rollback: 5-6 points
 
 #### Integration Testing Priority Thresholds
 
@@ -263,28 +257,28 @@ This scenario demonstrates when integration testing becomes valuable due to exte
 #### Ultimate Test Requirements
 
 1. **HTML Structure Coverage**:
-   - Document structure (`<html>`, `<head>`, `<body>`, `<section>`)
-   - Typography (`<h1>`, `<h2>`, `<p>`, `<strong>`, `<em>`)
-   - Lists (`<ul>`, `<ol>`, `<li>`)
-   - Tables (`<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`)
-   - Containers (`<div>`, `<span>`)
+ - Document structure (`<html>`, `<head>`, `<body>`, `<section>`)
+ - Typography (`<h1>`, `<h2>`, `<p>`, `<strong>`, `<em>`)
+ - Lists (`<ul>`, `<ol>`, `<li>`)
+ - Tables (`<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`)
+ - Containers (`<div>`, `<span>`)
 
 2. **CSS Styling Coverage**:
-   - Font properties (`font-family`, `font-size`, `color`)
-   - Layout properties (`margin`, `padding`, `text-align`)
-   - Visual properties (`background-color`, `border`)
-   - Table properties (`border-collapse`, `colspan`)
+ - Font properties (`font-family`, `font-size`, `color`)
+ - Layout properties (`margin`, `padding`, `text-align`)
+ - Visual properties (`background-color`, `border`)
+ - Table properties (`border-collapse`, `colspan`)
 
 3. **Multi-Page Features**:
-   - Headers and footers across all pages
-   - Page content with complex styling
-   - Cross-page element consistency
+ - Headers and footers across all pages
+ - Page content with complex styling
+ - Cross-page element consistency
 
 4. **Visual Output Requirements**:
-   - Generate PDF file for manual inspection
-   - Verify PDF structure and content
-   - Validate styling and formatting
-   - Confirm multi-page functionality
+ - Generate PDF file for manual inspection
+ - Verify PDF structure and content
+ - Validate styling and formatting
+ - Confirm multi-page functionality
 
 #### Ultimate Test Example Pattern
 
@@ -820,3 +814,13 @@ The goal is **effective testing**, not **exhaustive testing**. Focus your testin
 5. Integrates with external systems
 
 Simple data containers and property setters don't need extensive testing - they're unlikely to contain bugs and testing them provides minimal value.
+
+
+
+
+
+
+
+
+- **Business Criticality**: 5 (core CSS parsing functionality) - 5 points
+
