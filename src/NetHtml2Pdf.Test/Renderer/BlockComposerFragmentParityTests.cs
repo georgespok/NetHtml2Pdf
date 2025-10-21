@@ -1,15 +1,13 @@
 using NetHtml2Pdf.Core;
-using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Test.Support;
 using Shouldly;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class BlockComposerFragmentParityTests : PdfRenderTestBase
+public class BlockComposerFragmentParityTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     private static readonly string[] SampleFiles =
     [
@@ -20,11 +18,10 @@ public class BlockComposerFragmentParityTests : PdfRenderTestBase
         "display-unsupported.html"
     ];
 
-    public BlockComposerFragmentParityTests(ITestOutputHelper output) : base(output)
+    public static IEnumerable<object[]> SampleFileData()
     {
+        return SampleFiles.Select(file => new object[] { file });
     }
-
-    public static IEnumerable<object[]> SampleFileData() => SampleFiles.Select(file => new object[] { file });
 
     [Theory]
     [MemberData(nameof(SampleFileData))]
@@ -38,15 +35,15 @@ public class BlockComposerFragmentParityTests : PdfRenderTestBase
 
         var html = File.ReadAllText(samplePath);
 
-        var legacy = RenderWords(html, enableNewLayout: false);
-        var migrated = RenderWords(html, enableNewLayout: true);
+        var legacy = RenderWords(html, false);
+        var migrated = RenderWords(html, true);
 
         migrated.ShouldBe(legacy);
     }
 
     private static string[] RenderWords(string html, bool enableNewLayout)
     {
-        var builder = new NetHtml2Pdf.PdfBuilder();
+        var builder = new PdfBuilder();
         builder.AddPage(html);
 
         var pdfBytes = builder.Build(new ConverterOptions

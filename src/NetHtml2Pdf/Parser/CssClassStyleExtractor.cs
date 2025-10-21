@@ -8,15 +8,17 @@ using NetHtml2Pdf.Parser.Interfaces;
 namespace NetHtml2Pdf.Parser;
 
 /// <summary>
-/// Scans inline "style" blocks to build reusable class-based style maps for the parser pipeline.
+///     Scans inline "style" blocks to build reusable class-based style maps for the parser pipeline.
 /// </summary>
-internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationParser, ICssDeclarationUpdater declarationUpdater) : ICssClassStyleExtractor
+internal sealed partial class CssClassStyleExtractor(
+    ICssDeclarationParser declarationParser,
+    ICssDeclarationUpdater declarationUpdater) : ICssClassStyleExtractor
 {
+    private static readonly Regex ClassRuleRegex =
+        MyRegex();
+
     public ICssDeclarationParser DeclarationParser { get; } = declarationParser;
     public ICssDeclarationUpdater DeclarationUpdater { get; } = declarationUpdater;
-    private static readonly Regex ClassRuleRegex =
-        new(CssRegexPatterns.ClassRule,
-        RegexOptions.Compiled | RegexOptions.Multiline);
 
     public IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document, ILogger? logger = null)
     {
@@ -27,22 +29,15 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
             foreach (Match match in ClassRuleRegex.Matches(cssContent))
             {
                 var className = match.Groups["name"].Value;
-                if (string.IsNullOrEmpty(className))
-                {
-                    continue;
-                }
+                if (string.IsNullOrEmpty(className)) continue;
 
                 var declarations = match.Groups["body"].Value;
                 var styleMap = BuildStyleMap(declarations, logger);
 
                 if (result.TryGetValue(className, out var existing))
-                {
                     result[className] = existing.Merge(styleMap);
-                }
                 else
-                {
                     result[className] = styleMap;
-                }
             }
         }
 
@@ -53,10 +48,11 @@ internal sealed class CssClassStyleExtractor(ICssDeclarationParser declarationPa
     {
         var styles = CssStyleMap.Empty;
         foreach (var declaration in DeclarationParser.Parse(declarations))
-        {
             styles = DeclarationUpdater.UpdateStyles(styles, declaration, logger);
-        }
 
         return styles;
     }
+
+    [GeneratedRegex(CssRegexPatterns.ClassRule, RegexOptions.Multiline | RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
 }

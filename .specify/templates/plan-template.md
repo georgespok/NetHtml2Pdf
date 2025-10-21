@@ -36,7 +36,8 @@
 - Prefer managed-only dependencies; native/platform deps require an ADR with rollback plan.
 - Validate inputs with explicit exceptions and parameter names.
 - Emit structured warnings for unsupported features; preserve content when sensible.
-- Use TDD where practical; parameterized tests for multi-scenario logic.
+- Follow incremental TDD: introduce one failing test, implement the minimal passing code, then refactor before adding another test (trivial scaffolding exempt).
+- Tests must exercise observable behavior (rendered output, pagination results, etc.) and MUST NOT rely on reflection. Reflection APIs such as `Activator.CreateInstance`, `Type.GetType`, and `MethodInfo.Invoke` are prohibited in tests.
 - Keep docs/specs/contracts in sync with behavior and supported capabilities.
 
 ## Project Structure

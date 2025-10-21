@@ -3,6 +3,7 @@ using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
 using NetHtml2Pdf.Test.Support;
+using QuestPDF;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;
@@ -68,8 +69,8 @@ public class ListComposerTests(ITestOutputHelper output) : PdfRenderTestBase(out
 
     private static void GenerateDocument(Action<ColumnDescriptor> compose)
     {
-        QuestPDF.Settings.License = LicenseType.Community;
-        QuestPDF.Settings.UseEnvironmentFonts = false;
+        Settings.License = LicenseType.Community;
+        Settings.UseEnvironmentFonts = false;
 
         var document = QuestPDF.Fluent.Document.Create(container =>
         {
@@ -97,8 +98,19 @@ public class ListComposerTests(ITestOutputHelper output) : PdfRenderTestBase(out
 
     private sealed class PassthroughSpacingApplier : IBlockSpacingApplier
     {
-        public IContainer ApplySpacing(IContainer container, CssStyleMap styles) => container;
-        public IContainer ApplyMargin(IContainer container, CssStyleMap styles) => container;
-        public IContainer ApplyBorder(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplySpacing(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
+
+        public IContainer ApplyMargin(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
+
+        public IContainer ApplyBorder(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
     }
 }

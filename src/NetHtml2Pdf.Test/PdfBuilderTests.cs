@@ -1,5 +1,6 @@
-using Moq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser.Interfaces;
@@ -12,11 +13,6 @@ namespace NetHtml2Pdf.Test;
 
 public class PdfBuilderTests : PdfValidationTestBase
 {
-    private readonly Mock<IHtmlParser> _mockParser;
-    private readonly Mock<IPdfRendererFactory> _mockRendererFactory;
-    private readonly Mock<IPdfRenderer> _mockRenderer;
-    private readonly RendererOptions _options;
-
     // Test data constants
     private const string Page1Html = "<h2>Page 1</h2><p>First page content</p>";
     private const string Page2Html = "<h2>Page 2</h2><p>Second page content</p>";
@@ -33,9 +29,19 @@ public class PdfBuilderTests : PdfValidationTestBase
     private const string SimpleFooterHtml = "<p>Footer</p>";
 
     // Dynamic height test constants
-    private const string LargeHeaderHtml = "<div style='height: 200px; background-color: #f0f0f0;'><h1>Large Header</h1><p>This is a large header that should reduce the available page content area</p><p>Additional content to make it taller</p><p>More content to ensure it's large enough</p></div>";
-    private const string LargeFooterHtml = "<div style='height: 150px; background-color: #e0e0e0;'><p>Large Footer</p><p>This is a large footer that should reduce the available page content area</p><p>Additional footer content</p></div>";
-    private const string PageContentHtml = "<h2>Page Content</h2><p>This is the main page content that should be adjusted based on header and footer sizes</p><p>More content to fill the page</p>";
+    private const string LargeHeaderHtml =
+        "<div style='height: 200px; background-color: #f0f0f0;'><h1>Large Header</h1><p>This is a large header that should reduce the available page content area</p><p>Additional content to make it taller</p><p>More content to ensure it's large enough</p></div>";
+
+    private const string LargeFooterHtml =
+        "<div style='height: 150px; background-color: #e0e0e0;'><p>Large Footer</p><p>This is a large footer that should reduce the available page content area</p><p>Additional footer content</p></div>";
+
+    private const string PageContentHtml =
+        "<h2>Page Content</h2><p>This is the main page content that should be adjusted based on header and footer sizes</p><p>More content to fill the page</p>";
+
+    private readonly Mock<IHtmlParser> _mockParser;
+    private readonly Mock<IPdfRenderer> _mockRenderer;
+    private readonly Mock<IPdfRendererFactory> _mockRendererFactory;
+    private readonly RendererOptions _options;
 
     public PdfBuilderTests()
     {
@@ -50,7 +56,8 @@ public class PdfBuilderTests : PdfValidationTestBase
         _mockRenderer.Setup(r => r.Render(It.IsAny<DocumentNode>(), null, null))
             .Returns(StandardPdfBytes);
 
-        _mockRenderer.Setup(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()))
+        _mockRenderer.Setup(r =>
+                r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()))
             .Returns(StandardPdfBytes);
 
         _mockRendererFactory.Setup(f => f.Create(It.IsAny<RendererOptions>())).Returns(_mockRenderer.Object);
@@ -72,7 +79,8 @@ public class PdfBuilderTests : PdfValidationTestBase
     [InlineData(null, typeof(ArgumentNullException), "htmlContent", null)]
     [InlineData("", typeof(ArgumentException), "htmlContent", "cannot be empty")]
     [InlineData("   ", typeof(ArgumentException), "htmlContent", "cannot be empty")]
-    public void AddPage_WithInvalidInput_ThrowsExpectedException(string? input, Type expectedExceptionType, string expectedParamName, string? expectedMessageFragment)
+    public void AddPage_WithInvalidInput_ThrowsExpectedException(string? input, Type expectedExceptionType,
+        string expectedParamName, string? expectedMessageFragment)
     {
         // Arrange
         var builder = CreateBuilder();
@@ -83,15 +91,9 @@ public class PdfBuilderTests : PdfValidationTestBase
         exception.ShouldBeOfType(expectedExceptionType);
 
         // Cast to ArgumentException to access ParamName property
-        if (exception is ArgumentException argException)
-        {
-            argException.ParamName.ShouldBe(expectedParamName);
-        }
+        if (exception is ArgumentException argException) argException.ParamName.ShouldBe(expectedParamName);
 
-        if (expectedMessageFragment != null)
-        {
-            exception.Message.ShouldContain(expectedMessageFragment);
-        }
+        if (expectedMessageFragment != null) exception.Message.ShouldContain(expectedMessageFragment);
     }
 
     [Fact]
@@ -167,21 +169,16 @@ public class PdfBuilderTests : PdfValidationTestBase
     [InlineData(HeaderHtml, null, 4)]
     [InlineData(null, FooterHtml, 4)]
     [InlineData(HeaderHtml, FooterHtml, 5)]
-    public void PdfBuilder_WithHeaderFooter_GeneratesCorrectParserCalls(string? headerHtml, string? footerHtml, int expectedParserCalls)
+    public void PdfBuilder_WithHeaderFooter_GeneratesCorrectParserCalls(string? headerHtml, string? footerHtml,
+        int expectedParserCalls)
     {
         // Arrange
         var builder = CreateBuilder();
 
         // Act - Build PDF with header/footer and multiple pages
-        if (headerHtml != null)
-        {
-            builder = builder.SetHeader(headerHtml);
-        }
+        if (headerHtml != null) builder = builder.SetHeader(headerHtml);
 
-        if (footerHtml != null)
-        {
-            builder = builder.SetFooter(footerHtml);
-        }
+        if (footerHtml != null) builder = builder.SetFooter(footerHtml);
 
         var result = builder
             .AddPage(Page1Html)
@@ -193,15 +190,9 @@ public class PdfBuilderTests : PdfValidationTestBase
         VerifyBasicPdfResult(result);
 
         // Verify parser calls based on configuration
-        if (headerHtml != null)
-        {
-            _mockParser.Verify(p => p.Parse(headerHtml, It.IsAny<ILogger?>()), Times.Once);
-        }
+        if (headerHtml != null) _mockParser.Verify(p => p.Parse(headerHtml, It.IsAny<ILogger?>()), Times.Once);
 
-        if (footerHtml != null)
-        {
-            _mockParser.Verify(p => p.Parse(footerHtml, It.IsAny<ILogger?>()), Times.Once);
-        }
+        if (footerHtml != null) _mockParser.Verify(p => p.Parse(footerHtml, It.IsAny<ILogger?>()), Times.Once);
 
         // Verify all pages were parsed
         _mockParser.Verify(p => p.Parse(Page1Html, It.IsAny<ILogger?>()), Times.Once);
@@ -213,7 +204,6 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Verify renderer calls
         VerifyRendererCalls();
-
     }
 
     [Fact]
@@ -246,7 +236,6 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Verify renderer calls
         VerifyRendererCalls();
-
     }
 
     [Fact]
@@ -273,7 +262,9 @@ public class PdfBuilderTests : PdfValidationTestBase
 
         // Verify both PDFs were generated (renderer called twice)
         _mockRendererFactory.Verify(f => f.Create(It.IsAny<RendererOptions>()), Times.Exactly(2));
-        _mockRenderer.Verify(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()), Times.Exactly(2));
+        _mockRenderer.Verify(
+            r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()),
+            Times.Exactly(2));
 
         // Verify parser was called for both pages
         _mockParser.Verify(p => p.Parse(SimplePageHtml, It.IsAny<ILogger?>()), Times.Once);
@@ -286,14 +277,18 @@ public class PdfBuilderTests : PdfValidationTestBase
         return new PdfBuilder(_mockParser.Object, _mockRendererFactory.Object, _options, GetLogger());
     }
 
-    private IPdfBuilder CreateBuilderWithRealParser() =>
+    private IPdfBuilder CreateBuilderWithRealParser()
+    {
         // Use public constructor that centralizes instantiation and wiring of fallback tracking
-        new PdfBuilder(_options, GetLogger());
+        return new PdfBuilder(_options, GetLogger());
+    }
 
-    private static Microsoft.Extensions.Logging.Abstractions.NullLogger<PdfBuilder> GetLogger() =>
-        Microsoft.Extensions.Logging.Abstractions.NullLogger<PdfBuilder>.Instance;
+    private static NullLogger<PdfBuilder> GetLogger()
+    {
+        return NullLogger<PdfBuilder>.Instance;
+    }
 
-    private void VerifyBasicPdfResult(byte[] result)
+    private static void VerifyBasicPdfResult(byte[] result)
     {
         ValidatePdfBytes(result);
     }
@@ -301,7 +296,9 @@ public class PdfBuilderTests : PdfValidationTestBase
     private void VerifyRendererCalls()
     {
         _mockRendererFactory.Verify(f => f.Create(It.IsAny<RendererOptions>()), Times.Once);
-        _mockRenderer.Verify(r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()), Times.Once);
+        _mockRenderer.Verify(
+            r => r.Render(It.IsAny<IEnumerable<DocumentNode>>(), It.IsAny<DocumentNode?>(), It.IsAny<DocumentNode?>()),
+            Times.Once);
     }
 
     [Fact]
@@ -310,7 +307,8 @@ public class PdfBuilderTests : PdfValidationTestBase
         // Arrange
         var mockLogger = new Mock<ILogger>();
         var pdfBuilder = new PdfBuilder(_options, mockLogger.Object);
-        var htmlWithUnsupportedElements = "<div><video>Unsupported video element</video><canvas>Unsupported canvas element</canvas></div>";
+        var htmlWithUnsupportedElements =
+            "<div><video>Unsupported video element</video><canvas>Unsupported canvas element</canvas></div>";
 
         // Act
         pdfBuilder.AddPage(htmlWithUnsupportedElements);
@@ -356,13 +354,16 @@ public class PdfBuilderTests : PdfValidationTestBase
         fallbackElementsAfterReset.ShouldBeEmpty();
     }
 
-    private static void VerifyWarningLogged(Moq.Mock<Microsoft.Extensions.Logging.ILogger> logger, string expectedFragment) =>
+    private static void VerifyWarningLogged(Mock<ILogger> logger, string expectedFragment)
+    {
         logger.Verify(l => l.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString() != null && v.ToString()!.IndexOf(expectedFragment, StringComparison.OrdinalIgnoreCase) >= 0),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString() != null &&
+                    v.ToString().Contains(expectedFragment, StringComparison.OrdinalIgnoreCase)),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
             Times.AtLeastOnce());
+    }
 }
-

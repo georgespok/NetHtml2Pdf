@@ -1,15 +1,15 @@
-using UglyToad.PdfPig.Content;
 using Shouldly;
+using UglyToad.PdfPig.Content;
 
 namespace NetHtml2Pdf.Test.Support;
 
 /// <summary>
-/// Helper class for validating horizontal positioning of words in PDF documents.
+///     Helper class for validating horizontal positioning of words in PDF documents.
 /// </summary>
 public static class HorizontalPositionValidator
 {
     /// <summary>
-    /// Validates that a word is positioned near the left edge (for zero horizontal margin).
+    ///     Validates that a word is positioned near the left edge (for zero horizontal margin).
     /// </summary>
     public static void ValidateLeftEdgePositioning(Word word, double maxDistanceFromLeft = 50.0)
     {
@@ -19,7 +19,7 @@ public static class HorizontalPositionValidator
     }
 
     /// <summary>
-    /// Logs horizontal positioning information for debugging.
+    ///     Logs horizontal positioning information for debugging.
     /// </summary>
     public static void LogHorizontalPositioning(Word word, Action<string> writeLine)
     {

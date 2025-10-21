@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace NetHtml2Pdf.Layout.Pagination;
 
 internal sealed class PaginatedDocument
@@ -13,9 +10,7 @@ internal sealed class PaginatedDocument
         PageConstraints = constraints ?? throw new ArgumentNullException(nameof(constraints));
         Pages = pages ?? throw new ArgumentNullException(nameof(pages));
         if (pages.Count == 0)
-        {
             throw new ArgumentException("Paginated document must contain at least one page.", nameof(pages));
-        }
 
         Warnings = warnings ?? [];
     }

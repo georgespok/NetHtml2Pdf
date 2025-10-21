@@ -1,17 +1,17 @@
 using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig;
 
 namespace NetHtml2Pdf.Test.Support;
 
 /// <summary>
-/// Helper class for calculating and validating margin gaps in PDF documents.
+///     Helper class for calculating and validating margin gaps in PDF documents.
 /// </summary>
 public static class MarginGapCalculator
 {
     /// <summary>
-    /// Calculates gaps between words in a PDF document.
+    ///     Calculates gaps between words in a PDF document.
     /// </summary>
-    public static MarginGapResult CalculateGaps(List<Word> words, string topWordText, string testWordText, string bottomWordText)
+    public static MarginGapResult CalculateGaps(List<Word> words, string topWordText, string testWordText,
+        string bottomWordText)
     {
         var analyzer = PdfWordParser.FindWords(words, topWordText, testWordText, bottomWordText);
 
@@ -23,7 +23,7 @@ public static class MarginGapCalculator
     }
 
     /// <summary>
-    /// Calculates gaps between three words.
+    ///     Calculates gaps between three words.
     /// </summary>
     public static MarginGapResult CalculateGaps(Word topWord, Word testWord, Word bottomWord)
     {
@@ -49,9 +49,10 @@ public static class MarginGapCalculator
     }
 
     /// <summary>
-    /// Validates that gaps meet the expected margin requirements.
+    ///     Validates that gaps meet the expected margin requirements.
     /// </summary>
-    public static MarginValidationResult ValidateGaps(MarginGapResult gaps, double expectedGapPoints, double tolerance = 2.0)
+    public static MarginValidationResult ValidateGaps(MarginGapResult gaps, double expectedGapPoints,
+        double tolerance = 2.0)
     {
         var minExpectedGap = expectedGapPoints - tolerance;
 
@@ -69,14 +70,17 @@ public static class MarginGapCalculator
     }
 
     /// <summary>
-    /// Converts CSS pixels to PDF points.
-    /// CSS px units are typically 96 DPI, PDF points are 72 DPI.
-    /// So 1px ≈ 0.75 points in PDF coordinates.
+    ///     Converts CSS pixels to PDF points.
+    ///     CSS px units are typically 96 DPI, PDF points are 72 DPI.
+    ///     So 1px ≈ 0.75 points in PDF coordinates.
     /// </summary>
-    public static double ConvertPixelsToPoints(double pixels) => pixels * 0.75;
+    public static double ConvertPixelsToPoints(double pixels)
+    {
+        return pixels * 0.75;
+    }
 
     /// <summary>
-    /// Logs gap analysis for debugging purposes.
+    ///     Logs gap analysis for debugging purposes.
     /// </summary>
     public static void LogGapAnalysis(MarginGapResult gaps, MarginValidationResult validation, Action<string> writeLine)
     {
@@ -85,8 +89,10 @@ public static class MarginGapCalculator
         writeLine($"  Test word top: {gaps.TestWordTop:F1} points, bottom: {gaps.TestWordBottom:F1} points");
         writeLine($"  Bottom word top: {gaps.BottomWordTop:F1} points");
         writeLine("Gaps:");
-        writeLine($"  Gap above Test: {gaps.GapAboveTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
-        writeLine($"  Gap below Test: {gaps.GapBelowTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
+        writeLine(
+            $"  Gap above Test: {gaps.GapAboveTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
+        writeLine(
+            $"  Gap below Test: {gaps.GapBelowTest:F1} points (expected: ~{validation.ExpectedGapPoints} points)");
         writeLine("Validation:");
         writeLine($"  Gap above valid: {validation.GapAboveValid} (min required: {validation.MinExpectedGap})");
         writeLine($"  Gap below valid: {validation.GapBelowValid} (min required: {validation.MinExpectedGap})");
@@ -94,7 +100,7 @@ public static class MarginGapCalculator
 }
 
 /// <summary>
-/// Result of margin gap calculations.
+///     Result of margin gap calculations.
 /// </summary>
 public class MarginGapResult
 {
@@ -107,7 +113,7 @@ public class MarginGapResult
 }
 
 /// <summary>
-/// Result of margin gap validation.
+///     Result of margin gap validation.
 /// </summary>
 public class MarginValidationResult
 {

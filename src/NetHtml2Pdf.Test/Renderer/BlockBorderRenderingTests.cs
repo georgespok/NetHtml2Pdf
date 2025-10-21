@@ -8,12 +8,8 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class BlockBorderRenderingTests : PdfRenderTestBase
+public class BlockBorderRenderingTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    public BlockBorderRenderingTests(ITestOutputHelper output) : base(output)
-    {
-    }
-
     private readonly PdfRenderer _renderer = new();
 
     [Fact]
@@ -42,7 +38,8 @@ public class BlockBorderRenderingTests : PdfRenderTestBase
         contentWord.ShouldNotBeNull("Should find 'Content' word in PDF");
 
         Output.WriteLine("✅ Border rendering is now implemented for block elements!");
-        Output.WriteLine($"Content word position: Top={contentWord.BoundingBox.TopLeft.Y:F1}, Left={contentWord.BoundingBox.TopLeft.X:F1}");
+        Output.WriteLine(
+            $"Content word position: Top={contentWord.BoundingBox.TopLeft.Y:F1}, Left={contentWord.BoundingBox.TopLeft.X:F1}");
     }
 
     [Fact]

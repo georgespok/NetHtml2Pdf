@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NetHtml2Pdf": {
+      "commandName": "Project",
+      "remoteDebugEnabled": false
+    }
+  }
+}

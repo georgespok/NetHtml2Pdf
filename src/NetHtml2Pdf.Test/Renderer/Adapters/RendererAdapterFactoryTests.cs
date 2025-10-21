@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Adapters;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Renderer.Adapters;
 

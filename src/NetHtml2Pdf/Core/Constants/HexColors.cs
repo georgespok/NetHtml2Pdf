@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides standard color constants in hexadecimal format for use throughout the application.
+///     Provides standard color constants in hexadecimal format for use throughout the application.
 /// </summary>
 public static class HexColors
 {

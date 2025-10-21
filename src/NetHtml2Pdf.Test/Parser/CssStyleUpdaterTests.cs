@@ -40,7 +40,8 @@ public class CssStyleUpdaterTests
         styles = _updater.UpdateStyles(styles, new CssDeclaration(propertyName, value));
 
         // Assert
-        var expectedDecoration = value == CssFontValues.Underline ? TextDecorationStyle.Underline : TextDecorationStyle.None;
+        var expectedDecoration =
+            value == CssFontValues.Underline ? TextDecorationStyle.Underline : TextDecorationStyle.None;
         styles.TextDecoration.ShouldBe(expectedDecoration);
     }
 
@@ -48,7 +49,8 @@ public class CssStyleUpdaterTests
     [InlineData(CssProperties.Color, "red", HexColors.Red)]
     [InlineData(CssProperties.BackgroundColor, "yellow", HexColors.Yellow)]
     [InlineData(CssProperties.LineHeight, "1.5", null)]
-    public void Apply_ShouldUpdateColorAndLineHeightProperties(string propertyName, string value, string? expectedNormalizedValue)
+    public void Apply_ShouldUpdateColorAndLineHeightProperties(string propertyName, string value,
+        string? expectedNormalizedValue)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -166,7 +168,8 @@ public class CssStyleUpdaterTests
     [InlineData(CssProperties.Border, "1px solid black", 1.0, CssBorderValues.Solid, HexColors.Black)]
     [InlineData(CssProperties.Border, "2px dashed red", 2.0, CssBorderValues.Dashed, HexColors.Red)]
     [InlineData(CssProperties.Border, "3px dotted blue", 3.0, CssBorderValues.Dotted, HexColors.Blue)]
-    public void Apply_ShouldUpdateBorderProperty(string propertyName, string value, double expectedWidth, string expectedStyle, string expectedColor)
+    public void Apply_ShouldUpdateBorderProperty(string propertyName, string value, double expectedWidth,
+        string expectedStyle, string expectedColor)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -244,9 +247,11 @@ public class CssStyleUpdaterTests
 
         // Act
         styles = _updater.UpdateStyles(styles, new CssDeclaration(CssProperties.Border, "2px solid black"));
-        styles = _updater.UpdateStyles(styles, new CssDeclaration(CssProperties.BorderCollapse, CssTableValues.Collapse));
+        styles = _updater.UpdateStyles(styles,
+            new CssDeclaration(CssProperties.BorderCollapse, CssTableValues.Collapse));
         styles = _updater.UpdateStyles(styles, new CssDeclaration(CssProperties.TextAlign, CssAlignmentValues.Center));
-        styles = _updater.UpdateStyles(styles, new CssDeclaration(CssProperties.VerticalAlign, CssAlignmentValues.Middle));
+        styles = _updater.UpdateStyles(styles,
+            new CssDeclaration(CssProperties.VerticalAlign, CssAlignmentValues.Middle));
 
         // Assert
         styles.Border.Width.ShouldBe(2.0);
@@ -262,7 +267,8 @@ public class CssStyleUpdaterTests
     [InlineData("10px 20px", 10, 20, 10, 20)] // 2 values: vertical/horizontal
     [InlineData("10px 20px 30px", 10, 20, 30, 20)] // 3 values: top/horizontal/bottom
     [InlineData("10px 20px 30px 40px", 10, 20, 30, 40)] // 4 values: TRBL
-    public void ParseMarginShorthand_ValidValues_ExpandsCorrectly(string marginValue, double expectedTop, double expectedRight, double expectedBottom, double expectedLeft)
+    public void ParseMarginShorthand_ValidValues_ExpandsCorrectly(string marginValue, double expectedTop,
+        double expectedRight, double expectedBottom, double expectedLeft)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -288,19 +294,21 @@ public class CssStyleUpdaterTests
 
         // Assert - invalid values should result in empty spacing (entire declaration rejected)
         // According to CSS contract: invalid values should fall back to default/inherited values
-        styles.Margin.Top.ShouldBeNull();      // fallback to null (default)
-        styles.Margin.Right.ShouldBeNull();    // fallback to null (default)
-        styles.Margin.Bottom.ShouldBeNull();   // fallback to null (default)
-        styles.Margin.Left.ShouldBeNull();     // fallback to null (default)
+        styles.Margin.Top.ShouldBeNull(); // fallback to null (default)
+        styles.Margin.Right.ShouldBeNull(); // fallback to null (default)
+        styles.Margin.Bottom.ShouldBeNull(); // fallback to null (default)
+        styles.Margin.Left.ShouldBeNull(); // fallback to null (default)
     }
 
     [Theory]
     [InlineData("1px solid red", 1.0, CssBorderValues.Solid, HexColors.Red)] // Standard order: width, style, color
     [InlineData("solid 2px #000", 2.0, CssBorderValues.Solid, HexColors.Black)] // Alternate order: style, width, color
-    [InlineData("thick dashed blue", 5.0, CssBorderValues.Dashed, HexColors.Blue)] // Width keywords: thick, medium, thin
+    [InlineData("thick dashed blue", 5.0, CssBorderValues.Dashed,
+        HexColors.Blue)] // Width keywords: thick, medium, thin
     [InlineData("medium dotted green", 3.0, CssBorderValues.Dotted, HexColors.Green)] // Additional keyword test
     [InlineData("thin solid black", 1.0, CssBorderValues.Solid, HexColors.Black)] // Additional keyword test
-    public void ParseBorderShorthand_ValidValues_ParsesCorrectly(string borderValue, double expectedWidth, string expectedStyle, string expectedColor)
+    public void ParseBorderShorthand_ValidValues_ParsesCorrectly(string borderValue, double expectedWidth,
+        string expectedStyle, string expectedColor)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -321,7 +329,8 @@ public class CssStyleUpdaterTests
     [InlineData("solid", null, CssBorderValues.Solid, null)] // Style only
     [InlineData("5px", 5.0, null, null)] // Width only
     [InlineData("blue", null, null, HexColors.Blue)] // Color only
-    public void ParseBorderShorthand_PartialComponents_ParsesCorrectly(string borderValue, double? expectedWidth, string? expectedStyle, string? expectedColor)
+    public void ParseBorderShorthand_PartialComponents_ParsesCorrectly(string borderValue, double? expectedWidth,
+        string? expectedStyle, string? expectedColor)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -338,7 +347,8 @@ public class CssStyleUpdaterTests
     [Theory]
     [InlineData("none", null, "none", null)] // Explicit none
     [InlineData("hidden", null, "hidden", null)] // Hidden border
-    public void ParseBorderShorthand_NonVisibleStyles_ParsesCorrectly(string borderValue, double? expectedWidth, string? expectedStyle, string? expectedColor)
+    public void ParseBorderShorthand_NonVisibleStyles_ParsesCorrectly(string borderValue, double? expectedWidth,
+        string? expectedStyle, string? expectedColor)
     {
         // Arrange
         var styles = CssStyleMap.Empty;
@@ -381,9 +391,9 @@ public class CssStyleUpdaterTests
         styles = _updater.UpdateStyles(styles, new CssDeclaration(CssProperties.Border, "1px solid black"));
 
         // Assert - Shorthand should override all longhand values (AC-002a.9)
-        styles.Border.Width.ShouldBe(1.0);      // Shorthand overrides longhand
-        styles.Border.Style.ShouldBe(CssBorderValues.Solid);  // Shorthand overrides longhand
-        styles.Border.Color.ShouldBe(HexColors.Black);        // Shorthand overrides longhand
+        styles.Border.Width.ShouldBe(1.0); // Shorthand overrides longhand
+        styles.Border.Style.ShouldBe(CssBorderValues.Solid); // Shorthand overrides longhand
+        styles.Border.Color.ShouldBe(HexColors.Black); // Shorthand overrides longhand
         styles.Border.IsVisible.ShouldBeTrue();
     }
 
@@ -399,9 +409,9 @@ public class CssStyleUpdaterTests
         styles = _updater.UpdateStyles(styles, new CssDeclaration("border-width", "5px"));
 
         // Assert - Current implementation preserves shorthand values since individual properties not supported
-        styles.Border.Width.ShouldBe(1.0);      // Shorthand value preserved (longhand ignored)
-        styles.Border.Style.ShouldBe(CssBorderValues.Solid);  // Shorthand value preserved
-        styles.Border.Color.ShouldBe(HexColors.Black);        // Shorthand value preserved
+        styles.Border.Width.ShouldBe(1.0); // Shorthand value preserved (longhand ignored)
+        styles.Border.Style.ShouldBe(CssBorderValues.Solid); // Shorthand value preserved
+        styles.Border.Color.ShouldBe(HexColors.Black); // Shorthand value preserved
         styles.Border.IsVisible.ShouldBeTrue();
 
         // TODO: Implement individual border properties (border-width, border-style, border-color)
@@ -489,7 +499,8 @@ public class CssStyleUpdaterTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Unsupported CSS display value 'flex' encountered")),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString()!.Contains("Unsupported CSS display value 'flex' encountered")),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -528,7 +539,8 @@ public class CssStyleUpdaterTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains($"Unsupported CSS display value '{displayValue}' encountered")),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString()!.Contains($"Unsupported CSS display value '{displayValue}' encountered")),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -601,7 +613,7 @@ public class CssStyleUpdaterTests
 
         // Act & Assert
         // Should not throw an exception when logger is null
-        var updatedStyles = _updater.UpdateStyles(styles, declaration, null);
+        var updatedStyles = _updater.UpdateStyles(styles, declaration);
         updatedStyles.Display.ShouldBe(CssDisplay.Default);
         updatedStyles.DisplaySet.ShouldBeTrue();
     }
@@ -678,7 +690,8 @@ public class CssStyleUpdaterTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Unsupported CSS display value 'flex' encountered")),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString()!.Contains("Unsupported CSS display value 'flex' encountered")),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

@@ -7,7 +7,8 @@ using QuestPDF.Infrastructure;
 
 namespace NetHtml2Pdf.Renderer;
 
-internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacingApplier spacingApplier) : ITableComposer
+internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacingApplier spacingApplier)
+    : ITableComposer
 {
     public void Compose(ColumnDescriptor column, DocumentNode tableNode)
     {
@@ -19,29 +20,20 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
             var allRows = new List<DocumentNode>();
 
             foreach (var section in tableNode.Children)
-            {
                 if (section.NodeType == DocumentNodeType.TableHead ||
                     section.NodeType == DocumentNodeType.TableBody)
                 {
                     foreach (var row in section.Children)
-                    {
                         if (row.NodeType == DocumentNodeType.TableRow)
-                        {
                             allRows.Add(row);
-                        }
-                    }
                 }
                 else if (section.NodeType == DocumentNodeType.TableRow)
                 {
                     // Handle direct tr children (without tbody/thead wrapper)
                     allRows.Add(section);
                 }
-            }
 
-            if (allRows.Count == 0)
-            {
-                return;
-            }
+            if (allRows.Count == 0) return;
 
             // Determine column count from first row
             var firstRow = allRows[0];
@@ -50,27 +42,15 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
             // Define columns with equal width (call ColumnsDefinition only once)
             table.ColumnsDefinition(columns =>
             {
-                for (int i = 0; i < columnCount; i++)
-                {
-                    columns.RelativeColumn();
-                }
+                for (var i = 0; i < columnCount; i++) columns.RelativeColumn();
             });
 
             // Render header rows and data rows
             foreach (var row in allRows)
-            {
-                foreach (var cell in row.Children)
-                {
-                    if (cell.NodeType == DocumentNodeType.TableHeaderCell ||
-                        cell.NodeType == DocumentNodeType.TableCell)
-                    {
-                        table.Cell().Element(cellContainer =>
-                        {
-                            RenderCell(cellContainer, cell);
-                        });
-                    }
-                }
-            }
+            foreach (var cell in row.Children)
+                if (cell.NodeType == DocumentNodeType.TableHeaderCell ||
+                    cell.NodeType == DocumentNodeType.TableCell)
+                    table.Cell().Element(cellContainer => { RenderCell(cellContainer, cell); });
         });
     }
 
@@ -87,9 +67,7 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
 
         // Apply background color
         if (!string.IsNullOrEmpty(cell.Styles.BackgroundColor))
-        {
             borderedContainer = borderedContainer.Background(cell.Styles.BackgroundColor);
-        }
 
         // Apply cell spacing (padding) inside the border
         var paddedContainer = spacingApplier.ApplySpacing(borderedContainer, cell.Styles);
@@ -105,11 +83,7 @@ internal sealed class TableComposer(IInlineComposer inlineComposer, IBlockSpacin
                 ? InlineStyleState.Empty.WithBold()
                 : InlineStyleState.Empty;
 
-            foreach (var child in cell.Children)
-            {
-                inlineComposer.Compose(text, child, initialState);
-            }
+            foreach (var child in cell.Children) inlineComposer.Compose(text, child, initialState);
         });
     }
 }
-

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
@@ -6,11 +5,14 @@ using NetHtml2Pdf.Layout.Model;
 using NetHtml2Pdf.Layout.Pagination;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Adapters;
-using Xunit;
+using NetHtml2Pdf.Test.Support;
+using Shouldly;
+using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
-public class PdfRendererAdapterTests
+[Collection("PdfRendering")]
+public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     [Fact]
     public void FlagEnabled_ShouldInvokePaginationAndAdapterPath()
@@ -36,16 +38,6 @@ public class PdfRendererAdapterTests
         Assert.Equal(adapter.GeneratedBytes, result);
     }
 
-    private static DocumentNode CreateDocument()
-    {
-        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
-        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Hello"));
-
-        var root = new DocumentNode(DocumentNodeType.Div);
-        root.AddChild(paragraph);
-        return root;
-    }
-
     [Fact]
     public void PaginationException_BubblesThroughRenderer()
     {
@@ -57,7 +49,8 @@ public class PdfRendererAdapterTests
             FontPath = string.Empty
         };
 
-        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: new RecordingAdapter(), paginationService: new ThrowingPaginationService());
+        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: new RecordingAdapter(),
+            paginationService: new ThrowingPaginationService());
         var document = CreateDocument();
 
         Assert.Throws<PaginationException>(() => renderer.Render(document));
@@ -106,16 +99,85 @@ public class PdfRendererAdapterTests
 
         Assert.True(adapter.CallSequence.Count >= 3);
         Assert.Equal("BeginDocument", adapter.CallSequence[0]);
-        for (var i = 1; i < adapter.CallSequence.Count - 1; i++)
-        {
-            Assert.Equal("Render", adapter.CallSequence[i]);
-        }
+        for (var i = 1; i < adapter.CallSequence.Count - 1; i++) Assert.Equal("Render", adapter.CallSequence[i]);
         Assert.Equal("EndDocument", adapter.CallSequence[^1]);
+    }
+
+    [Fact]
+    public void InlineBlockFlag_ShouldControlAdapterRouting()
+    {
+        var enabledOptions = new RendererOptions
+        {
+            EnablePagination = true,
+            EnableQuestPdfAdapter = true,
+            EnableNewLayoutForTextBlocks = true,
+            EnableInlineBlockContext = true,
+            FontPath = string.Empty
+        };
+
+        var enabledPagination = new CapturingPaginationService();
+        var enabledAdapter = new RecordingAdapter();
+        var enabledRenderer = new PdfRenderer(enabledOptions, rendererAdapter: enabledAdapter,
+            paginationService: enabledPagination);
+
+        enabledRenderer.Render(CreateInlineBlockDocument());
+
+        enabledAdapter.BeginCalled.ShouldBeTrue();
+        enabledPagination.LastFragments.ShouldNotBeNull();
+        enabledPagination.LastFragments!
+            .Any(fragment => fragment.Diagnostics.ContextName == "InlineBlockFormattingContext")
+            .ShouldBeTrue(
+                "Inline-block fragments should originate from InlineBlockFormattingContext when flag enabled.");
+
+        var disabledOptions = new RendererOptions
+        {
+            EnablePagination = true,
+            EnableQuestPdfAdapter = true,
+            EnableNewLayoutForTextBlocks = true,
+            EnableInlineBlockContext = false,
+            FontPath = string.Empty
+        };
+
+        var disabledAdapter = new RecordingAdapter();
+        var disabledRenderer = new PdfRenderer(disabledOptions, rendererAdapter: disabledAdapter,
+            paginationService: new CapturingPaginationService());
+
+        disabledRenderer.Render(CreateInlineBlockDocument());
+
+        disabledAdapter.BeginCalled.ShouldBeFalse(
+            "Renderer should fall back to legacy pipeline when inline-block context is disabled.");
+    }
+
+    private static DocumentNode CreateDocument()
+    {
+        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
+        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Hello"));
+
+        var root = new DocumentNode(DocumentNodeType.Div);
+        root.AddChild(paragraph);
+        return root;
+    }
+
+    private static DocumentNode CreateInlineBlockDocument()
+    {
+        var inlineBlock = new DocumentNode(DocumentNodeType.Span,
+            styles: CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock));
+        inlineBlock.AddChild(new DocumentNode(DocumentNodeType.Text, "Badge"));
+
+        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
+        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, "Prefix "));
+        paragraph.AddChild(inlineBlock);
+        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, " Suffix"));
+
+        var root = new DocumentNode(DocumentNodeType.Div);
+        root.AddChild(paragraph);
+        return root;
     }
 
     private sealed class ThrowingPaginationService : PaginationService
     {
-        public override PaginatedDocument Paginate(IReadOnlyList<LayoutFragment> fragments, PageConstraints pageConstraints, PaginationOptions options, ILogger? logger = null)
+        public override PaginatedDocument Paginate(IReadOnlyList<LayoutFragment> fragments,
+            PageConstraints pageConstraints, PaginationOptions options, ILogger? logger = null)
         {
             throw new PaginationException("Pagination failure");
         }
@@ -125,7 +187,8 @@ public class PdfRendererAdapterTests
     {
         public IReadOnlyList<LayoutFragment>? LastFragments { get; private set; }
 
-        public override PaginatedDocument Paginate(IReadOnlyList<LayoutFragment> fragments, PageConstraints pageConstraints, PaginationOptions options, ILogger? logger = null)
+        public override PaginatedDocument Paginate(IReadOnlyList<LayoutFragment> fragments,
+            PageConstraints pageConstraints, PaginationOptions options, ILogger? logger = null)
         {
             LastFragments = fragments;
             return base.Paginate(fragments, pageConstraints, options, logger);

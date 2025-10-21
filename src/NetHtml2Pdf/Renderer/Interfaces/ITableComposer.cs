@@ -7,4 +7,3 @@ internal interface ITableComposer
 {
     void Compose(ColumnDescriptor column, DocumentNode tableNode);
 }
-

@@ -4,13 +4,19 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Support;
 
 /// <summary>
-/// A logger implementation that writes to xUnit's ITestOutputHelper for debugging purposes.
+///     A logger implementation that writes to xUnit's ITestOutputHelper for debugging purposes.
 /// </summary>
 public class TestOutputLogger<T>(ITestOutputHelper output) : ILogger<T>
 {
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullDisposable.Instance;
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull
+    {
+        return NullDisposable.Instance;
+    }
 
-    public bool IsEnabled(LogLevel logLevel) => true;
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
 
     public void Log<TState>(
         LogLevel logLevel,
@@ -29,6 +35,9 @@ public class TestOutputLogger<T>(ITestOutputHelper output) : ILogger<T>
     private class NullDisposable : IDisposable
     {
         public static readonly NullDisposable Instance = new();
-        public void Dispose() { }
+
+        public void Dispose()
+        {
+        }
     }
 }

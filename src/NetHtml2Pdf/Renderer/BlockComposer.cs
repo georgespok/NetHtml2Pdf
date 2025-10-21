@@ -30,22 +30,26 @@ internal sealed class BlockComposer(
         DocumentNodeType.Heading6
     ];
 
-    private static readonly LayoutConstraints DefaultConstraints = new(0, 600, 0, 1000, 1000, allowBreaks: true);
+    private static readonly LayoutConstraints DefaultConstraints = new(0, 600, 0, 1000, 1000, true);
+
+    private readonly IDisplayClassifier _displayClassifier =
+        displayClassifier ?? new DisplayClassifier(options: options);
+
+    private readonly ILayoutEngine? _layoutEngine = layoutEngine;
 
     private readonly RendererOptions _options = options ?? RendererOptions.CreateDefault();
-    private readonly ILayoutEngine? _layoutEngine = layoutEngine;
-    private readonly IDisplayClassifier _displayClassifier = displayClassifier ?? new DisplayClassifier(options: options);
-    public void Compose(ColumnDescriptor column, DocumentNode node) => ComposeInternal(column, node, bypassLayout: false);
+
+    public void Compose(ColumnDescriptor column, DocumentNode node)
+    {
+        ComposeInternal(column, node, false);
+    }
 
     private void ComposeInternal(ColumnDescriptor column, DocumentNode node, bool bypassLayout)
     {
         ArgumentNullException.ThrowIfNull(column);
         ArgumentNullException.ThrowIfNull(node);
 
-        if (!bypassLayout && ShouldUseLayoutEngine(node) && TryComposeWithLayoutEngine(column, node))
-        {
-            return;
-        }
+        if (!bypassLayout && ShouldUseLayoutEngine(node) && TryComposeWithLayoutEngine(column, node)) return;
 
         ComposeLegacy(column, node);
     }
@@ -73,6 +77,7 @@ internal sealed class BlockComposer(
                     ComposeAsBlock(column, node);
                     return;
                 }
+
                 break;
         }
 
@@ -92,17 +97,14 @@ internal sealed class BlockComposer(
             case DocumentNodeType.Heading5:
             case DocumentNodeType.Heading6:
                 var headingSize = RenderingHelpers.GetHeadingFontSize(node.NodeType);
-                if (headingSize.HasValue)
-                {
-                    ComposeHeading(column, node, fontSize: headingSize.Value, bold: true);
-                }
+                if (headingSize.HasValue) ComposeHeading(column, node, headingSize.Value, true);
                 break;
             case DocumentNodeType.List:
             case DocumentNodeType.UnorderedList:
-                listComposer.Compose(column, node, ordered: false, Compose);
+                listComposer.Compose(column, node, false, Compose);
                 break;
             case DocumentNodeType.OrderedList:
-                listComposer.Compose(column, node, ordered: true, Compose);
+                listComposer.Compose(column, node, true, Compose);
                 break;
             case DocumentNodeType.Table:
                 tableComposer.Compose(column, node);
@@ -116,42 +118,30 @@ internal sealed class BlockComposer(
     private bool ShouldUseLayoutEngine(DocumentNode node)
     {
         return _layoutEngine is not null
-            && _options.EnableNewLayoutForTextBlocks
-            && LayoutEligibleNodeTypes.Contains(node.NodeType);
+               && _options.EnableNewLayoutForTextBlocks
+               && LayoutEligibleNodeTypes.Contains(node.NodeType);
     }
 
     private bool TryComposeWithLayoutEngine(ColumnDescriptor column, DocumentNode node)
     {
-        if (_layoutEngine is null)
-        {
-            return false;
-        }
+        if (_layoutEngine is null) return false;
 
+        var engineOptions = LayoutEngineOptions.FromRendererOptions(_options);
         var engineResult = _layoutEngine.Layout(
             node,
             DefaultConstraints,
-            new LayoutEngineOptions
-            {
-                EnableNewLayoutForTextBlocks = _options.EnableNewLayoutForTextBlocks,
-                EnableDiagnostics = _options.EnableLayoutDiagnostics
-            });
+            engineOptions);
 
-        if (engineResult.IsDisabled || engineResult.IsFallback || !engineResult.IsSuccess)
-        {
-            return false;
-        }
+        if (engineResult.IsDisabled || engineResult.IsFallback || !engineResult.IsSuccess) return false;
 
-        foreach (var fragment in engineResult.Fragments)
-        {
-            ComposeFragment(column, fragment);
-        }
+        foreach (var fragment in engineResult.Fragments) ComposeFragment(column, fragment);
 
         return true;
     }
 
     private void ComposeFragment(ColumnDescriptor column, LayoutFragment fragment)
     {
-        ComposeInternal(column, fragment.Node, bypassLayout: true);
+        ComposeInternal(column, fragment.Node, true);
     }
 
     private void ComposeParagraph(ColumnDescriptor column, DocumentNode node)
@@ -165,10 +155,7 @@ internal sealed class BlockComposer(
 
         spacedContainer.Text(text =>
         {
-            foreach (var child in node.Children)
-            {
-                inlineComposer.Compose(text, child, InlineStyleState.Empty);
-            }
+            foreach (var child in node.Children) inlineComposer.Compose(text, child, InlineStyleState.Empty);
         });
     }
 
@@ -183,15 +170,9 @@ internal sealed class BlockComposer(
         spacedContainer.Text(text =>
         {
             var headingStyle = InlineStyleState.Empty.WithFontSize(fontSize);
-            if (bold)
-            {
-                headingStyle = headingStyle.WithBold();
-            }
+            if (bold) headingStyle = headingStyle.WithBold();
 
-            foreach (var child in node.Children)
-            {
-                inlineComposer.Compose(text, child, headingStyle);
-            }
+            foreach (var child in node.Children) inlineComposer.Compose(text, child, headingStyle);
         });
     }
 
@@ -234,25 +215,16 @@ internal sealed class BlockComposer(
 
         // If node has children, compose them as block elements
         if (node.Children.Count > 0)
-        {
             spacedContainer.Column(containerColumn =>
             {
-                foreach (var child in node.Children)
-                {
-                    Compose(containerColumn, child);
-                }
+                foreach (var child in node.Children) Compose(containerColumn, child);
             });
-        }
         else if (!string.IsNullOrEmpty(node.TextContent))
-        {
             // If it's a leaf node with text content, render as text
             spacedContainer.Text(text => inlineComposer.Compose(text, node, InlineStyleState.Empty));
-        }
         else
-        {
             // Empty block element - just render the container for spacing
             spacedContainer.Shrink();
-        }
     }
 
 
@@ -269,30 +241,21 @@ internal sealed class BlockComposer(
             spacingApplier);
 
         if (node.Children.Count > 0)
-        {
             // If node has children, compose them as inline elements within this block
             spacedContainer.Text(text =>
             {
-                foreach (var child in node.Children)
-                {
-                    inlineComposer.Compose(text, child, InlineStyleState.Empty);
-                }
+                foreach (var child in node.Children) inlineComposer.Compose(text, child, InlineStyleState.Empty);
             });
-        }
         else if (!string.IsNullOrEmpty(node.TextContent))
-        {
             // If it's a leaf node with text content, render as text
             spacedContainer.Text(text =>
             {
                 var textStyle = InlineStyleState.Empty.ApplyCss(node.Styles);
                 inlineComposer.Compose(text, node, textStyle);
             });
-        }
         else
-        {
             // Empty inline-block element - render as empty space
             spacedContainer.Text(text => text.Span(" "));
-        }
     }
 
     private void RenderChildrenWithInlineFlow(IContainer container, DocumentNode node)
@@ -301,12 +264,11 @@ internal sealed class BlockComposer(
             return;
 
         // Group children into lines based on their display properties
-        var lines = GroupChildrenIntoLines(node.Children.ToList());
+        var lines = GroupChildrenIntoLines([.. node.Children]);
 
         container.Column(column =>
         {
             foreach (var line in lines)
-            {
                 if (line.Count == 1 && IsBlockElement(line[0]))
                 {
                     // Single block element - render as block
@@ -319,10 +281,8 @@ internal sealed class BlockComposer(
                     column.Item().Row(row =>
                     {
                         foreach (var child in line)
-                        {
                             row.RelativeItem().Element(childContainer =>
                                 ComposeInlineBlockAsSideBySideBlock(childContainer, child));
-                        }
                     });
                 }
                 else
@@ -330,17 +290,10 @@ internal sealed class BlockComposer(
                     // Mixed content or other cases - render each element as a separate block
                     // Validate margin collapsing for adjacent block elements
                     var blockElements = line.Where(IsBlockElement).ToList();
-                    if (blockElements.Count > 1)
-                    {
-                        ValidateMarginCollapsing(blockElements);
-                    }
+                    if (blockElements.Count > 1) ValidateMarginCollapsing(blockElements);
 
-                    foreach (var child in line)
-                    {
-                        Compose(column, child);
-                    }
+                    foreach (var child in line) Compose(column, child);
                 }
-            }
         });
     }
 
@@ -363,6 +316,7 @@ internal sealed class BlockComposer(
                     lines.Add(currentLine);
                     currentLine = [];
                 }
+
                 lines.Add([child]);
             }
             else if (IsInlineElement(child) || IsInlineBlockElement(child))
@@ -378,15 +332,13 @@ internal sealed class BlockComposer(
                     lines.Add(currentLine);
                     currentLine = [];
                 }
+
                 lines.Add([child]);
             }
         }
 
         // Add remaining elements in current line
-        if (currentLine.Count > 0)
-        {
-            lines.Add(currentLine);
-        }
+        if (currentLine.Count > 0) lines.Add(currentLine);
 
         return lines;
     }
@@ -403,22 +355,20 @@ internal sealed class BlockComposer(
 
         // Default block elements (only if display is not explicitly set)
         return node.NodeType is DocumentNodeType.Div or DocumentNodeType.Paragraph or
-               DocumentNodeType.Heading1 or DocumentNodeType.Heading2 or
-               DocumentNodeType.Heading3 or DocumentNodeType.Heading4 or
-               DocumentNodeType.Heading5 or DocumentNodeType.Heading6 or
-               DocumentNodeType.List or DocumentNodeType.Table or
-               DocumentNodeType.Section;
+            DocumentNodeType.Heading1 or DocumentNodeType.Heading2 or
+            DocumentNodeType.Heading3 or DocumentNodeType.Heading4 or
+            DocumentNodeType.Heading5 or DocumentNodeType.Heading6 or
+            DocumentNodeType.List or DocumentNodeType.Table or
+            DocumentNodeType.Section;
     }
 
     private static bool IsInlineElement(DocumentNode node)
     {
         // Check if element is explicitly set to inline
         if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.Default)
-        {
             // Default inline elements
             return node.NodeType is DocumentNodeType.Span or DocumentNodeType.Strong or
-                   DocumentNodeType.Italic or DocumentNodeType.Text;
-        }
+                DocumentNodeType.Italic or DocumentNodeType.Text;
 
         return false;
     }
@@ -446,10 +396,7 @@ internal sealed class BlockComposer(
 
         if (node.Children.Count > 0)
         {
-            foreach (var child in node.Children)
-            {
-                inlineComposer.Compose(text, child, InlineStyleState.Empty);
-            }
+            foreach (var child in node.Children) inlineComposer.Compose(text, child, InlineStyleState.Empty);
         }
         else if (!string.IsNullOrEmpty(node.TextContent))
         {
@@ -465,7 +412,7 @@ internal sealed class BlockComposer(
     #region Block Width Rules and Margin Collapsing Validation
 
     /// <summary>
-    /// Validates block element sizing constraints according to CSS box model rules.
+    ///     Validates block element sizing constraints according to CSS box model rules.
     /// </summary>
     private static void ValidateBlockSizing(DocumentNode node)
     {
@@ -483,7 +430,7 @@ internal sealed class BlockComposer(
     }
 
     /// <summary>
-    /// Validates width constraints for block elements.
+    ///     Validates width constraints for block elements.
     /// </summary>
     private static void ValidateWidthConstraints(DocumentNode node)
     {
@@ -502,7 +449,7 @@ internal sealed class BlockComposer(
     }
 
     /// <summary>
-    /// Validates margin constraints for block elements.
+    ///     Validates margin constraints for block elements.
     /// </summary>
     private static void ValidateMarginConstraints(DocumentNode node)
     {
@@ -513,20 +460,24 @@ internal sealed class BlockComposer(
 
         // Validate margin values are non-negative
         if (margin.Top.HasValue && margin.Top.Value < 0)
-            throw new InvalidOperationException($"Negative top margin ({margin.Top.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative top margin ({margin.Top.Value}) is not allowed for block element {node.NodeType}");
 
         if (margin.Right.HasValue && margin.Right.Value < 0)
-            throw new InvalidOperationException($"Negative right margin ({margin.Right.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative right margin ({margin.Right.Value}) is not allowed for block element {node.NodeType}");
 
         if (margin.Bottom.HasValue && margin.Bottom.Value < 0)
-            throw new InvalidOperationException($"Negative bottom margin ({margin.Bottom.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative bottom margin ({margin.Bottom.Value}) is not allowed for block element {node.NodeType}");
 
         if (margin.Left.HasValue && margin.Left.Value < 0)
-            throw new InvalidOperationException($"Negative left margin ({margin.Left.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative left margin ({margin.Left.Value}) is not allowed for block element {node.NodeType}");
     }
 
     /// <summary>
-    /// Validates padding constraints for block elements.
+    ///     Validates padding constraints for block elements.
     /// </summary>
     private static void ValidatePaddingConstraints(DocumentNode node)
     {
@@ -537,21 +488,25 @@ internal sealed class BlockComposer(
 
         // Validate padding values are non-negative
         if (padding.Top.HasValue && padding.Top.Value < 0)
-            throw new InvalidOperationException($"Negative top padding ({padding.Top.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative top padding ({padding.Top.Value}) is not allowed for block element {node.NodeType}");
 
         if (padding.Right.HasValue && padding.Right.Value < 0)
-            throw new InvalidOperationException($"Negative right padding ({padding.Right.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative right padding ({padding.Right.Value}) is not allowed for block element {node.NodeType}");
 
         if (padding.Bottom.HasValue && padding.Bottom.Value < 0)
-            throw new InvalidOperationException($"Negative bottom padding ({padding.Bottom.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative bottom padding ({padding.Bottom.Value}) is not allowed for block element {node.NodeType}");
 
         if (padding.Left.HasValue && padding.Left.Value < 0)
-            throw new InvalidOperationException($"Negative left padding ({padding.Left.Value}) is not allowed for block element {node.NodeType}");
+            throw new InvalidOperationException(
+                $"Negative left padding ({padding.Left.Value}) is not allowed for block element {node.NodeType}");
     }
 
     /// <summary>
-    /// Validates margin collapsing behavior for adjacent block elements.
-    /// This method should be called when composing multiple block elements in sequence.
+    ///     Validates margin collapsing behavior for adjacent block elements.
+    ///     This method should be called when composing multiple block elements in sequence.
     /// </summary>
     private static void ValidateMarginCollapsing(List<DocumentNode> blockElements)
     {
@@ -563,7 +518,7 @@ internal sealed class BlockComposer(
         // 2. Margins don't collapse if there's a border, padding, or inline content between them
         // 3. Negative margins collapse differently (subtract from positive margins)
 
-        for (int i = 0; i < blockElements.Count - 1; i++)
+        for (var i = 0; i < blockElements.Count - 1; i++)
         {
             var currentElement = blockElements[i];
             var nextElement = blockElements[i + 1];
@@ -573,7 +528,7 @@ internal sealed class BlockComposer(
     }
 
     /// <summary>
-    /// Validates margin collapsing between two adjacent block elements.
+    ///     Validates margin collapsing between two adjacent block elements.
     /// </summary>
     private static void ValidateAdjacentMarginCollapsing(DocumentNode firstElement, DocumentNode secondElement)
     {
@@ -586,7 +541,7 @@ internal sealed class BlockComposer(
         // 2. No border, padding, or inline content between them
         // 3. Both margins are vertical (top/bottom)
 
-        bool shouldCollapse = ShouldMarginsCollapse(firstElement, secondElement);
+        var shouldCollapse = ShouldMarginsCollapse(firstElement, secondElement);
 
         if (shouldCollapse)
         {
@@ -600,7 +555,7 @@ internal sealed class BlockComposer(
     }
 
     /// <summary>
-    /// Determines if margins between two elements should collapse according to CSS rules.
+    ///     Determines if margins between two elements should collapse according to CSS rules.
     /// </summary>
     private static bool ShouldMarginsCollapse(DocumentNode firstElement, DocumentNode secondElement)
     {
@@ -623,7 +578,7 @@ internal sealed class BlockComposer(
     }
 
     /// <summary>
-    /// Calculates the collapsed margin value according to CSS rules.
+    ///     Calculates the collapsed margin value according to CSS rules.
     /// </summary>
     private static double CalculateCollapsedMargin(double firstMargin, double secondMargin)
     {
@@ -633,49 +588,37 @@ internal sealed class BlockComposer(
         // 3. If both margins are negative, collapse to the more negative value
 
         if (firstMargin >= 0 && secondMargin >= 0)
-        {
             // Both positive - collapse to larger value
             return Math.Max(firstMargin, secondMargin);
-        }
-        else if (firstMargin < 0 && secondMargin < 0)
-        {
+
+        if (firstMargin < 0 && secondMargin < 0)
             // Both negative - collapse to more negative value
             return Math.Min(firstMargin, secondMargin);
-        }
-        else
-        {
-            // One positive, one negative - subtract negative from positive
-            return firstMargin + secondMargin;
-        }
+
+        // One positive, one negative - subtract negative from positive
+        return firstMargin + secondMargin;
     }
 
     /// <summary>
-    /// Validates that the collapsed margin calculation is correct.
+    ///     Validates that the collapsed margin calculation is correct.
     /// </summary>
-    private static void ValidateCollapsedMarginCalculation(double firstMargin, double secondMargin, double collapsedMargin)
+    private static void ValidateCollapsedMarginCalculation(double firstMargin, double secondMargin,
+        double collapsedMargin)
     {
         // Validate the calculation logic
         double expectedCollapsed;
 
         if (firstMargin >= 0 && secondMargin >= 0)
-        {
             expectedCollapsed = Math.Max(firstMargin, secondMargin);
-        }
         else if (firstMargin < 0 && secondMargin < 0)
-        {
             expectedCollapsed = Math.Min(firstMargin, secondMargin);
-        }
         else
-        {
             expectedCollapsed = firstMargin + secondMargin;
-        }
 
         if (Math.Abs(collapsedMargin - expectedCollapsed) > 0.001)
-        {
             throw new InvalidOperationException(
                 $"Margin collapsing calculation error: expected {expectedCollapsed}, got {collapsedMargin} " +
                 $"(first: {firstMargin}, second: {secondMargin})");
-        }
     }
 
     #endregion

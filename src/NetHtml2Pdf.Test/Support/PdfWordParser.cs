@@ -6,14 +6,14 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 namespace NetHtml2Pdf.Test.Support;
 
 /// <summary>
-/// Parses PDF documents to extract structured word information including text and styling attributes.
+///     Parses PDF documents to extract structured word information including text and styling attributes.
 /// </summary>
 public class PdfWordParser
 {
     private static readonly string DefaultBlackColor = HexColors.Black;
 
     /// <summary>
-    /// Extracts all words from a PDF with their styling attributes (all pages).
+    ///     Extracts all words from a PDF with their styling attributes (all pages).
     /// </summary>
     public static IReadOnlyList<PdfWord> GetStyledWords(byte[] pdfBytes)
     {
@@ -24,26 +24,21 @@ public class PdfWordParser
 
         var words = new List<PdfWord>();
         foreach (var page in pdf.GetPages())
+        foreach (var word in page.GetWords(NearestNeighbourWordExtractor.Instance))
         {
-            foreach (var word in page.GetWords(NearestNeighbourWordExtractor.Instance))
-            {
-                var pdfWord = ExtractWordInfo(word);
-                if (!string.IsNullOrWhiteSpace(pdfWord.Text))
-                {
-                    words.Add(pdfWord);
-                }
-            }
+            var pdfWord = ExtractWordInfo(word);
+            if (!string.IsNullOrWhiteSpace(pdfWord.Text)) words.Add(pdfWord);
         }
 
         return words;
     }
 
     /// <summary>
-    /// Extracts all words from a PDF as text strings (all pages).
+    ///     Extracts all words from a PDF as text strings (all pages).
     /// </summary>
     public static string[] GetTextWords(byte[] pdfBytes)
     {
-        return GetStyledWords(pdfBytes).Select(w => w.Text).ToArray();
+        return [.. GetStyledWords(pdfBytes).Select(w => w.Text)];
     }
 
     private static PdfWord ExtractWordInfo(Word word)
@@ -57,7 +52,10 @@ public class PdfWordParser
         return new PdfWord(cleanText, hexColor, isBold, isItalic, fontSize);
     }
 
-    private static string CleanWordText(string text) => new(text.Where(ch => ch != 0).ToArray());
+    private static string CleanWordText(string text)
+    {
+        return new string([.. text.Where(ch => ch != 0)]);
+    }
 
     private static string GetMostCommonTextColor(Word word)
     {
@@ -84,9 +82,9 @@ public class PdfWordParser
         try
         {
             return TryGetColorHex(letter.FillColor)
-                ?? TryGetColorHex(letter.Color)
-                ?? TryGetColorHex(letter.StrokeColor)
-                ?? DefaultBlackColor;
+                   ?? TryGetColorHex(letter.Color)
+                   ?? TryGetColorHex(letter.StrokeColor)
+                   ?? DefaultBlackColor;
         }
         catch
         {
@@ -108,10 +106,7 @@ public class PdfWordParser
         try
         {
             var colorString = color.ToString();
-            if (colorString?.StartsWith("RGB:") != true)
-            {
-                return DefaultBlackColor;
-            }
+            if (colorString?.StartsWith("RGB:") != true) return DefaultBlackColor;
 
             return ParseRgbString(colorString);
         }
@@ -132,9 +127,7 @@ public class PdfWordParser
         if (!double.TryParse(values[0].Trim(), out var r) ||
             !double.TryParse(values[1].Trim(), out var g) ||
             !double.TryParse(values[2].Trim(), out var b))
-        {
             return DefaultBlackColor;
-        }
 
         var red = (int)(r * 255);
         var green = (int)(g * 255);
@@ -143,14 +136,18 @@ public class PdfWordParser
         return $"#{red:X2}{green:X2}{blue:X2}";
     }
 
-    private static bool IsBold(Word word) =>
-        word.Letters.Any(l => l.FontName?.Contains("Bold") == true ||
-                              l.FontName?.Contains("Black") == true ||
-                              l.FontName?.Contains("Heavy") == true);
+    private static bool IsBold(Word word)
+    {
+        return word.Letters.Any(l => l.FontName?.Contains("Bold") == true ||
+                                     l.FontName?.Contains("Black") == true ||
+                                     l.FontName?.Contains("Heavy") == true);
+    }
 
-    private static bool IsItalic(Word word) =>
-        word.Letters.Any(l => l.FontName?.Contains("Italic") == true ||
-                              l.FontName?.Contains("Oblique") == true);
+    private static bool IsItalic(Word word)
+    {
+        return word.Letters.Any(l => l.FontName?.Contains("Italic") == true ||
+                                     l.FontName?.Contains("Oblique") == true);
+    }
 
     private static double GetAverageFontSize(Word word)
     {
@@ -166,8 +163,8 @@ public class PdfWordParser
     }
 
     /// <summary>
-    /// Extracts raw PdfPig Word objects from a PDF document (first page only).
-    /// Used for positioning analysis and gap calculations.
+    ///     Extracts raw PdfPig Word objects from a PDF document (first page only).
+    ///     Used for positioning analysis and gap calculations.
     /// </summary>
     public static List<Word> GetRawWords(byte[] pdfBytes)
     {
@@ -176,11 +173,11 @@ public class PdfWordParser
         using var stream = new MemoryStream(pdfBytes);
         using var pdf = PdfDocument.Open(stream);
         var page = pdf.GetPage(1);
-        return page.GetWords().ToList();
+        return [.. page.GetWords()];
     }
 
     /// <summary>
-    /// Finds a word by partial text match (case-insensitive).
+    ///     Finds a word by partial text match (case-insensitive).
     /// </summary>
     public static Word? FindWordByText(List<Word> words, string searchText)
     {
@@ -189,7 +186,7 @@ public class PdfWordParser
     }
 
     /// <summary>
-    /// Finds multiple words by their partial text matches.
+    ///     Finds multiple words by their partial text matches.
     /// </summary>
     public static WordLookupResult FindWords(List<Word> words, params string[] searchTexts)
     {
@@ -205,7 +202,7 @@ public class PdfWordParser
     }
 
     /// <summary>
-    /// Logs word positions for debugging purposes.
+    ///     Logs word positions for debugging purposes.
     /// </summary>
     public static void LogWordPositions(List<Word> words, Action<string> writeLine)
     {
@@ -213,14 +210,14 @@ public class PdfWordParser
         foreach (var word in words)
         {
             var cleanText = CleanWordText(word.Text);
-            writeLine($"  Original: '{word.Text}' -> Clean: '{cleanText}' at position ({word.BoundingBox.TopLeft.X:F1}, {word.BoundingBox.TopLeft.Y:F1})");
+            writeLine(
+                $"  Original: '{word.Text}' -> Clean: '{cleanText}' at position ({word.BoundingBox.TopLeft.X:F1}, {word.BoundingBox.TopLeft.Y:F1})");
         }
     }
-
 }
 
 /// <summary>
-/// Represents a word extracted from a PDF with its styling attributes.
+///     Represents a word extracted from a PDF with its styling attributes.
 /// </summary>
 public record PdfWord(
     string Text,
@@ -230,25 +227,19 @@ public record PdfWord(
     double FontSize);
 
 /// <summary>
-/// Result of word lookup operations.
+///     Result of word lookup operations.
 /// </summary>
-public class WordLookupResult
+public class WordLookupResult(Dictionary<string, Word?> words)
 {
-    private readonly Dictionary<string, Word?> _words;
-
-    public WordLookupResult(Dictionary<string, Word?> words)
-    {
-        _words = words;
-    }
+    private readonly Dictionary<string, Word?> _words = words;
 
     /// <summary>
-    /// Gets a word by its search text, throwing if not found.
+    ///     Gets a word by its search text, throwing if not found.
     /// </summary>
     public Word GetWord(string searchText)
     {
-        var word = _words.GetValueOrDefault(searchText);
-        if (word == null)
-            throw new InvalidOperationException($"Word '{searchText}' should be found in the PDF");
+        var word = _words.GetValueOrDefault(searchText) ??
+                   throw new InvalidOperationException($"Word '{searchText}' should be found in the PDF");
         return word;
     }
 }

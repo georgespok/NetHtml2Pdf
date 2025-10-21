@@ -9,7 +9,7 @@ NetHtml2Pdf is a modern, extensible HTML-to-PDF conversion library that supports
 ## Defaults
 - Font: Inter (bundled) for deterministic rendering
 - CSS subset:
-  - Inline and class-based: color, font-size, font-weight, font-style, text-align, margin, padding, width/height (blocks only), background-color, border width/color (per-side supported), **display** (block, inline-block, none)
+  - Inline and class-based: color, font-size, font-weight, font-style, text-align, margin, padding, width/height (blocks only), background-color, border width/color (per-side supported), **display** (block, inline-block, none, flex [preview])
   - Precedence: multiple classes merge in attribute order (later wins) → inline overrides class-derived values
   - Unsupported properties are ignored with structured warnings
 - Unsupported elements: ignored, inner text preserved
@@ -88,7 +88,7 @@ await File.WriteAllBytesAsync("output.pdf", pdfBytes);
   - `display: block` - Elements start on new lines and take full width
   - `display: inline-block` - Elements flow side-by-side when space allows, wrap as whole units
   - `display: none` - Elements are completely hidden and occupy no space
-  - Unsupported display values (flex, grid, etc.) emit warnings and fallback to HTML semantic defaults
+  - Unsupported display values (grid, etc.) emit warnings and fallback to HTML semantic defaults
 
 Example (auto-pagination with header and footer):
 
@@ -142,7 +142,7 @@ NetHtml2Pdf supports CSS `display` properties and an opt-in pagination pipeline 
 
 ### CSS Properties
 - **Text**: color, font-size, font-weight, font-style, text-align
-- **Layout**: margin, padding, width/height (blocks only), **display** (block, inline-block, none)
+- **Layout**: margin, padding, width/height (blocks only), **display** (block, inline-block, none, flex [preview])
 - **Visual**: background-color, border width/color (per-side supported)
 - **Precedence**: Multiple classes merge in attribute order (later wins) → inline overrides class-derived values
 

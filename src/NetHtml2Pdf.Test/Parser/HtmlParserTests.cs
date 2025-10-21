@@ -23,11 +23,11 @@ public class HtmlParserTests
     public void ParagraphsWithInlineStyles_ProducesInlineNodes()
     {
         const string html = """
-            <div class="body">
-              <p>Welcome to <strong>NetHtml2Pdf</strong>.</p>
-              <p><span class="em" style="font-style: italic;">Iteration 1</span> handles <br />line breaks.</p>
-            </div>
-            """;
+                            <div class="body">
+                              <p>Welcome to <strong>NetHtml2Pdf</strong>.</p>
+                              <p><span class="em" style="font-style: italic;">Iteration 1</span> handles <br />line breaks.</p>
+                            </div>
+                            """;
 
         var document = _parser.Parse(html);
 
@@ -54,26 +54,26 @@ public class HtmlParserTests
     public void ListsAndSection_CreateListStructureWithStyles()
     {
         const string html = """
-            <html>
-              <head>
-                <style>
-                  .article { margin-top: 12px; padding-left: 16px; }
-                  .bullet { text-decoration: underline; }
-                </style>
-              </head>
-              <body>
-                <section class="article">
-                  <ul class="article">
-                    <li>First</li>
-                    <li class="bullet">Second</li>
-                  </ul>
-                  <ol style="margin-top: 8px">
-                    <li>One</li>
-                  </ol>
-                </section>
-              </body>
-            </html>
-            """;
+                            <html>
+                              <head>
+                                <style>
+                                  .article { margin-top: 12px; padding-left: 16px; }
+                                  .bullet { text-decoration: underline; }
+                                </style>
+                              </head>
+                              <body>
+                                <section class="article">
+                                  <ul class="article">
+                                    <li>First</li>
+                                    <li class="bullet">Second</li>
+                                  </ul>
+                                  <ol style="margin-top: 8px">
+                                    <li>One</li>
+                                  </ol>
+                                </section>
+                              </body>
+                            </html>
+                            """;
 
         var document = _parser.Parse(html);
 
@@ -169,17 +169,17 @@ public class HtmlParserTests
     {
         // Arrange
         var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .highlight { color: blue; background-color: {{HexColors.Yellow}}; }
-                </style>
-            </head>
-            <body>
-                <p class="highlight">Styled text</p>
-            </body>
-            </html>
-            """;
+                     <html>
+                     <head>
+                         <style>
+                             .highlight { color: blue; background-color: {{HexColors.Yellow}}; }
+                         </style>
+                     </head>
+                     <body>
+                         <p class="highlight">Styled text</p>
+                     </body>
+                     </html>
+                     """;
 
         // Act
         var document = _parser.Parse(html);
@@ -235,16 +235,16 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <ul>
-                <li>Parent 1
-                    <ul>
-                        <li>Child 1.1</li>
-                        <li>Child 1.2</li>
-                    </ul>
-                </li>
-                <li>Parent 2</li>
-            </ul>
-            """;
+                            <ul>
+                                <li>Parent 1
+                                    <ul>
+                                        <li>Child 1.1</li>
+                                        <li>Child 1.2</li>
+                                    </ul>
+                                </li>
+                                <li>Parent 2</li>
+                            </ul>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -269,11 +269,11 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <ul style="margin-left: 20px;">
-                <li style="font-weight: bold;">Bold item</li>
-                <li>Normal item</li>
-            </ul>
-            """;
+                            <ul style="margin-left: 20px;">
+                                <li style="font-weight: bold;">Bold item</li>
+                                <li>Normal item</li>
+                            </ul>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -312,12 +312,12 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <section>
-                <div>
-                    <p>Nested content</p>
-                </div>
-            </section>
-            """;
+                            <section>
+                                <div>
+                                    <p>Nested content</p>
+                                </div>
+                            </section>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -339,10 +339,10 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <div style="margin: 10px; padding: 20px;">
-                <p>Styled content</p>
-            </div>
-            """;
+                            <div style="margin: 10px; padding: 20px;">
+                                <p>Styled content</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -364,12 +364,12 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <body>
-                <div>First</div>
-                <section>Second</section>
-                <div>Third</div>
-            </body>
-            """;
+                            <body>
+                                <div>First</div>
+                                <section>Second</section>
+                                <div>Third</div>
+                            </body>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -475,21 +475,21 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <table>
-                <thead>
-                    <tr>
-                        <th>Header 1</th>
-                        <th>Header 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Data 1</td>
-                        <td>Data 2</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Header 1</th>
+                                        <th>Header 2</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Data 1</td>
+                                        <td>Data 2</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -527,14 +527,14 @@ public class HtmlParserTests
     {
         // Arrange
         var html = $"""
-            <table style="margin: 10px;">
-                <tbody>
-                    <tr>
-                        <td style="background-color: {HexColors.LightGray}; padding: 5px;">Styled Cell</td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+                    <table style="margin: 10px;">
+                        <tbody>
+                            <tr>
+                                <td style="background-color: {HexColors.LightGray}; padding: 5px;">Styled Cell</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    """;
 
         // Act
         var document = _parser.Parse(html);
@@ -555,32 +555,32 @@ public class HtmlParserTests
     {
         // Arrange
         var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .styled-table { margin: 20px; padding: 10px; }
-                    .header-cell { background-color: {{HexColors.LightGray}}; font-weight: bold; }
-                    .data-cell { color: {{HexColors.DarkGray}}; }
-                </style>
-            </head>
-            <body>
-                <table class="styled-table">
-                    <thead>
-                        <tr>
-                            <th class="header-cell">Name</th>
-                            <th class="header-cell">Age</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="data-cell">John Doe</td>
-                            <td class="data-cell">25</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+                     <html>
+                     <head>
+                         <style>
+                             .styled-table { margin: 20px; padding: 10px; }
+                             .header-cell { background-color: {{HexColors.LightGray}}; font-weight: bold; }
+                             .data-cell { color: {{HexColors.DarkGray}}; }
+                         </style>
+                     </head>
+                     <body>
+                         <table class="styled-table">
+                             <thead>
+                                 <tr>
+                                     <th class="header-cell">Name</th>
+                                     <th class="header-cell">Age</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                                 <tr>
+                                     <td class="data-cell">John Doe</td>
+                                     <td class="data-cell">25</td>
+                                 </tr>
+                             </tbody>
+                         </table>
+                     </body>
+                     </html>
+                     """;
 
         // Act
         var document = _parser.Parse(html);
@@ -607,14 +607,14 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <table>
-                <tr>
-                    <td>Filled</td>
-                    <td></td>
-                    <td>Also Filled</td>
-                </tr>
-            </table>
-            """;
+                            <table>
+                                <tr>
+                                    <td>Filled</td>
+                                    <td></td>
+                                    <td>Also Filled</td>
+                                </tr>
+                            </table>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -638,13 +638,13 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <table>
-                <tr>
-                    <td>Cell 1</td>
-                    <td>Cell 2</td>
-                </tr>
-            </table>
-            """;
+                            <table>
+                                <tr>
+                                    <td>Cell 1</td>
+                                    <td>Cell 2</td>
+                                </tr>
+                            </table>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -664,16 +664,16 @@ public class HtmlParserTests
     {
         // Arrange
         const string html = """
-            <table>
-                <tbody>
-                    <tr>
-                        <td>Simple Text</td>
-                        <td><strong>Bold Text</strong></td>
-                        <td><span>Span Text</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            """;
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td>Simple Text</td>
+                                        <td><strong>Bold Text</strong></td>
+                                        <td><span>Span Text</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -703,35 +703,35 @@ public class HtmlParserTests
     {
         // Arrange
         var html = $$"""
-            <html>
-            <head>
-                <style>
-                    .bordered-table { border: 2px solid black; border-collapse: collapse; }
-                    .header-cell { text-align: center; vertical-align: middle; background-color: {{HexColors.LightGray}}; }
-                    .data-cell { text-align: left; vertical-align: top; }
-                    .right-aligned { text-align: right; }
-                </style>
-            </head>
-            <body>
-                <table class="bordered-table">
-                    <thead>
-                        <tr>
-                            <th class="header-cell">Name</th>
-                            <th class="header-cell">Age</th>
-                            <th class="header-cell">City</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="data-cell">John Doe</td>
-                            <td class="data-cell right-aligned">25</td>
-                            <td class="data-cell">New York</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-            </html>
-            """;
+                     <html>
+                     <head>
+                         <style>
+                             .bordered-table { border: 2px solid black; border-collapse: collapse; }
+                             .header-cell { text-align: center; vertical-align: middle; background-color: {{HexColors.LightGray}}; }
+                             .data-cell { text-align: left; vertical-align: top; }
+                             .right-aligned { text-align: right; }
+                         </style>
+                     </head>
+                     <body>
+                         <table class="bordered-table">
+                             <thead>
+                                 <tr>
+                                     <th class="header-cell">Name</th>
+                                     <th class="header-cell">Age</th>
+                                     <th class="header-cell">City</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                                 <tr>
+                                     <td class="data-cell">John Doe</td>
+                                     <td class="data-cell right-aligned">25</td>
+                                     <td class="data-cell">New York</td>
+                                 </tr>
+                             </tbody>
+                         </table>
+                     </body>
+                     </html>
+                     """;
 
         // Act
         var document = _parser.Parse(html);
@@ -768,10 +768,10 @@ public class HtmlParserTests
     {
         // Arrange - Test margin: 10px 0 (vertical: 10px, horizontal: 0)
         const string html = """
-            <div style="margin: 10px 0;">
-                <p>Content with vertical and horizontal margin</p>
-            </div>
-            """;
+                            <div style="margin: 10px 0;">
+                                <p>Content with vertical and horizontal margin</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -790,10 +790,10 @@ public class HtmlParserTests
     {
         // Arrange - Test border shorthand with all components (width, style, color)
         const string html = """
-            <div style="border: 2px solid red;">
-                <p>Content with full border shorthand</p>
-            </div>
-            """;
+                            <div style="border: 2px solid red;">
+                                <p>Content with full border shorthand</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -811,10 +811,10 @@ public class HtmlParserTests
     {
         // Arrange - Test border shorthand with components in alternate order
         const string html = """
-            <div style="border: dashed 3px blue;">
-                <p>Content with alternate order border shorthand</p>
-            </div>
-            """;
+                            <div style="border: dashed 3px blue;">
+                                <p>Content with alternate order border shorthand</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -832,10 +832,10 @@ public class HtmlParserTests
     {
         // Arrange - Test border shorthand with only some components
         const string html = """
-            <div style="border: 1px solid;">
-                <p>Content with partial border shorthand (width + style only)</p>
-            </div>
-            """;
+                            <div style="border: 1px solid;">
+                                <p>Content with partial border shorthand (width + style only)</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -853,10 +853,10 @@ public class HtmlParserTests
     {
         // Arrange - Test invalid border shorthand that should be rejected
         const string html = """
-            <div style="border: 99px rainbow magic;">
-                <p>Content with invalid border shorthand</p>
-            </div>
-            """;
+                            <div style="border: 99px rainbow magic;">
+                                <p>Content with invalid border shorthand</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -913,6 +913,4 @@ public class HtmlParserTests
         container.Children[0].Styles.Display.ShouldBe(CssDisplay.InlineBlock);
         container.Children[1].Styles.Display.ShouldBe(CssDisplay.InlineBlock);
     }
-
-
 }

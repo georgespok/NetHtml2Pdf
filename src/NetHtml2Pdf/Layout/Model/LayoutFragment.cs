@@ -4,31 +4,20 @@ using NetHtml2Pdf.Core.Enums;
 namespace NetHtml2Pdf.Layout.Model;
 
 /// <summary>
-/// Represents a measured fragment of layout output.
+///     Represents a measured fragment of layout output.
 /// </summary>
-internal sealed class LayoutFragment
+internal sealed class LayoutFragment(
+    LayoutFragmentKind kind,
+    LayoutBox box,
+    float width,
+    float height,
+    float? baseline,
+    IReadOnlyList<LayoutFragment> children,
+    LayoutDiagnostics diagnostics)
 {
-    public LayoutFragment(
-        LayoutFragmentKind kind,
-        LayoutBox box,
-        float width,
-        float height,
-        float? baseline,
-        IReadOnlyList<LayoutFragment> children,
-        LayoutDiagnostics diagnostics)
-    {
-        Kind = kind;
-        Box = box ?? throw new ArgumentNullException(nameof(box));
-        Width = width;
-        Height = height;
-        Baseline = baseline;
-        Children = children ?? [];
-        Diagnostics = diagnostics;
-    }
+    public LayoutFragmentKind Kind { get; } = kind;
 
-    public LayoutFragmentKind Kind { get; }
-
-    public LayoutBox Box { get; }
+    public LayoutBox Box { get; } = box ?? throw new ArgumentNullException(nameof(box));
 
     public DocumentNode Node => Box.Node;
 
@@ -36,22 +25,24 @@ internal sealed class LayoutFragment
 
     public string NodePath => Box.NodePath;
 
-    public float Width { get; }
+    public float Width { get; } = width;
 
-    public float Height { get; }
+    public float Height { get; } = height;
 
-    public float? Baseline { get; }
+    public float? Baseline { get; } = baseline;
 
-    public IReadOnlyList<LayoutFragment> Children { get; }
+    public IReadOnlyList<LayoutFragment> Children { get; } = children ?? [];
 
-    public LayoutDiagnostics Diagnostics { get; }
+    public LayoutDiagnostics Diagnostics { get; } = diagnostics;
 
-    public static LayoutFragment CreateBlock(LayoutBox box, float width, float height, IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
+    public static LayoutFragment CreateBlock(LayoutBox box, float width, float height,
+        IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
     {
-        return new LayoutFragment(LayoutFragmentKind.Block, box, width, height, baseline: null, children, diagnostics);
+        return new LayoutFragment(LayoutFragmentKind.Block, box, width, height, null, children, diagnostics);
     }
 
-    public static LayoutFragment CreateInline(LayoutBox box, float width, float height, float? baseline, IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
+    public static LayoutFragment CreateInline(LayoutBox box, float width, float height, float? baseline,
+        IReadOnlyList<LayoutFragment> children, LayoutDiagnostics diagnostics)
     {
         return new LayoutFragment(LayoutFragmentKind.Inline, box, width, height, baseline, children, diagnostics);
     }

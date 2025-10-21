@@ -1,19 +1,22 @@
-using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
+using NetHtml2Pdf.Layout.FormattingContexts;
 using NetHtml2Pdf.Layout.Model;
 
 namespace NetHtml2Pdf.Layout.Contexts;
 
 /// <summary>
-/// Implements block layout for paragraphs and headings.
+///     Implements block layout for paragraphs and headings.
 /// </summary>
-internal sealed class BlockFormattingContext
+internal sealed class BlockFormattingContext(IInlineFormattingContext inlineFormattingContext)
 {
-    private readonly IInlineFormattingContext _inlineFormattingContext;
+    private readonly IInlineFormattingContext _inlineFormattingContext =
+        inlineFormattingContext ?? throw new ArgumentNullException(nameof(inlineFormattingContext));
 
-    public BlockFormattingContext(IInlineFormattingContext inlineFormattingContext)
+    private InlineBlockFormattingContext? _inlineBlockFormattingContext;
+
+    public void SetInlineBlockContext(InlineBlockFormattingContext? inlineBlockFormattingContext)
     {
-        _inlineFormattingContext = inlineFormattingContext ?? throw new ArgumentNullException(nameof(inlineFormattingContext));
+        _inlineBlockFormattingContext = inlineBlockFormattingContext;
     }
 
     public LayoutFragment Layout(LayoutBox box, LayoutConstraints constraints)
@@ -23,15 +26,15 @@ internal sealed class BlockFormattingContext
         var childFragments = new List<LayoutFragment>();
         foreach (var child in box.Children)
         {
-            if (child.Display == DisplayClass.None)
-            {
-                continue;
-            }
+            if (child.Display == DisplayClass.None) continue;
 
-            LayoutFragment fragment = child.Display switch
+            var fragment = child.Display switch
             {
                 DisplayClass.Block => Layout(child, constraints.ForBlockChild()),
                 DisplayClass.Inline => _inlineFormattingContext.Layout(child, constraints.ForInlineChild()),
+                DisplayClass.InlineBlock when _inlineBlockFormattingContext is not null =>
+                    _inlineBlockFormattingContext.Layout(child, constraints.ForInlineChild()),
+                DisplayClass.InlineBlock => _inlineFormattingContext.Layout(child, constraints.ForInlineChild()),
                 _ => CreateFallbackInlineFragment(child, constraints)
             };
 
@@ -40,13 +43,8 @@ internal sealed class BlockFormattingContext
 
         var height = Math.Max(constraints.BlockMin, childFragments.Sum(fragment => fragment.Height));
         if (height <= 0 && childFragments.Count > 0)
-        {
             height = Math.Max(constraints.BlockMin, 16f * childFragments.Count);
-        }
-        else if (height <= 0)
-        {
-            height = Math.Max(constraints.BlockMin, 16f);
-        }
+        else if (height <= 0) height = Math.Max(constraints.BlockMin, 16f);
 
         var diagnostics = new LayoutDiagnostics(
             "BlockFormattingContext",
@@ -65,6 +63,6 @@ internal sealed class BlockFormattingContext
             constraints.InlineMax,
             0);
 
-        return LayoutFragment.CreateInline(child, constraints.InlineMax, 0, baseline: null, [], diagnostics);
+        return LayoutFragment.CreateInline(child, constraints.InlineMax, 0, null, [], diagnostics);
     }
 }

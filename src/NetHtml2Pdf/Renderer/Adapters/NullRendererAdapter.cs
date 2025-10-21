@@ -1,10 +1,9 @@
-using System;
 using NetHtml2Pdf.Layout.Pagination;
 
 namespace NetHtml2Pdf.Renderer.Adapters;
 
 /// <summary>
-/// Placeholder adapter used when the adapter pipeline is disabled.
+///     Placeholder adapter used when the adapter pipeline is disabled.
 /// </summary>
 internal sealed class NullRendererAdapter : IRendererAdapter
 {

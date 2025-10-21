@@ -1,6 +1,6 @@
-using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 using NetHtml2Pdf.Parser;
 using Shouldly;
+using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 
 namespace NetHtml2Pdf.Test.Parser;
 
@@ -13,18 +13,18 @@ public class CssClassStyleExtractorTests
     public void Extract_ShouldMergeClassDeclarationsAcrossBlocks()
     {
         const string html = """
-            <html>
-              <head>
-                <style>
-                  .title { font-weight: bold; }
-                </style>
-                <style>
-                  .title { margin-top: 10px; }
-                  .body { padding: 4px 8px; }
-                </style>
-              </head>
-            </html>
-            """;
+                            <html>
+                              <head>
+                                <style>
+                                  .title { font-weight: bold; }
+                                </style>
+                                <style>
+                                  .title { margin-top: 10px; }
+                                  .body { padding: 4px 8px; }
+                                </style>
+                              </head>
+                            </html>
+                            """;
 
         var document = new AngleSharpHtmlParser().ParseDocument(html);
         var extractor = new CssClassStyleExtractor(_declarationParser, _styleUpdater);

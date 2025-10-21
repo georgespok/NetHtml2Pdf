@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides HTML tag name constants for use throughout the application.
+///     Provides HTML tag name constants for use throughout the application.
 /// </summary>
 public static class HtmlTagNames
 {

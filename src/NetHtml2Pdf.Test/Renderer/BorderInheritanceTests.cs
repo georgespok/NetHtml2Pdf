@@ -8,12 +8,8 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class BorderInheritanceTests : PdfRenderTestBase
+public class BorderInheritanceTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    public BorderInheritanceTests(ITestOutputHelper output) : base(output)
-    {
-    }
-
     private readonly PdfRenderer _renderer = new();
 
     [Fact]

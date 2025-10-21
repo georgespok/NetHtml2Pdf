@@ -9,7 +9,7 @@ public class InlineFlowEngineContractTests
 {
     // Note: These are contract tests that define the expected behavior of InlineFlowLayoutEngine
     // The actual InlineFlowLayoutEngine implementation will be created in T010
-    
+
     [Fact]
     public void ProcessInlineContent_TextNode_EmitsTextWithStyle()
     {
@@ -114,7 +114,8 @@ public class InlineFlowEngineContractTests
     public void ProcessInlineContent_InlineBlockNode_UsesSimplifiedPath()
     {
         // Arrange
-        var inlineBlock = new DocumentNode(DocumentNodeType.Span, styles: CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock));
+        var inlineBlock = new DocumentNode(DocumentNodeType.Span,
+            styles: CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock));
         inlineBlock.AddChild(new DocumentNode(DocumentNodeType.Text, "Inline block content"));
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
@@ -133,12 +134,12 @@ public class InlineFlowEngineContractTests
         // Arrange
         var parentStyle = InlineStyleState.Empty.WithFontSize(16);
         var nodeStyles = CssStyleMap.Empty
-            .WithBold(true)
+            .WithBold()
             .WithFontStyle(FontStyle.Italic)
             .WithTextDecoration(TextDecorationStyle.Underline)
             .WithColor("#FF0000")
             .WithBackgroundColor("#FFFF00");
-        
+
         var text = new DocumentNode(DocumentNodeType.Text, "Styled text", nodeStyles);
         var textDescriptor = new TestTextDescriptor();
 
@@ -147,7 +148,8 @@ public class InlineFlowEngineContractTests
 
         // Assert
         textDescriptor.Spans.ShouldHaveSingleItem();
-        textDescriptor.Spans[0].ShouldBe("Span:Styled text Bold Italic Underline FontSize:16 Color:#FF0000 BackgroundColor:#FFFF00");
+        textDescriptor.Spans[0]
+            .ShouldBe("Span:Styled text Bold Italic Underline FontSize:16 Color:#FF0000 BackgroundColor:#FFFF00");
     }
 
     [Fact]
@@ -159,7 +161,7 @@ public class InlineFlowEngineContractTests
         var text = new DocumentNode(DocumentNodeType.Text, "Nested text");
         inner.AddChild(text);
         outer.AddChild(inner);
-        
+
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
 
@@ -175,7 +177,7 @@ public class InlineFlowEngineContractTests
     public void ProcessInlineContent_DisplayNone_SkipsRendering()
     {
         // Arrange
-        var node = new DocumentNode(DocumentNodeType.Text, "Hidden text", 
+        var node = new DocumentNode(DocumentNodeType.Text, "Hidden text",
             CssStyleMap.Empty.WithDisplay(CssDisplay.None));
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
@@ -194,10 +196,10 @@ public class InlineFlowEngineContractTests
         // Arrange
         var parent = new DocumentNode(DocumentNodeType.Span);
         parent.AddChild(new DocumentNode(DocumentNodeType.Text, "Visible text"));
-        parent.AddChild(new DocumentNode(DocumentNodeType.Text, "Hidden text", 
+        parent.AddChild(new DocumentNode(DocumentNodeType.Text, "Hidden text",
             CssStyleMap.Empty.WithDisplay(CssDisplay.None)));
         parent.AddChild(new DocumentNode(DocumentNodeType.Text, "Another visible"));
-        
+
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
 
@@ -224,14 +226,14 @@ public class InlineFlowEngineContractTests
         var text2 = new DocumentNode(DocumentNodeType.Text, "italic ");
         var br = new DocumentNode(DocumentNodeType.LineBreak);
         var text3 = new DocumentNode(DocumentNodeType.Text, "New line");
-        
+
         italic.AddChild(text2);
         strong.AddChild(text1);
         strong.AddChild(italic);
         root.AddChild(strong);
         root.AddChild(br);
         root.AddChild(text3);
-        
+
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
 
@@ -251,9 +253,10 @@ public class InlineFlowEngineContractTests
     public void ProcessInlineContent_SimplifiedInlineBlockChecks_PreservesCurrentBehavior()
     {
         // Arrange - Test that inline-block validation remains simplified
-        var inlineBlock = new DocumentNode(DocumentNodeType.Span, styles: CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock));
+        var inlineBlock = new DocumentNode(DocumentNodeType.Span,
+            styles: CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock));
         inlineBlock.AddChild(new DocumentNode(DocumentNodeType.Text, "Content"));
-        
+
         var style = InlineStyleState.Empty;
         var textDescriptor = new TestTextDescriptor();
 
@@ -268,7 +271,8 @@ public class InlineFlowEngineContractTests
 
     // Helper methods that simulate the InlineFlowLayoutEngine behavior
     // These will be replaced by actual InlineFlowLayoutEngine implementation in T010
-    private static void ProcessInlineContent(TestTextDescriptor textDescriptor, DocumentNode node, InlineStyleState style)
+    private static void ProcessInlineContent(TestTextDescriptor textDescriptor, DocumentNode node,
+        InlineStyleState style)
     {
         // Skip rendering for nodes with display:none
         if (node.Styles.DisplaySet && node.Styles.Display == CssDisplay.None)
@@ -299,41 +303,36 @@ public class InlineFlowEngineContractTests
                         continue;
                     ProcessInlineContent(textDescriptor, child, currentStyle);
                 }
+
                 break;
             case DocumentNodeType.Strong:
             case DocumentNodeType.Bold:
                 var boldStyle = currentStyle.WithBold();
                 if (node.Children.Count > 0)
-                {
                     foreach (var child in node.Children)
                     {
                         if (child.Styles.DisplaySet && child.Styles.Display == CssDisplay.None)
                             continue;
                         ProcessInlineContent(textDescriptor, child, boldStyle);
                     }
-                }
                 else if (!string.IsNullOrEmpty(node.TextContent))
-                {
                     // If no children but has text content, process as text with bold style
                     ProcessTextNode(textDescriptor, node, boldStyle);
-                }
+
                 break;
             case DocumentNodeType.Italic:
                 var italicStyle = currentStyle.WithItalic();
                 if (node.Children.Count > 0)
-                {
                     foreach (var child in node.Children)
                     {
                         if (child.Styles.DisplaySet && child.Styles.Display == CssDisplay.None)
                             continue;
                         ProcessInlineContent(textDescriptor, child, italicStyle);
                     }
-                }
                 else if (!string.IsNullOrEmpty(node.TextContent))
-                {
                     // If no children but has text content, process as text with italic style
                     ProcessTextNode(textDescriptor, node, italicStyle);
-                }
+
                 break;
             default:
                 foreach (var child in node.Children)
@@ -342,6 +341,7 @@ public class InlineFlowEngineContractTests
                         continue;
                     ProcessInlineContent(textDescriptor, child, currentStyle);
                 }
+
                 break;
         }
     }

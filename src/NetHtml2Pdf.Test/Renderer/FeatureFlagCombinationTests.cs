@@ -1,7 +1,7 @@
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
@@ -26,17 +26,20 @@ public class FeatureFlagCombinationTests
     [Fact]
     public void PdfRenderer_ThrowsWhenAdapterEnabledWithoutPagination()
     {
-        var options = CreateOptions(enablePagination: false, enableAdapter: true);
+        var options = CreateOptions(false, true);
         Assert.Throws<InvalidOperationException>(() => CreateRenderer(options));
     }
 
-    private static RendererOptions CreateOptions(bool enablePagination, bool enableAdapter) => new()
+    private static RendererOptions CreateOptions(bool enablePagination, bool enableAdapter)
     {
-        EnableNewLayoutForTextBlocks = true,
-        EnablePagination = enablePagination,
-        EnableQuestPdfAdapter = enableAdapter,
-        FontPath = SampleDocumentFactory.ResolveTestFont()
-    };
+        return new RendererOptions
+        {
+            EnableNewLayoutForTextBlocks = true,
+            EnablePagination = enablePagination,
+            EnableQuestPdfAdapter = enableAdapter,
+            FontPath = SampleDocumentFactory.ResolveTestFont()
+        };
+    }
 
     private static IPdfRenderer CreateRenderer(RendererOptions options)
     {
@@ -52,10 +55,10 @@ internal static class SampleDocumentFactory
 
     public static DocumentNode CreateParagraph(string text)
     {
-        var paragraph = new DocumentNode(NetHtml2Pdf.Core.Enums.DocumentNodeType.Paragraph);
-        paragraph.AddChild(new DocumentNode(NetHtml2Pdf.Core.Enums.DocumentNodeType.Text, text));
+        var paragraph = new DocumentNode(DocumentNodeType.Paragraph);
+        paragraph.AddChild(new DocumentNode(DocumentNodeType.Text, text));
 
-        var root = new DocumentNode(NetHtml2Pdf.Core.Enums.DocumentNodeType.Div);
+        var root = new DocumentNode(DocumentNodeType.Div);
         root.AddChild(paragraph);
         return root;
     }

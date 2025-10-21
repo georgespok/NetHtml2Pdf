@@ -1,8 +1,8 @@
+using System.Net;
+using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System.Net;
-using System.Web;
 
 namespace NetHtml2Pdf.TestAzureFunction;
 
@@ -19,13 +19,11 @@ public class PdfBuilderFunction(ILogger<PdfBuilderFunction> logger)
 
             // Validate that HTML content is provided
             if (string.IsNullOrWhiteSpace(html))
-            {
                 return await BadRequest(req, "HTML content is required in the request body.");
-            }
 
             // Get optional title from query parameter
             var query = HttpUtility.ParseQueryString(req.Url.Query);
-            string title = query["title"] ?? "HTML to PDF";
+            var title = query["title"] ?? "HTML to PDF";
 
             var builder = new PdfBuilder(logger);
             var bytes = builder.AddPage(html).Build();

@@ -4,7 +4,6 @@ using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Layout.Display;
 using NetHtml2Pdf.Renderer;
 using Shouldly;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
@@ -17,7 +16,7 @@ public class DisplayClassifierTraceLoggingTests
         var logger = new TestLogger<DisplayClassifier>();
         var options = new RendererOptions { EnableClassifierTraceLogging = true };
         var classifier = new DisplayClassifier(logger, options);
-        
+
         var node = new DocumentNode(DocumentNodeType.Div);
         var style = CssStyleMap.Empty.WithDisplay(CssDisplay.Block);
 
@@ -26,8 +25,8 @@ public class DisplayClassifierTraceLoggingTests
 
         // Assert
         result.ShouldBe(DisplayClass.Block);
-        logger.LogEntries.ShouldContain(entry => 
-            entry.Level == LogLevel.Debug && 
+        logger.LogEntries.ShouldContain(entry =>
+            entry.Level == LogLevel.Debug &&
             entry.Message.Contains("DisplayClassifier: Node Div classified as Block via CSS display Block"));
     }
 
@@ -38,7 +37,7 @@ public class DisplayClassifierTraceLoggingTests
         var logger = new TestLogger<DisplayClassifier>();
         var options = new RendererOptions { EnableClassifierTraceLogging = false };
         var classifier = new DisplayClassifier(logger, options);
-        
+
         var node = new DocumentNode(DocumentNodeType.Div);
         var style = CssStyleMap.Empty.WithDisplay(CssDisplay.Block);
 
@@ -47,8 +46,8 @@ public class DisplayClassifierTraceLoggingTests
 
         // Assert
         result.ShouldBe(DisplayClass.Block);
-        logger.LogEntries.ShouldNotContain(entry => 
-            entry.Level == LogLevel.Debug && 
+        logger.LogEntries.ShouldNotContain(entry =>
+            entry.Level == LogLevel.Debug &&
             entry.Message.Contains("DisplayClassifier: Node Div classified as Block via CSS display Block"));
     }
 
@@ -59,7 +58,7 @@ public class DisplayClassifierTraceLoggingTests
         var logger = new TestLogger<DisplayClassifier>();
         var options = new RendererOptions { EnableClassifierTraceLogging = true };
         var classifier = new DisplayClassifier(logger, options);
-        
+
         var node = new DocumentNode(DocumentNodeType.Paragraph);
         var style = CssStyleMap.Empty; // No explicit display
 
@@ -68,8 +67,8 @@ public class DisplayClassifierTraceLoggingTests
 
         // Assert
         result.ShouldBe(DisplayClass.Block);
-        logger.LogEntries.ShouldContain(entry => 
-            entry.Level == LogLevel.Debug && 
+        logger.LogEntries.ShouldContain(entry =>
+            entry.Level == LogLevel.Debug &&
             entry.Message.Contains("DisplayClassifier: Node Paragraph classified as Block via semantic default"));
     }
 
@@ -79,7 +78,7 @@ public class DisplayClassifierTraceLoggingTests
         // Arrange
         var logger = new TestLogger<DisplayClassifier>();
         var classifier = new DisplayClassifier(logger); // No options provided
-        
+
         var node = new DocumentNode(DocumentNodeType.Div);
         var style = CssStyleMap.Empty.WithDisplay(CssDisplay.Block);
 
@@ -88,8 +87,8 @@ public class DisplayClassifierTraceLoggingTests
 
         // Assert
         result.ShouldBe(DisplayClass.Block);
-        logger.LogEntries.ShouldNotContain(entry => 
-            entry.Level == LogLevel.Debug && 
+        logger.LogEntries.ShouldNotContain(entry =>
+            entry.Level == LogLevel.Debug &&
             entry.Message.Contains("DisplayClassifier:"));
     }
 }
@@ -99,11 +98,18 @@ public class TestLogger<T> : ILogger<T>
 {
     public List<LogEntry> LogEntries { get; } = [];
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    {
+        return null;
+    }
 
-    public bool IsEnabled(LogLevel logLevel) => true;
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+        Func<TState, Exception?, string> formatter)
     {
         LogEntries.Add(new LogEntry
         {

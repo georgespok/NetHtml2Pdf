@@ -7,12 +7,8 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class MarginInheritanceTests : PdfRenderTestBase
+public class MarginInheritanceTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    public MarginInheritanceTests(ITestOutputHelper output) : base(output)
-    {
-    }
-
     private readonly PdfRenderer _renderer = new();
 
     [Fact]
@@ -44,7 +40,6 @@ public class MarginInheritanceTests : PdfRenderTestBase
 
         // Log positioning for analysis
         Output.WriteLine($"Paragraph word position: Top={wordTop:F1}, Bottom={wordBottom:F1}");
-
     }
 
     [Fact]

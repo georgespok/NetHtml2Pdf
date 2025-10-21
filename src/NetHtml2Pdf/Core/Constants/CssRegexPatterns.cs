@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides CSS regex pattern constants for use throughout the application.
+///     Provides CSS regex pattern constants for use throughout the application.
 /// </summary>
 public static class CssRegexPatterns
 {
@@ -13,5 +13,4 @@ public static class CssRegexPatterns
 
     // CSS property name pattern (for validation)
     public const string CssPropertyName = @"^[a-zA-Z][a-zA-Z0-9-]*$";
-
 }

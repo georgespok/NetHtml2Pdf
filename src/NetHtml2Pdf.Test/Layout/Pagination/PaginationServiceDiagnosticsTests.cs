@@ -4,7 +4,6 @@ using NetHtml2Pdf.Layout.Model;
 using NetHtml2Pdf.Layout.Pagination;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Test.Renderer;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Layout.Pagination;
 
@@ -51,11 +50,11 @@ public class PaginationServiceDiagnosticsTests
     private static PageConstraints CreatePageConstraints()
     {
         return new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromAll(20),
-            headerBand: 40f,
-            footerBand: 40f);
+            595f,
+            842f,
+            BoxSpacing.FromAll(20),
+            40f,
+            40f);
     }
 
     private static LayoutFragment CreateTallFragment(string nodePath)
@@ -73,12 +72,12 @@ public class PaginationServiceDiagnosticsTests
         const float height = 900f;
 
         var constraints = new LayoutConstraints(
-            inlineMin: width,
-            inlineMax: width,
-            blockMin: height,
-            blockMax: height,
-            pageRemainingBlockSize: height,
-            allowBreaks: true);
+            width,
+            width,
+            height,
+            height,
+            height,
+            true);
 
         var diagnostics = new LayoutDiagnostics("PaginationServiceDiagnostics", constraints, width, height);
 

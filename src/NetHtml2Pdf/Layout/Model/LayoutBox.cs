@@ -4,53 +4,43 @@ using NetHtml2Pdf.Core.Enums;
 namespace NetHtml2Pdf.Layout.Model;
 
 /// <summary>
-/// Represents a classified node in the layout tree.
+///     Represents a classified node in the layout tree.
 /// </summary>
-internal sealed class LayoutBox
+internal sealed class LayoutBox(
+    DocumentNode node,
+    DisplayClass display,
+    CssStyleMap style,
+    LayoutSpacing spacing,
+    string nodePath,
+    IReadOnlyList<LayoutBox> children)
 {
-    public LayoutBox(
-        DocumentNode node,
-        DisplayClass display,
-        CssStyleMap style,
-        LayoutSpacing spacing,
-        string nodePath,
-        IReadOnlyList<LayoutBox> children)
-    {
-        Node = node ?? throw new ArgumentNullException(nameof(node));
-        Display = display;
-        Style = style;
-        Spacing = spacing;
-        NodePath = nodePath ?? throw new ArgumentNullException(nameof(nodePath));
-        Children = children ?? [];
-    }
+    /// <summary>
+    ///     Original DOM node.
+    /// </summary>
+    public DocumentNode Node { get; } = node ?? throw new ArgumentNullException(nameof(node));
 
     /// <summary>
-    /// Original DOM node.
+    ///     Classified display value used to pick formatting context.
     /// </summary>
-    public DocumentNode Node { get; }
+    public DisplayClass Display { get; } = display;
 
     /// <summary>
-    /// Classified display value used to pick formatting context.
+    ///     Snapshot of the computed style.
     /// </summary>
-    public DisplayClass Display { get; }
+    public CssStyleMap Style { get; } = style;
 
     /// <summary>
-    /// Snapshot of the computed style.
+    ///     Margin, padding, and border information associated with the node.
     /// </summary>
-    public CssStyleMap Style { get; }
+    public LayoutSpacing Spacing { get; } = spacing;
 
     /// <summary>
-    /// Margin, padding, and border information associated with the node.
+    ///     Human-readable path in the DOM tree for diagnostics.
     /// </summary>
-    public LayoutSpacing Spacing { get; }
+    public string NodePath { get; } = nodePath ?? throw new ArgumentNullException(nameof(nodePath));
 
     /// <summary>
-    /// Human-readable path in the DOM tree for diagnostics.
+    ///     Child layout boxes (block or inline).
     /// </summary>
-    public string NodePath { get; }
-
-    /// <summary>
-    /// Child layout boxes (block or inline).
-    /// </summary>
-    public IReadOnlyList<LayoutBox> Children { get; }
+    public IReadOnlyList<LayoutBox> Children { get; } = children ?? [];
 }

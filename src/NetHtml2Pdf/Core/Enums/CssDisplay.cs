@@ -5,5 +5,6 @@ public enum CssDisplay
     Default,
     Block,
     InlineBlock,
+    Flex,
     None
 }

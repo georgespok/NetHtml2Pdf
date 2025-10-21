@@ -10,7 +10,8 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
 {
     private const float BulletMarkerWidth = 14f;
 
-    public void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered, Action<ColumnDescriptor, DocumentNode> composeBlock)
+    public void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered,
+        Action<ColumnDescriptor, DocumentNode> composeBlock)
     {
         var container = spacingApplier.ApplySpacing(column.Item(), listNode.Styles);
 
@@ -39,7 +40,8 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
         });
     }
 
-    private void ComposeListItemContent(ColumnDescriptor column, DocumentNode itemNode, Action<ColumnDescriptor, DocumentNode> composeBlock)
+    private void ComposeListItemContent(ColumnDescriptor column, DocumentNode itemNode,
+        Action<ColumnDescriptor, DocumentNode> composeBlock)
     {
         if (itemNode.Children.Count == 0)
         {
@@ -68,20 +70,18 @@ internal sealed class ListComposer(IInlineComposer inlineComposer, IBlockSpacing
     private static void FlushInlineBuffer(List<DocumentNode> inlineBuffer,
         ColumnDescriptor column, IInlineComposer inlineComposer)
     {
-        if (inlineBuffer.Count == 0)
-        {
-            return;
-        }
+        if (inlineBuffer.Count == 0) return;
 
         column.Item().Text(text =>
         {
-            foreach (var inline in inlineBuffer)
-            {
-                inlineComposer.Compose(text, inline, InlineStyleState.Empty);
-            }
+            foreach (var inline in inlineBuffer) inlineComposer.Compose(text, inline, InlineStyleState.Empty);
         });
 
         inlineBuffer.Clear();
     }
-    private static bool IsInlineNode(DocumentNode node) => RenderingHelpers.IsInlineNode(node);
+
+    private static bool IsInlineNode(DocumentNode node)
+    {
+        return RenderingHelpers.IsInlineNode(node);
+    }
 }

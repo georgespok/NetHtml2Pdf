@@ -1,12 +1,11 @@
 using NetHtml2Pdf.Test.Support;
 using Shouldly;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class Phase1ParityTests : PdfRenderTestBase
+public class Phase1ParityTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
     private static readonly string[] SampleFiles =
     [
@@ -18,11 +17,10 @@ public class Phase1ParityTests : PdfRenderTestBase
         "display-unsupported.html"
     ];
 
-    public Phase1ParityTests(ITestOutputHelper output) : base(output)
+    public static IEnumerable<object[]> SampleFileData()
     {
+        return SampleFiles.Select(file => new object[] { file });
     }
-
-    public static IEnumerable<object[]> SampleFileData() => SampleFiles.Select(file => new object[] { file });
 
     [Theory]
     [MemberData(nameof(SampleFileData))]
@@ -36,7 +34,7 @@ public class Phase1ParityTests : PdfRenderTestBase
 
         var html = File.ReadAllText(samplePath);
 
-        var builder = new NetHtml2Pdf.PdfBuilder();
+        var builder = new PdfBuilder();
         builder.AddPage(html);
         var pdfBytes = builder.Build();
 
@@ -58,7 +56,8 @@ public class Phase1ParityTests : PdfRenderTestBase
             return;
         }
 
-        File.Exists(baselinePath).ShouldBeTrue($"Baseline not found for {sampleFileName}. Set UPDATE_PHASE1_BASELINE=1 to generate.");
+        File.Exists(baselinePath)
+            .ShouldBeTrue($"Baseline not found for {sampleFileName}. Set UPDATE_PHASE1_BASELINE=1 to generate.");
 
         var expectedWords = File.ReadAllLines(baselinePath);
         words.ShouldBe(expectedWords);

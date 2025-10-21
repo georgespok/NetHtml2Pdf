@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Layout.Pagination;
 
 /// <summary>
-/// Non-fatal pagination issues that should be surfaced as warnings.
+///     Non-fatal pagination issues that should be surfaced as warnings.
 /// </summary>
 internal enum PaginationWarningCode
 {

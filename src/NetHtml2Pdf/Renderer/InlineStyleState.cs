@@ -3,8 +3,14 @@ using NetHtml2Pdf.Core.Enums;
 
 namespace NetHtml2Pdf.Renderer;
 
-internal readonly struct InlineStyleState(bool bold,
-    bool italic, bool underline, double? lineHeight, string? color, string? backgroundColor, double? fontSize)
+internal readonly struct InlineStyleState(
+    bool bold,
+    bool italic,
+    bool underline,
+    double? lineHeight,
+    string? color,
+    string? backgroundColor,
+    double? fontSize)
 {
     public static InlineStyleState Empty { get; } = new(false, false, false, null, null, null, null);
 
@@ -28,16 +34,22 @@ internal readonly struct InlineStyleState(bool bold,
         return new InlineStyleState(bold, italic, underline, lineHeight, color, backgroundColor, FontSize);
     }
 
-    public InlineStyleState WithBold() =>
-        Bold
+    public InlineStyleState WithBold()
+    {
+        return Bold
             ? this
             : new InlineStyleState(true, Italic, Underline, LineHeight, Color, BackgroundColor, FontSize);
+    }
 
-    public InlineStyleState WithItalic() =>
-        Italic
+    public InlineStyleState WithItalic()
+    {
+        return Italic
             ? this
             : new InlineStyleState(Bold, true, Underline, LineHeight, Color, BackgroundColor, FontSize);
+    }
 
-    public InlineStyleState WithFontSize(double fontSize) =>
-        new InlineStyleState(Bold, Italic, Underline, LineHeight, Color, BackgroundColor, fontSize);
+    public InlineStyleState WithFontSize(double fontSize)
+    {
+        return new InlineStyleState(Bold, Italic, Underline, LineHeight, Color, BackgroundColor, fontSize);
+    }
 }

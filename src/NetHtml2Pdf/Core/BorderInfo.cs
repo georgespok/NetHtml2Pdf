@@ -3,7 +3,7 @@ using NetHtml2Pdf.Core.Constants;
 namespace NetHtml2Pdf.Core;
 
 /// <summary>
-/// Represents parsed border information with width, style, and color components.
+///     Represents parsed border information with width, style, and color components.
 /// </summary>
 internal readonly struct BorderInfo(double? width, string? style, string? color) : IEquatable<BorderInfo>
 {
@@ -18,7 +18,7 @@ internal readonly struct BorderInfo(double? width, string? style, string? color)
     public bool IsVisible => HasValue && Style != CssBorderValues.None && Style != CssBorderValues.Hidden;
 
     /// <summary>
-    /// Gets the border width in pixels, defaulting to 1px if not specified but border is visible.
+    ///     Gets the border width in pixels, defaulting to 1px if not specified but border is visible.
     /// </summary>
     public double GetWidthInPixels()
     {
@@ -29,7 +29,7 @@ internal readonly struct BorderInfo(double? width, string? style, string? color)
     }
 
     /// <summary>
-    /// Gets the border style, defaulting to "solid" if not specified but border is visible.
+    ///     Gets the border style, defaulting to "solid" if not specified but border is visible.
     /// </summary>
     public string GetStyle()
     {
@@ -40,7 +40,7 @@ internal readonly struct BorderInfo(double? width, string? style, string? color)
     }
 
     /// <summary>
-    /// Gets the border color, defaulting to "black" if not specified but border is visible.
+    ///     Gets the border color, defaulting to "black" if not specified but border is visible.
     /// </summary>
     public string GetColor()
     {

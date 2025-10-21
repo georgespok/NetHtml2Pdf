@@ -1,28 +1,28 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging.Abstractions;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Layout.Model;
 using NetHtml2Pdf.Layout.Pagination;
 using NetHtml2Pdf.Renderer;
-using Xunit;
 
 namespace NetHtml2Pdf.Test.Layout.Pagination;
 
 public class PaginationServiceBehaviorTests
 {
+    private const string KeepTogetherKey = "pagination:keepTogether";
+    private const string KeepWithNextKey = "pagination:keepWithNext";
+
     [Fact]
     public void SingleFragmentFitsOnOnePage_ReturnsSinglePageWithFragment()
     {
-        var fragment = CreateBlockFragment(width: 400, height: 200, nodePath: "Paragraph:0");
+        var fragment = CreateBlockFragment(400, 200, "Paragraph:0");
         var fragments = new[] { fragment };
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.Empty,
-            headerBand: 0f,
-            footerBand: 0f);
+            595f,
+            842f,
+            BoxSpacing.Empty,
+            0f,
+            0f);
 
         var paginationOptions = PaginationOptions.FromRendererOptions(new RendererOptions
         {
@@ -44,15 +44,15 @@ public class PaginationServiceBehaviorTests
     [Fact]
     public void FragmentTallerThanContentHeight_IsSplitAcrossPages()
     {
-        var tallFragment = CreateBlockFragment(width: 400, height: 900, nodePath: "Paragraph:0");
+        var tallFragment = CreateBlockFragment(400, 900, "Paragraph:0");
         var fragments = new[] { tallFragment };
 
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromAll(40),
-            headerBand: 60f,
-            footerBand: 60f);
+            595f,
+            842f,
+            BoxSpacing.FromAll(40),
+            60f,
+            60f);
 
         var paginationOptions = PaginationOptions.FromRendererOptions(new RendererOptions
         {
@@ -81,15 +81,15 @@ public class PaginationServiceBehaviorTests
     [Fact]
     public void SplitPages_ShouldExposeCarryLinks()
     {
-        var tallFragment = CreateBlockFragment(width: 400, height: 900, nodePath: "Paragraph:1");
+        var tallFragment = CreateBlockFragment(400, 900, "Paragraph:1");
         var fragments = new[] { tallFragment };
 
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromAll(20),
-            headerBand: 40f,
-            footerBand: 40f);
+            595f,
+            842f,
+            BoxSpacing.FromAll(20),
+            40f,
+            40f);
 
         var service = new PaginationService();
         var options = PaginationOptions.FromRendererOptions(new RendererOptions());
@@ -112,13 +112,13 @@ public class PaginationServiceBehaviorTests
     [Fact]
     public void ContentBoundsRespectHeaderFooterAndMargins()
     {
-        var fragment = CreateBlockFragment(width: 400, height: 200, nodePath: "Paragraph:2");
+        var fragment = CreateBlockFragment(400, 200, "Paragraph:2");
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromSpecific(20, 30, 40, 10),
-            headerBand: 60f,
-            footerBand: 80f);
+            595f,
+            842f,
+            BoxSpacing.FromSpecific(20, 30, 40, 10),
+            60f,
+            80f);
 
         var service = new PaginationService();
         var options = PaginationOptions.FromRendererOptions(new RendererOptions());
@@ -134,43 +134,46 @@ public class PaginationServiceBehaviorTests
     public void KeepTogetherFragmentExceedingContentHeight_Throws()
     {
         var fragment = CreateBlockFragment(
-            width: 400,
-            height: 800,
-            nodePath: "KeepTogether:0",
-            metadata: new Dictionary<string, string> { [KeepTogetherKey] = bool.TrueString });
-        Assert.True(fragment.Diagnostics.Metadata.TryGetValue(KeepTogetherKey, out var keepTogetherValue) && bool.Parse(keepTogetherValue));
+            400,
+            800,
+            "KeepTogether:0",
+            new Dictionary<string, string> { [KeepTogetherKey] = bool.TrueString });
+        Assert.True(fragment.Diagnostics.Metadata.TryGetValue(KeepTogetherKey, out var keepTogetherValue) &&
+                    bool.Parse(keepTogetherValue));
 
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromAll(20),
-            headerBand: 40f,
-            footerBand: 40f);
+            595f,
+            842f,
+            BoxSpacing.FromAll(20),
+            40f,
+            40f);
 
         var service = new PaginationService();
         var options = PaginationOptions.FromRendererOptions(new RendererOptions());
 
-        Assert.Throws<PaginationException>(() => service.Paginate([fragment], constraints, options, NullLogger.Instance));
+        Assert.Throws<PaginationException>(() =>
+            service.Paginate([fragment], constraints, options, NullLogger.Instance));
     }
 
     [Fact]
     public void KeepWithNextMovesFragmentWhenNextDoesNotFit()
     {
-        var intro = CreateBlockFragment(width: 400, height: 400, nodePath: "Intro:0");
+        var intro = CreateBlockFragment(400, 400, "Intro:0");
         var keepWithNext = CreateBlockFragment(
-            width: 400,
-            height: 200,
-            nodePath: "Keep:1",
-            metadata: new Dictionary<string, string> { [KeepWithNextKey] = bool.TrueString });
-        Assert.True(keepWithNext.Diagnostics.Metadata.TryGetValue(KeepWithNextKey, out var keepWithNextValue) && bool.Parse(keepWithNextValue));
-        var next = CreateBlockFragment(width: 400, height: 260, nodePath: "Next:2");
+            400,
+            200,
+            "Keep:1",
+            new Dictionary<string, string> { [KeepWithNextKey] = bool.TrueString });
+        Assert.True(keepWithNext.Diagnostics.Metadata.TryGetValue(KeepWithNextKey, out var keepWithNextValue) &&
+                    bool.Parse(keepWithNextValue));
+        var next = CreateBlockFragment(400, 260, "Next:2");
 
         var constraints = new PageConstraints(
-            pageWidth: 595f,
-            pageHeight: 842f,
-            margin: BoxSpacing.FromAll(20),
-            headerBand: 40f,
-            footerBand: 40f);
+            595f,
+            842f,
+            BoxSpacing.FromAll(20),
+            40f,
+            40f);
 
         var service = new PaginationService();
         var options = PaginationOptions.FromRendererOptions(new RendererOptions());
@@ -191,9 +194,6 @@ public class PaginationServiceBehaviorTests
         Assert.Equal(FragmentSliceKind.Full, secondPageFragments[1].SliceKind);
     }
 
-    private const string KeepTogetherKey = "pagination:keepTogether";
-    private const string KeepWithNextKey = "pagination:keepWithNext";
-
     private static LayoutFragment CreateBlockFragment(
         float width,
         float height,
@@ -210,12 +210,12 @@ public class PaginationServiceBehaviorTests
             []);
 
         var constraints = new LayoutConstraints(
-            inlineMin: width,
-            inlineMax: width,
-            blockMin: height,
-            blockMax: height,
-            pageRemainingBlockSize: height,
-            allowBreaks: false);
+            width,
+            width,
+            height,
+            height,
+            height,
+            false);
 
         var diagnostics = new LayoutDiagnostics("Test", constraints, width, height, metadata);
 

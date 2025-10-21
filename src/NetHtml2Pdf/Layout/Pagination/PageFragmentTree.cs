@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace NetHtml2Pdf.Layout.Pagination;
 
 internal sealed class PageFragmentTree
@@ -11,10 +8,7 @@ internal sealed class PageFragmentTree
         IReadOnlyList<FragmentSlice> fragments,
         CarryPageLink? carryOver = null)
     {
-        if (pageNumber < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be >= 1.");
-        }
+        if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be >= 1.");
 
         PageNumber = pageNumber;
         ContentBounds = contentBounds;

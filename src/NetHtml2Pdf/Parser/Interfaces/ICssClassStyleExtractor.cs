@@ -6,9 +6,8 @@ namespace NetHtml2Pdf.Parser.Interfaces;
 
 internal interface ICssClassStyleExtractor
 {
-    IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document, ILogger? logger = null);
-
     // Expose dependencies so downstream components can reuse them
     ICssDeclarationParser DeclarationParser { get; }
     ICssDeclarationUpdater DeclarationUpdater { get; }
+    IReadOnlyDictionary<string, CssStyleMap> Extract(IDocument document, ILogger? logger = null);
 }

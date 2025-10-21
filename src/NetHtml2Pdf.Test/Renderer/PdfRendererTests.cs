@@ -9,12 +9,8 @@ using Xunit.Abstractions;
 namespace NetHtml2Pdf.Test.Renderer;
 
 [Collection("PdfRendering")]
-public class PdfRendererTests : PdfRenderTestBase
+public class PdfRendererTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    public PdfRendererTests(ITestOutputHelper output) : base(output)
-    {
-    }
-
     private readonly PdfRenderer _renderer = new();
 
     [Fact]
@@ -97,7 +93,7 @@ public class PdfRendererTests : PdfRenderTestBase
 
         headingWord.ShouldNotBeNull();
         headingWord.IsBold.ShouldBeTrue();
-        headingWord.FontSize.ShouldBe(expectedFontSize, tolerance: 0.5);
+        headingWord.FontSize.ShouldBe(expectedFontSize, 0.5);
     }
 
     [Fact]
@@ -179,9 +175,12 @@ public class PdfRendererTests : PdfRenderTestBase
 
         var words = GetPdfWords(pdfBytes);
 
-        words.FirstOrDefault(w => w.Text.Contains("Blue", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.Blue);
-        words.FirstOrDefault(w => w.Text.Contains("White", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.White);
-        words.FirstOrDefault(w => w.Text.Contains("Green", StringComparison.OrdinalIgnoreCase))?.HexColor.ShouldBe(HexColors.BrightGreen);
+        words.FirstOrDefault(w => w.Text.Contains("Blue", StringComparison.OrdinalIgnoreCase))?.HexColor
+            .ShouldBe(HexColors.Blue);
+        words.FirstOrDefault(w => w.Text.Contains("White", StringComparison.OrdinalIgnoreCase))?.HexColor
+            .ShouldBe(HexColors.White);
+        words.FirstOrDefault(w => w.Text.Contains("Green", StringComparison.OrdinalIgnoreCase))?.HexColor
+            .ShouldBe(HexColors.BrightGreen);
     }
 
     [Fact]
@@ -291,7 +290,7 @@ public class PdfRendererTests : PdfRenderTestBase
     [InlineData("section")]
     public void StructuralContainers_ShouldRenderChildParagraphs(string tag)
     {
-        DocumentNode container = tag.Equals("div", StringComparison.OrdinalIgnoreCase)
+        var container = tag.Equals("div", StringComparison.OrdinalIgnoreCase)
             ? Div(Paragraph(Text("First")), Paragraph(Text("Second")))
             : Section(Paragraph(Text("First")), Paragraph(Text("Second")));
 
@@ -381,10 +380,12 @@ public class PdfRendererTests : PdfRenderTestBase
         AssertValidPdf(pdfBytes);
 
         var words = ExtractWords(pdfBytes);
-        words.Any(w => w.Contains("Row", StringComparison.OrdinalIgnoreCase) || w.Contains("Col", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
-        words.Any(w => w.Contains("1", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
-        words.Any(w => w.Contains("2", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
-        words.Any(w => w.Contains("3", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w =>
+            w.Contains("Row", StringComparison.OrdinalIgnoreCase) ||
+            w.Contains("Col", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains('1', StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains('2', StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+        words.Any(w => w.Contains('3', StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
     }
 
     [Fact]
@@ -516,7 +517,9 @@ public class PdfRendererTests : PdfRenderTestBase
                 TableBody(
                     TableRow(
                         TableCell(Text("Normal Cell")),
-                        TableCell(CssStyleMap.Empty.WithBackgroundColor(RenderingHelpers.ConvertToHexColor("yellow") ?? "yellow"), Text("Highlighted Cell")))))
+                        TableCell(
+                            CssStyleMap.Empty.WithBackgroundColor(RenderingHelpers.ConvertToHexColor("yellow") ??
+                                                                  "yellow"), Text("Highlighted Cell")))))
         );
 
         var pdfBytes = _renderer.Render(document);
@@ -565,8 +568,10 @@ public class PdfRendererTests : PdfRenderTestBase
                 TableBody(
                     TableRow(
                         TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Top), Text("Top Content")),
-                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Middle), Text("Middle Content")),
-                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Bottom), Text("Bottom Content")))))
+                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Middle),
+                            Text("Middle Content")),
+                        TableCell(CssStyleMap.Empty.WithVerticalAlign(CssAlignmentValues.Bottom),
+                            Text("Bottom Content")))))
         );
 
         var pdfBytes = _renderer.Render(document);
@@ -690,8 +695,6 @@ public class PdfRendererTests : PdfRenderTestBase
         // Verify both words are positioned on the page
         aaaWord.BoundingBox.TopLeft.Y.ShouldBeGreaterThan(0, "aaa word should be positioned on the page");
         bbbWord.BoundingBox.TopLeft.Y.ShouldBeGreaterThan(0, "bbb word should be positioned on the page");
-
-
     }
 
     [Fact]
@@ -724,7 +727,8 @@ public class PdfRendererTests : PdfRenderTestBase
         var containsLeft = combinedText.Contains("Left", StringComparison.OrdinalIgnoreCase);
         var containsRight = combinedText.Contains("Right", StringComparison.OrdinalIgnoreCase);
 
-        (containsLeft || containsRight).ShouldBeTrue($"Combined text '{combinedText}' should contain either 'Left' or 'Right'");
+        (containsLeft || containsRight).ShouldBeTrue(
+            $"Combined text '{combinedText}' should contain either 'Left' or 'Right'");
 
         // If it's concatenated (like "LeRight"), it should contain both parts
         if (combinedText.Contains("LeRight", StringComparison.OrdinalIgnoreCase) ||
@@ -752,7 +756,8 @@ public class PdfRendererTests : PdfRenderTestBase
         var combinedWord = rawWords.FirstOrDefault(w =>
             w.Text.Contains("LeRight", StringComparison.OrdinalIgnoreCase) ||
             w.Text.Contains("LeftRight", StringComparison.OrdinalIgnoreCase) ||
-            (w.Text.Contains("Le", StringComparison.OrdinalIgnoreCase) && w.Text.Contains("Right", StringComparison.OrdinalIgnoreCase)));
+            (w.Text.Contains("Le", StringComparison.OrdinalIgnoreCase) &&
+             w.Text.Contains("Right", StringComparison.OrdinalIgnoreCase)));
 
         if (combinedWord != null)
         {
@@ -843,7 +848,9 @@ public class PdfRendererTests : PdfRenderTestBase
         words.ShouldContain("Visible");
         words.ShouldContain("parent");
         // Check for "after" or partial matches due to text extraction issues
-        var hasAfter = words.Any(w => w.Contains("after", StringComparison.OrdinalIgnoreCase) || w.Contains("aer", StringComparison.OrdinalIgnoreCase));
+        var hasAfter = words.Any(w =>
+            w.Contains("after", StringComparison.OrdinalIgnoreCase) ||
+            w.Contains("aer", StringComparison.OrdinalIgnoreCase));
         hasAfter.ShouldBeTrue("Should contain 'after' text");
 
         // Verify hidden content is not present
@@ -896,12 +903,3 @@ public class PdfRendererTests : PdfRenderTestBase
         Output.WriteLine("✅ Display:none in header/footer test completed - hidden content omitted");
     }
 }
-
-
-
-
-
-
-
-
-

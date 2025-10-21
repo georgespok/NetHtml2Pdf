@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides CSS property name constants for use throughout the application.
+///     Provides CSS property name constants for use throughout the application.
 /// </summary>
 public static class CssProperties
 {

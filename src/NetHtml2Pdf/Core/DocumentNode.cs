@@ -10,10 +10,7 @@ internal class DocumentNode
         string? textContent = null,
         CssStyleMap? styles = null)
     {
-        if (nodeType == DocumentNodeType.Text && textContent is null)
-        {
-            textContent = string.Empty;
-        }
+        if (nodeType == DocumentNodeType.Text && textContent is null) textContent = string.Empty;
 
         NodeType = nodeType;
         TextContent = textContent;
@@ -32,7 +29,8 @@ internal class DocumentNode
     {
         ArgumentNullException.ThrowIfNull(child);
 
-        if (child.NodeType == DocumentNodeType.Text && _children.Count > 0 && _children[^1].NodeType == DocumentNodeType.Text)
+        if (child.NodeType == DocumentNodeType.Text && _children.Count > 0 &&
+            _children[^1].NodeType == DocumentNodeType.Text)
         {
             _children[^1].AppendText(child.TextContent ?? string.Empty);
             return;
@@ -44,9 +42,7 @@ internal class DocumentNode
     internal void AppendText(string value)
     {
         if (NodeType != DocumentNodeType.Text)
-        {
             throw new InvalidOperationException("Can only append text to a text node.");
-        }
 
         TextContent = (TextContent ?? string.Empty) + value;
     }

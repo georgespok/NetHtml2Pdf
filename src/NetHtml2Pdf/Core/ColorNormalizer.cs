@@ -3,43 +3,35 @@ using NetHtml2Pdf.Core.Constants;
 namespace NetHtml2Pdf.Core;
 
 /// <summary>
-/// Normalizes CSS color values to hexadecimal format during parsing.
+///     Normalizes CSS color values to hexadecimal format during parsing.
 /// </summary>
 public static class ColorNormalizer
 {
     /// <summary>
-    /// Normalizes a CSS color value to hexadecimal format.
+    ///     Normalizes a CSS color value to hexadecimal format.
     /// </summary>
     /// <param name="color">The color value to normalize (named color, hex, or rgb).</param>
     /// <returns>A hex color code, or null if the color is invalid or unsupported.</returns>
     public static string? NormalizeToHex(string? color)
     {
-        if (string.IsNullOrEmpty(color))
-        {
-            return null;
-        }
+        if (string.IsNullOrEmpty(color)) return null;
 
         var trimmedColor = color.Trim();
 
         // Already hex color - normalize to 6-digit format
-        if (trimmedColor.StartsWith(CssUnits.HexPrefix))
-        {
-            return NormalizeHexColor(trimmedColor);
-        }
+        if (trimmedColor.StartsWith(CssUnits.HexPrefix)) return NormalizeHexColor(trimmedColor);
 
         // RGB color function
         if (trimmedColor.StartsWith(CssUnits.RgbFunction, StringComparison.OrdinalIgnoreCase) &&
             trimmedColor.EndsWith(CssUnits.RgbFunctionEnd))
-        {
             return ParseRgbToHex(trimmedColor);
-        }
 
         // Named colors
         return ConvertNamedColorToHex(trimmedColor);
     }
 
     /// <summary>
-    /// Converts a named color to its hexadecimal equivalent.
+    ///     Converts a named color to its hexadecimal equivalent.
     /// </summary>
     private static string? ConvertNamedColorToHex(string color)
     {
@@ -63,7 +55,7 @@ public static class ColorNormalizer
     }
 
     /// <summary>
-    /// Parses an RGB color function to hexadecimal format.
+    ///     Parses an RGB color function to hexadecimal format.
     /// </summary>
     private static string? ParseRgbToHex(string rgbColor)
     {
@@ -76,8 +68,9 @@ public static class ColorNormalizer
             if (startIndex <= 0 || endIndex <= startIndex)
                 return null;
 
-            var valuesString = rgbColor.Substring(startIndex, endIndex - startIndex);
-            var values = valuesString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var valuesString = rgbColor[startIndex..endIndex];
+            var values =
+                valuesString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             if (values.Length != 3)
                 return null;
@@ -104,18 +97,15 @@ public static class ColorNormalizer
     }
 
     /// <summary>
-    /// Normalizes a hex color to 6-digit format.
+    ///     Normalizes a hex color to 6-digit format.
     /// </summary>
     private static string? NormalizeHexColor(string hexColor)
     {
         if (hexColor.Length == 4) // #RGB format
-        {
             return $"#{hexColor[1]}{hexColor[1]}{hexColor[2]}{hexColor[2]}{hexColor[3]}{hexColor[3]}";
-        }
-        else if (hexColor.Length == 7) // #RRGGBB format
-        {
+
+        if (hexColor.Length == 7) // #RRGGBB format
             return hexColor;
-        }
 
         return null; // Invalid hex format
     }

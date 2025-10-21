@@ -11,40 +11,46 @@ internal readonly struct BoxSpacing(double? top, double? right, double? bottom, 
 
     public static BoxSpacing Empty => new(null, null, null, null);
 
-    public static BoxSpacing FromAll(double value) => new(value, value, value, value);
+    public static BoxSpacing FromAll(double value)
+    {
+        return new BoxSpacing(value, value, value, value);
+    }
 
-    public static BoxSpacing FromVerticalHorizontal(double vertical, double horizontal) => new(vertical, horizontal, vertical, horizontal);
+    public static BoxSpacing FromVerticalHorizontal(double vertical, double horizontal)
+    {
+        return new BoxSpacing(vertical, horizontal, vertical, horizontal);
+    }
 
-    public static BoxSpacing FromSpecific(double? top, double? right, double? bottom, double? left) => new(top, right, bottom, left);
+    public static BoxSpacing FromSpecific(double? top, double? right, double? bottom, double? left)
+    {
+        return new BoxSpacing(top, right, bottom, left);
+    }
 
     public BoxSpacing WithTop(double? value)
     {
-        return value.HasValue ? new(value, Right, Bottom, Left) : this;
+        return value.HasValue ? new BoxSpacing(value, Right, Bottom, Left) : this;
     }
 
     public BoxSpacing WithRight(double? value)
     {
-        return value.HasValue ? new(Top, value, Bottom, Left) : this;
+        return value.HasValue ? new BoxSpacing(Top, value, Bottom, Left) : this;
     }
 
     public BoxSpacing WithBottom(double? value)
     {
-        return value.HasValue ? new(Top, Right, value, Left) : this;
+        return value.HasValue ? new BoxSpacing(Top, Right, value, Left) : this;
     }
 
     public BoxSpacing WithLeft(double? value)
     {
-        return value.HasValue ? new(Top, Right, Bottom, value) : this;
+        return value.HasValue ? new BoxSpacing(Top, Right, Bottom, value) : this;
     }
 
     public static BoxSpacing Merge(BoxSpacing current, BoxSpacing other)
     {
-        if (!other.HasValue)
-        {
-            return current;
-        }
+        if (!other.HasValue) return current;
 
-        return new(
+        return new BoxSpacing(
             other.Top ?? current.Top,
             other.Right ?? current.Right,
             other.Bottom ?? current.Bottom,

@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides CSS display-related value constants for use throughout the application.
+///     Provides CSS display-related value constants for use throughout the application.
 /// </summary>
 public static class CssDisplayValues
 {

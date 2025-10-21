@@ -4,7 +4,7 @@ namespace NetHtml2Pdf.Layout.Engines;
 
 internal sealed class LayoutResult
 {
-    private LayoutResult(bool isSuccess, bool isFallback, bool isDisabled, 
+    private LayoutResult(bool isSuccess, bool isFallback, bool isDisabled,
         string? fallbackReason, IReadOnlyList<LayoutFragment> fragments)
     {
         IsSuccess = isSuccess;
@@ -26,16 +26,16 @@ internal sealed class LayoutResult
 
     public static LayoutResult Success(IReadOnlyList<LayoutFragment> fragments)
     {
-        return new LayoutResult(isSuccess: true, isFallback: false, isDisabled: false, fallbackReason: null, fragments);
+        return new LayoutResult(true, false, false, null, fragments);
     }
 
     public static LayoutResult Disabled()
     {
-        return new LayoutResult(isSuccess: false, isFallback: false, isDisabled: true, fallbackReason: "Layout engine disabled.", []);
+        return new LayoutResult(false, false, true, "Layout engine disabled.", []);
     }
 
     public static LayoutResult Fallback(string reason)
     {
-        return new LayoutResult(isSuccess: false, isFallback: true, isDisabled: false, fallbackReason: reason, []);
+        return new LayoutResult(false, true, false, reason, []);
     }
 }

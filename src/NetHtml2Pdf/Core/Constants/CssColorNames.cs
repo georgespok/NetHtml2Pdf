@@ -1,8 +1,8 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides CSS named color constants for use throughout the application.
-/// These are the string names used in CSS, separate from the hex values in the HexColors class.
+///     Provides CSS named color constants for use throughout the application.
+///     These are the string names used in CSS, separate from the hex values in the HexColors class.
 /// </summary>
 public static class CssColorNames
 {

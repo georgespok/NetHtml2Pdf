@@ -1,22 +1,13 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides validation value constants for use throughout the application.
+///     Provides validation value constants for use throughout the application.
 /// </summary>
 public static class ValidationValues
 {
-    // Platform names
-    public static readonly HashSet<string> ValidPlatforms = ["Windows", "Linux"];
-
-    // Validation result types
-    public static readonly HashSet<string> ValidValidationResults = ["IDENTICAL", "DIFFERENT", "ERROR"];
-
     // File size limits
     public const long MinOutputSize = 1024; // 1KB
     public const long MaxOutputSize = 100L * 1024 * 1024; // 100MB
-
-    // Date constraints
-    public static readonly DateTime MinDate = new(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     // Memory constraints
     public const long MinMemoryUsage = 0;
@@ -28,5 +19,15 @@ public static class ValidationValues
 
     // CSS property count constraints
     public const int MinCssPropertyCount = 0;
+
     public const int MaxCssPropertyCount = 1000; // Reasonable limit for CSS properties
+
+    // Platform names
+    public static readonly HashSet<string> ValidPlatforms = ["Windows", "Linux"];
+
+    // Validation result types
+    public static readonly HashSet<string> ValidValidationResults = ["IDENTICAL", "DIFFERENT", "ERROR"];
+
+    // Date constraints
+    public static readonly DateTime MinDate = new(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 }

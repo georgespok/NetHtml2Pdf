@@ -1,8 +1,8 @@
-using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 using NetHtml2Pdf.Core;
+using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Parser;
 using Shouldly;
-using NetHtml2Pdf.Core.Enums;
+using AngleSharpHtmlParser = AngleSharp.Html.Parser.HtmlParser;
 
 namespace NetHtml2Pdf.Test.Parser;
 
@@ -21,11 +21,11 @@ public class HtmlNodeConverterTests
         };
 
         const string html = """
-            <section class="content">
-              <p>Hello<br />world</p>
-              <span class="accent" style="font-style: italic;">Styled</span>
-            </section>
-            """;
+                            <section class="content">
+                              <p>Hello<br />world</p>
+                              <span class="accent" style="font-style: italic;">Styled</span>
+                            </section>
+                            """;
 
         var element = new AngleSharpHtmlParser().ParseDocument(html).Body!.FirstElementChild!;
         var resolver = new CssStyleResolver(classStyles, _declarationParser, _styleUpdater);
@@ -39,7 +39,8 @@ public class HtmlNodeConverterTests
 
         var paragraph = sectionNode.Children[0];
         paragraph.NodeType.ShouldBe(DocumentNodeType.Paragraph);
-        paragraph.Children.ShouldContain(child => child.NodeType == DocumentNodeType.Text && child.TextContent!.Contains("Hello"));
+        paragraph.Children.ShouldContain(child =>
+            child.NodeType == DocumentNodeType.Text && child.TextContent!.Contains("Hello"));
         paragraph.Children.ShouldContain(child => child.NodeType == DocumentNodeType.LineBreak);
 
         var span = sectionNode.Children[1];

@@ -1,5 +1,3 @@
-using System;
-
 namespace NetHtml2Pdf.Layout.Pagination;
 
 internal sealed class PaginationWarning
@@ -7,9 +5,7 @@ internal sealed class PaginationWarning
     public PaginationWarning(PaginationWarningCode code, string message, string? nodePath = null)
     {
         if (string.IsNullOrWhiteSpace(message))
-        {
             throw new ArgumentException("Warning message cannot be null or whitespace.", nameof(message));
-        }
 
         Code = code;
         Message = message;

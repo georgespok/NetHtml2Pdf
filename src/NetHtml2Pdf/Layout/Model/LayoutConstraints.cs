@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Layout.Model;
 
 /// <summary>
-/// Describes the available geometry for a node during layout.
+///     Describes the available geometry for a node during layout.
 /// </summary>
 internal readonly struct LayoutConstraints
 {
@@ -14,19 +14,11 @@ internal readonly struct LayoutConstraints
         bool allowBreaks)
     {
         if (inlineMin < 0 || inlineMax < 0 || blockMin < 0 || blockMax < 0 || pageRemainingBlockSize < 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(inlineMin), "Constraint values cannot be negative.");
-        }
 
-        if (inlineMin > inlineMax)
-        {
-            throw new ArgumentException("inlineMin cannot be greater than inlineMax.");
-        }
+        if (inlineMin > inlineMax) throw new ArgumentException("inlineMin cannot be greater than inlineMax.");
 
-        if (blockMin > blockMax)
-        {
-            throw new ArgumentException("blockMin cannot be greater than blockMax.");
-        }
+        if (blockMin > blockMax) throw new ArgumentException("blockMin cannot be greater than blockMax.");
 
         InlineMin = inlineMin;
         InlineMax = inlineMax;
@@ -50,7 +42,7 @@ internal readonly struct LayoutConstraints
 
     public LayoutConstraints ForInlineChild()
     {
-        return new LayoutConstraints(InlineMin, InlineMax, 0, BlockMax, PageRemainingBlockSize, allowBreaks: AllowBreaks);
+        return new LayoutConstraints(InlineMin, InlineMax, 0, BlockMax, PageRemainingBlockSize, AllowBreaks);
     }
 
     public LayoutConstraints ForBlockChild()

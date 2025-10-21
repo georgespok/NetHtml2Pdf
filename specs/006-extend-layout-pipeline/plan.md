@@ -1,111 +1,133 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Phase 4 - Extended Formatting Context Coverage
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit.plan` command.
+**Branch**: 006-extend-layout-pipeline | **Date**: 2025-10-21 | **Spec**: [/specs/006-extend-layout-pipeline/spec.md](specs/006-extend-layout-pipeline/spec.md)
+**Input**: Feature specification from /specs/006-extend-layout-pipeline/spec.md
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Phase 4 expands the NetHtml2Pdf layout pipeline to support additional CSS display modes behind feature flags. The work introduces dedicated formatting contexts for inline-block elements, data tables, and a preview flex layout, ensuring that pagination, adapters, and diagnostics operate over fragment trees rather than legacy composers. Each context remains flag-guarded so existing behaviour and parity workflows stay intact while teams iterate toward full adoption.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: C# on .NET 8.0  
+**Primary Dependencies**: QuestPDF 2025.x, AngleSharp, Microsoft.Extensions.Logging  
+**Storage**: N/A (all rendering in-memory)  
+**Testing**: xUnit with FluentAssertions; behaviour-first tests per constitution  
+**Target Platform**: Cross-platform (.NET 8)  
+**Project Type**: Single library (src/NetHtml2Pdf) plus test projects  
+**Performance Goals**: Maintain <=5% render-time delta versus legacy pipeline; hold adapter output size within +/-2% per success criteria  
+**Constraints**: No flex-wrap support in preview (maps to `nowrap`); treat `border-collapse` as `separate` unless the advanced flag is enabled; tests must avoid reflection APIs and follow incremental TDD; adapters must stay QuestPDF-agnostic  
+**Scale/Scope**: Library consumed by internal services producing 1-50 page PDFs with optional headers/footers
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+Status: **PASS** - plan adheres to current principles.
 
-- Respect documented architectural layering; cross-layer access only via interfaces/adapters.
-- Public surface via approved facades/entry points; no leakage of internal types.
-- Prefer managed-only dependencies; native/platform deps require an ADR with rollback plan.
-- Validate inputs with explicit exceptions and parameter names.
-- Emit structured warnings for unsupported features; preserve content when sensible.
-- Use TDD where practical; parameterized tests for multi-scenario logic.
-- Keep docs/specs/contracts in sync with behavior and supported capabilities.
+- Respect documented architectural layering; cross-layer access only via interfaces/adapters.  
+  *Mitigation*: All new contexts live under src/NetHtml2Pdf/Layout/ and expose services via existing pagination/adapters seams.
+- Public surface via approved facades/entry points; no leakage of internal types.  
+  *Mitigation*: Feature flags remain surfaced through RendererOptions/PdfBuilder only.
+- Prefer managed-only dependencies; native/platform deps require ADR.  
+  *Mitigation*: No new dependencies introduced; reuse existing managed stack.
+- Validate inputs with explicit exceptions and parameter names.  
+  *Mitigation*: Extend validation helpers in formatting contexts and flag toggles.
+- Emit structured warnings for unsupported features; preserve content when sensible.  
+  *Mitigation*: Diagnostics hooks updated for each context with structured logging.
+- Follow incremental TDD; trivial scaffolding exempt.  
+  *Mitigation*: Task sequencing enforces tests before implementation per story.
+- Tests must exercise observable behaviour and MUST NOT rely on reflection APIs.  
+  *Mitigation*: All new tests verify rendered fragments/pagination artefacts.
+- Keep docs/specs/contracts in sync with behaviour and supported capabilities.  
+  *Mitigation*: Research/data-model/contracts/quickstart generated in this plan.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+specs/006-extend-layout-pipeline/
+├── plan.md
+├── research.md
+├── data-model.md
+├── quickstart.md
+├── contracts/
+│   └── formatting-contexts.md
+└── tasks.md (generated via /tasks)
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── NetHtml2Pdf/
+│   ├── Layout/
+│   │   ├── Pagination/
+│   │   ├── FormattingContexts/
+│   │   └── Diagnostics/
+│   ├── Renderer/
+│   │   ├── Adapters/
+│   │   └── Interfaces/
+│   └── PdfBuilder.cs
+├── NetHtml2Pdf.Test/
+│   ├── Layout/
+│   └── Renderer/
+└── NetHtml2Pdf.TestConsole/
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Retain the existing single-library layout. New contexts slot into Layout/FormattingContexts, and tests mirror namespace folders under NetHtml2Pdf.Test.
+
+## Phases & Deliverables
+
+| Phase | Goal | Key Outputs | Gate Criteria |
+|-------|------|-------------|---------------|
+| Phase 0 - Research | Capture current renderer state, feature flags, and risks | research.md | Research document reviewed; clarifications reflected |
+| Phase 1 - Setup (Shared Infrastructure) | Confirm baseline health and stakeholder comms | Verified build/test log, roadmap flag section | Baseline build/test succeed; roadmap updated |
+| Phase 2 - Foundational (Blocking Prerequisites) | Wire feature flags and context options before story work | RendererOptions/PdfBuilder updates, context factory scaffolding | Flags exposed end-to-end; layout pipeline flag-aware |
+| Phase 3 - Contracts & Shared Tests | Establish shared regression scaffolding | FormattingContextsContractTests failing first | Contract tests authored and failing |
+| Phase 4 - User Story 1 (Inline-Block) | Deliver inline-block formatting context end-to-end | Inline-block tests, implementation, diagnostics | New tests passing; legacy path preserved |
+| Phase 5 - User Story 2 (Table) | Deliver table formatting context with pagination support | Table tests (headers, captions), implementation, diagnostics | Multi-page table scenarios pass with downgrades logged |
+| Phase 6 - User Story 3 (Flex Preview) | Deliver preview flex formatting context | Flex tests/implementation/diagnostics | Preview constraints enforced; warnings emitted |
+| Phase 7 - Integration & Regression | Validate combined behaviour, docs, telemetry | Regression suite, quickstart update, flex telemetry analysis | Layout deviation <2%; telemetry shows ≥80% legacy reduction |
+| Phase 8 - Stabilisation & Polish | Performance validation, cleanup, final QA | Benchmark report, formatting cleanup, final e2e run | Performance delta <=5%; artefacts archived |
+
+## Milestones & Gate Criteria
+
+1. **M1 - Research Complete**: Clarified scope, risks, and open questions.
+2. **M2 - Design Sign-off**: Data model and contracts approved; quickstart ready.
+3. **M3 - Tasks Ready**: Work queue prioritised by user story and dependency gates.
+4. **M4 - Functionality Delivered**: Inline-block, table, and flex flags functional with tests.
+5. **M5 - Performance & Diagnostics**: Benchmarks captured; structured diagnostics verified.
+
+## Risk & Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Regression in legacy composer path | High | Preserve flag defaults; add regression fixtures comparing legacy vs flagged pipeline |
+| Pagination edge cases for tables | Medium | Expand test fixtures covering multi-page tables, captions, mixed row heights |
+| Flex preview misused in production | Medium | Document limitations (no wrapping, warning logs); keep flag default-off |
+| Performance degradation | Medium | Benchmark 50-page fixture pre/post change; optimise hot spots before rollout |
+
+## Testing Strategy
+
+- Adopt Red-Green-Refactor for each context feature; tests precede implementation.
+- Behaviour tests verify fragment geometry, pagination metadata, adapter logging.
+- Regression suites run for legacy pipeline (flags off) and new pipeline (flags on).
+- No reflection-based assertions; prefer public APIs or controlled diagnostics hooks.
+
+## Progress Tracking
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| Phase 0 - Research | ✅ Completed | research.md created in this plan |
+| Phase 1 - Setup | ⏳ Pending | Execute T001-T002 to confirm baseline health and roadmap update |
+| Phase 2 - Foundational | ⏳ Pending | T003-T005 wire feature flags and context options |
+| Phase 3 - Contracts & Shared Tests | ⏳ Pending | T006 establishes shared contract tests (fail first) |
+| Phase 4 - User Story 1 | ⏳ Pending | T007-T011 deliver inline-block context and diagnostics |
+| Phase 5 - User Story 2 | ⏳ Pending | T012-T016 cover multi-page tables with captions and downgrades |
+| Phase 6 - User Story 3 | ⏳ Pending | T017-T019 enforce flex preview constraints |
+| Phase 7 - Integration & Regression | ⏳ Pending | T020-T022 and T026 handle combined validation, docs, telemetry |
+| Phase 8 - Stabilisation & Polish | ⏳ Pending | T023-T025 capture benchmarks, cleanup, and final QA |
 
 ## Complexity Tracking
 
-*Fill ONLY if Constitution Check has violations that must be justified*
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
-
+_No constitutional violations anticipated; table intentionally left empty._

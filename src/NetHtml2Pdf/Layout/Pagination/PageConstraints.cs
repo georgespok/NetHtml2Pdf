@@ -1,10 +1,9 @@
-using System;
 using NetHtml2Pdf.Core;
 
 namespace NetHtml2Pdf.Layout.Pagination;
 
 /// <summary>
-/// Immutable constraints applied to each page during pagination.
+///     Immutable constraints applied to each page during pagination.
 /// </summary>
 internal sealed class PageConstraints
 {
@@ -15,26 +14,16 @@ internal sealed class PageConstraints
         float headerBand,
         float footerBand)
     {
-        if (pageWidth <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pageWidth), "Page width must be positive.");
-        }
+        if (pageWidth <= 0) throw new ArgumentOutOfRangeException(nameof(pageWidth), "Page width must be positive.");
 
-        if (pageHeight <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pageHeight), "Page height must be positive.");
-        }
+        if (pageHeight <= 0) throw new ArgumentOutOfRangeException(nameof(pageHeight), "Page height must be positive.");
 
         ArgumentNullException.ThrowIfNull(margin);
         if (headerBand < 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(headerBand), "Header band must be non-negative.");
-        }
 
         if (footerBand < 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(footerBand), "Footer band must be non-negative.");
-        }
 
         PageWidth = pageWidth;
         PageHeight = pageHeight;
@@ -59,5 +48,8 @@ internal sealed class PageConstraints
     public float ContentWidth =>
         Math.Max(0, PageWidth - ToFloat(Margin.Left) - ToFloat(Margin.Right));
 
-    private static float ToFloat(double? value) => value.HasValue ? (float)value.Value : 0f;
+    private static float ToFloat(double? value)
+    {
+        return value.HasValue ? (float)value.Value : 0f;
+    }
 }

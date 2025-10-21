@@ -8,8 +8,8 @@ namespace NetHtml2Pdf.Test.Parser;
 
 public class BorderInheritanceHtmlTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
     private readonly HtmlParser _parser;
+    private readonly ITestOutputHelper _testOutputHelper;
 
     public BorderInheritanceHtmlTests(ITestOutputHelper testOutputHelper)
     {
@@ -26,10 +26,10 @@ public class BorderInheritanceHtmlTests
     {
         // Arrange - Test border shorthand in HTML doesn't affect child elements
         const string html = """
-            <div style="border: 2px solid red;">
-                <p>No Border from Parent</p>
-            </div>
-            """;
+                            <div style="border: 2px solid red;">
+                                <p>No Border from Parent</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -45,8 +45,10 @@ public class BorderInheritanceHtmlTests
         var paragraph = container.Children.Single();
 
         // Debug: Let's see what border the paragraph actually has
-        _testOutputHelper.WriteLine($"Paragraph border - Width: {paragraph.Styles.Border.Width}, Style: {paragraph.Styles.Border.Style}, Color: {paragraph.Styles.Border.Color}");
-        _testOutputHelper.WriteLine($"Paragraph border HasValue: {paragraph.Styles.Border.HasValue}, IsVisible: {paragraph.Styles.Border.IsVisible}");
+        _testOutputHelper.WriteLine(
+            $"Paragraph border - Width: {paragraph.Styles.Border.Width}, Style: {paragraph.Styles.Border.Style}, Color: {paragraph.Styles.Border.Color}");
+        _testOutputHelper.WriteLine(
+            $"Paragraph border HasValue: {paragraph.Styles.Border.HasValue}, IsVisible: {paragraph.Styles.Border.IsVisible}");
 
         paragraph.Styles.Border.ShouldBe(BorderInfo.Empty);
         paragraph.Styles.Border.HasValue.ShouldBeFalse();
@@ -58,10 +60,10 @@ public class BorderInheritanceHtmlTests
     {
         // Arrange - Test that child element with its own border doesn't inherit parent border
         const string html = """
-            <div style="border: 3px dashed blue;">
-                <p style="border: 1px dotted green;">Child Border</p>
-            </div>
-            """;
+                            <div style="border: 3px dashed blue;">
+                                <p style="border: 1px dotted green;">Child Border</p>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);
@@ -88,12 +90,12 @@ public class BorderInheritanceHtmlTests
     {
         // Arrange - Test multiple nested elements with different borders
         const string html = """
-            <div style="border: 4px solid black;">
-                <section style="border: 2px dashed orange;">
-                    <p style="border: 1px solid purple;">Nested Border</p>
-                </section>
-            </div>
-            """;
+                            <div style="border: 4px solid black;">
+                                <section style="border: 2px dashed orange;">
+                                    <p style="border: 1px solid purple;">Nested Border</p>
+                                </section>
+                            </div>
+                            """;
 
         // Act
         var document = _parser.Parse(html);

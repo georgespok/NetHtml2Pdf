@@ -5,16 +5,12 @@ using NetHtml2Pdf.Renderer.Inline;
 namespace NetHtml2Pdf.Layout.Contexts;
 
 /// <summary>
-/// Wraps the existing InlineFlowLayoutEngine to produce layout fragments.
+///     Wraps the existing InlineFlowLayoutEngine to produce layout fragments.
 /// </summary>
-internal sealed class InlineFormattingContext : IInlineFormattingContext
+internal sealed class InlineFormattingContext(InlineFlowLayoutEngine inlineFlowLayoutEngine) : IInlineFormattingContext
 {
-    private readonly InlineFlowLayoutEngine _inlineFlowLayoutEngine;
-
-    public InlineFormattingContext(InlineFlowLayoutEngine inlineFlowLayoutEngine)
-    {
-        _inlineFlowLayoutEngine = inlineFlowLayoutEngine ?? throw new ArgumentNullException(nameof(inlineFlowLayoutEngine));
-    }
+    private readonly InlineFlowLayoutEngine _inlineFlowLayoutEngine =
+        inlineFlowLayoutEngine ?? throw new ArgumentNullException(nameof(inlineFlowLayoutEngine));
 
     public LayoutFragment Layout(LayoutBox box, LayoutConstraints constraints)
     {
@@ -28,18 +24,14 @@ internal sealed class InlineFormattingContext : IInlineFormattingContext
                 0,
                 0);
 
-            return LayoutFragment.CreateInline(box, 0, 0, baseline: null, [], leafDiagnostics);
+            return LayoutFragment.CreateInline(box, 0, 0, null, [], leafDiagnostics);
         }
 
         var lineFragments = new List<LayoutFragment>();
 
         foreach (var child in box.Children)
-        {
             if (child.Display == DisplayClass.Inline)
-            {
                 lineFragments.Add(Layout(child, constraints));
-            }
-        }
 
         var diagnostics = new LayoutDiagnostics(
             "InlineFormattingContext",
@@ -47,6 +39,6 @@ internal sealed class InlineFormattingContext : IInlineFormattingContext
             constraints.InlineMax,
             0);
 
-        return LayoutFragment.CreateInline(box, constraints.InlineMax, 0, baseline: null, lineFragments, diagnostics);
+        return LayoutFragment.CreateInline(box, constraints.InlineMax, 0, null, lineFragments, diagnostics);
     }
 }

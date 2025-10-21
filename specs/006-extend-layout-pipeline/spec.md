@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-extend-layout-pipeline`  
 **Created**: 2025-10-21  
-**Status**: Draft  
+**Status**: Completed  
 ## Clarifications
 ### Session 2025-10-21
 - Q: For the initial FlexFormattingContext preview, how should containers with `flex-wrap: wrap` be handled? -> A: Do not support wrapping; treat `flex-wrap` as `nowrap` and render a single line
@@ -86,6 +86,9 @@ As a developer experimenting with modern layouts, I can enable a flex formatting
 - **SC-002**: Table fixtures paginate with header repetition and column alignment when `EnableTableContext` is true, achieving 100% pass rate in updated table regression suite.
 - **SC-003**: Flex preview flag reduces legacy composer usage for flagged flex containers by at least 80% in telemetry within the first release cycle.
 - **SC-004**: No increase (>5%) in PDF generation time for migrated fixtures when new context flags are enabled.
+
+
+
 
 
 

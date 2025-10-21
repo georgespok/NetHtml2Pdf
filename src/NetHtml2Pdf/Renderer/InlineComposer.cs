@@ -8,15 +8,17 @@ using QuestPDF.Fluent;
 namespace NetHtml2Pdf.Renderer;
 
 /// <summary>
-/// Thin orchestration layer that classifies nodes and delegates inline rendering
-/// to <see cref="InlineFlowLayoutEngine"/> while preserving behavior parity.
+///     Thin orchestration layer that classifies nodes and delegates inline rendering
+///     to <see cref="InlineFlowLayoutEngine" /> while preserving behavior parity.
 /// </summary>
 internal sealed class InlineComposer(
     IDisplayClassifier? displayClassifier = null,
     InlineFlowLayoutEngine? inlineFlowLayoutEngine = null) : IInlineComposer
 {
     private readonly IDisplayClassifier _displayClassifier = displayClassifier ?? new DisplayClassifier();
-    private readonly InlineFlowLayoutEngine _inlineFlowLayoutEngine = inlineFlowLayoutEngine ?? new InlineFlowLayoutEngine();
+
+    private readonly InlineFlowLayoutEngine _inlineFlowLayoutEngine =
+        inlineFlowLayoutEngine ?? new InlineFlowLayoutEngine();
 
     public void Compose(TextDescriptor text, DocumentNode node, InlineStyleState style)
     {

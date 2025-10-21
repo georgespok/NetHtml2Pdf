@@ -2,6 +2,7 @@ using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Core.Enums;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Test.Support;
+using QuestPDF;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;
@@ -146,7 +147,8 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         return new DocumentNode(nodeType, textContent, styles);
     }
 
-    private static DocumentNode CreateNodeWithDisplay(DocumentNodeType nodeType, string? textContent, string displayValue)
+    private static DocumentNode CreateNodeWithDisplay(DocumentNodeType nodeType, string? textContent,
+        string displayValue)
     {
         // Parse the display value to create the appropriate CssDisplay enum
         var cssDisplay = displayValue.ToLowerInvariant() switch
@@ -163,8 +165,8 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
 
     private static void GenerateDocument(Action<TextDescriptor> compose)
     {
-        QuestPDF.Settings.License = LicenseType.Community;
-        QuestPDF.Settings.UseEnvironmentFonts = false;
+        Settings.License = LicenseType.Community;
+        Settings.UseEnvironmentFonts = false;
 
         var document = QuestPDF.Fluent.Document.Create(container =>
         {
@@ -220,7 +222,8 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
     {
         // Arrange
         var sut = new InlineComposer();
-        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock).WithBorder(new BorderInfo(-2, "solid", "#000000"));
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock)
+            .WithBorder(new BorderInfo(-2, "solid", "#000000"));
         var node = new DocumentNode(DocumentNodeType.Span, "Test content", styles);
 
         // Act & Assert
@@ -241,10 +244,7 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     [Fact]
@@ -256,10 +256,7 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         var node = new DocumentNode(DocumentNodeType.Span, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     [Fact]
@@ -267,14 +264,12 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
     {
         // Arrange
         var sut = new InlineComposer();
-        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock).WithBorder(new BorderInfo(1, "solid", "#000000"));
+        var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock)
+            .WithBorder(new BorderInfo(1, "solid", "#000000"));
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     [Fact]
@@ -286,10 +281,7 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         var node = new DocumentNode(DocumentNodeType.Span, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     [Fact]
@@ -301,10 +293,7 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     [Fact]
@@ -313,10 +302,10 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         // Arrange
         var sut = new InlineComposer();
         var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock)
-            .WithMarginTop(10)      // Valid
-            .WithMarginRight(-5)    // Invalid
-            .WithMarginBottom(15)   // Valid
-            .WithMarginLeft(-8);    // Invalid
+            .WithMarginTop(10) // Valid
+            .WithMarginRight(-5) // Invalid
+            .WithMarginBottom(15) // Valid
+            .WithMarginLeft(-8); // Invalid
         var node = new DocumentNode(DocumentNodeType.Span, "Test content", styles);
 
         // Act & Assert
@@ -335,10 +324,10 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         // Arrange
         var sut = new InlineComposer();
         var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock)
-            .WithPaddingTop(5)      // Valid
-            .WithPaddingRight(-3)   // Invalid
-            .WithPaddingBottom(8)   // Valid
-            .WithPaddingLeft(-2);  // Invalid
+            .WithPaddingTop(5) // Valid
+            .WithPaddingRight(-3) // Invalid
+            .WithPaddingBottom(8) // Valid
+            .WithPaddingLeft(-2); // Invalid
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert
@@ -381,9 +370,10 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
 
         // Create nested block with large vertical margins (should trigger wrapping validation)
         var nestedBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
-            .WithMarginTop(30)    // Large margin
+            .WithMarginTop(30) // Large margin
             .WithMarginBottom(25); // Large margin
-        var nestedBlock = new DocumentNode(DocumentNodeType.Paragraph, "Nested block with large margins", nestedBlockStyles);
+        var nestedBlock = new DocumentNode(DocumentNodeType.Paragraph, "Nested block with large margins",
+            nestedBlockStyles);
 
         inlineBlockNode.AddChild(nestedBlock);
 
@@ -402,7 +392,8 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         var parentInlineBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock);
         var parentInlineBlock = new DocumentNode(DocumentNodeType.Div, null, parentInlineBlockStyles);
 
-        var childInlineBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock).WithPadding(BoxSpacing.FromAll(3));
+        var childInlineBlockStyles =
+            CssStyleMap.Empty.WithDisplay(CssDisplay.InlineBlock).WithPadding(BoxSpacing.FromAll(3));
         var childInlineBlock = new DocumentNode(DocumentNodeType.Span, "Child inline-block", childInlineBlockStyles);
 
         parentInlineBlock.AddChild(childInlineBlock);
@@ -426,10 +417,7 @@ public class InlineComposerTests(ITestOutputHelper output) : PdfRenderTestBase(o
         // Act & Assert
         // This test verifies that the validation correctly identifies non-inline-block elements
         // The ComposeInlineBlock method should only be called for elements with display: inline-block
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty));
-        });
+        Should.NotThrow(() => { GenerateDocument(text => sut.Compose(text, node, InlineStyleState.Empty)); });
     }
 
     #endregion

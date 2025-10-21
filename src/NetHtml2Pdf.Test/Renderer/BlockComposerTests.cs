@@ -6,6 +6,7 @@ using NetHtml2Pdf.Layout.Model;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
 using NetHtml2Pdf.Test.Support;
+using QuestPDF;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using Shouldly;
@@ -30,7 +31,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
     [Fact]
     public void Compose_Paragraph_WithLayoutEngineEnabled_InvokesLayoutEngine()
     {
-        var sut = CreateSut(enableNewLayout: true);
+        var sut = CreateSut(true);
         var paragraph = Paragraph(Text("Hello"));
 
         GenerateDocument(column => sut.Compose(column, paragraph));
@@ -42,7 +43,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
     [Fact]
     public void Compose_Paragraph_LayoutEngineFallback_UsesLegacyPath()
     {
-        var sut = CreateSut(enableNewLayout: true);
+        var sut = CreateSut(true);
         sut.LayoutEngine.OverrideResult = LayoutResult.Fallback("unsupported");
         var paragraph = Paragraph(Text("Hello"));
 
@@ -105,7 +106,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         sut.InlineComposer.Nodes.ShouldBeEmpty();
     }
 
-    private TestSut CreateSut(bool enableNewLayout = false)
+    private static TestSut CreateSut(bool enableNewLayout = false)
     {
         var inlineComposer = new RecordingInlineComposer();
         var listComposer = new RecordingListComposer();
@@ -137,8 +138,8 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
 
     private static void GenerateDocument(Action<ColumnDescriptor> compose)
     {
-        QuestPDF.Settings.License = LicenseType.Community;
-        QuestPDF.Settings.UseEnvironmentFonts = false;
+        Settings.License = LicenseType.Community;
+        Settings.UseEnvironmentFonts = false;
 
         var document = QuestPDF.Fluent.Document.Create(container =>
         {
@@ -153,35 +154,32 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         document.GeneratePdf(stream);
     }
 
-    private sealed class TestSut
+    private sealed class TestSut(
+        BlockComposer blockComposer,
+        RecordingInlineComposer inlineComposer,
+        RecordingListComposer listComposer,
+        RecordingTableComposer tableComposer,
+        RecordingLayoutEngine layoutEngine,
+        RendererOptions rendererOptions)
     {
-        public TestSut(BlockComposer blockComposer, RecordingInlineComposer inlineComposer,
-                      RecordingListComposer listComposer, RecordingTableComposer tableComposer,
-                      RecordingLayoutEngine layoutEngine, RendererOptions rendererOptions)
+        public BlockComposer BlockComposer { get; } = blockComposer;
+        public RecordingInlineComposer InlineComposer { get; } = inlineComposer;
+        public RecordingListComposer ListComposer { get; } = listComposer;
+        public RecordingTableComposer TableComposer { get; } = tableComposer;
+        public RecordingLayoutEngine LayoutEngine { get; } = layoutEngine;
+        public RendererOptions RendererOptions { get; } = rendererOptions;
+
+        public void Compose(ColumnDescriptor column, DocumentNode node)
         {
-            BlockComposer = blockComposer;
-            InlineComposer = inlineComposer;
-            ListComposer = listComposer;
-            TableComposer = tableComposer;
-            LayoutEngine = layoutEngine;
-            RendererOptions = rendererOptions;
+            BlockComposer.Compose(column, node);
         }
-
-        public BlockComposer BlockComposer { get; }
-        public RecordingInlineComposer InlineComposer { get; }
-        public RecordingListComposer ListComposer { get; }
-        public RecordingTableComposer TableComposer { get; }
-        public RecordingLayoutEngine LayoutEngine { get; }
-        public RendererOptions RendererOptions { get; }
-
-        public void Compose(ColumnDescriptor column, DocumentNode node) => BlockComposer.Compose(column, node);
     }
 
     private sealed class RecordingInlineComposer : IInlineComposer
     {
         public List<DocumentNodeType> Nodes { get; } = [];
 
-        public void Compose(QuestPDF.Fluent.TextDescriptor text, DocumentNode node, InlineStyleState style)
+        public void Compose(TextDescriptor text, DocumentNode node, InlineStyleState style)
         {
             Nodes.Add(node.NodeType);
             var content = node.TextContent ?? node.NodeType.ToString();
@@ -194,7 +192,8 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         public bool Called { get; private set; }
         public bool LastOrdered { get; private set; }
 
-        public void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered, Action<ColumnDescriptor, DocumentNode> composeBlock)
+        public void Compose(ColumnDescriptor column, DocumentNode listNode, bool ordered,
+            Action<ColumnDescriptor, DocumentNode> composeBlock)
         {
             Called = true;
             LastOrdered = ordered;
@@ -221,24 +220,33 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         public LayoutResult Layout(DocumentNode root, LayoutConstraints constraints, LayoutEngineOptions options)
         {
             Calls++;
-            if (OverrideResult is not null)
-            {
-                return OverrideResult;
-            }
+            if (OverrideResult is not null) return OverrideResult;
 
             var spacing = LayoutSpacing.FromStyles(root.Styles);
             var box = new LayoutBox(root, DisplayClass.Block, root.Styles, spacing, $"{root.NodeType}:0", []);
             var diagnostics = new LayoutDiagnostics("Test", constraints, constraints.InlineMax, constraints.BlockMax);
-            var fragment = LayoutFragment.CreateBlock(box, constraints.InlineMax, constraints.BlockMax, [], diagnostics);
+            var fragment =
+                LayoutFragment.CreateBlock(box, constraints.InlineMax, constraints.BlockMax, [], diagnostics);
             return LayoutResult.Success([fragment]);
         }
     }
 
     private sealed class PassthroughSpacingApplier : IBlockSpacingApplier
     {
-        public IContainer ApplySpacing(IContainer container, CssStyleMap styles) => container;
-        public IContainer ApplyMargin(IContainer container, CssStyleMap styles) => container;
-        public IContainer ApplyBorder(IContainer container, CssStyleMap styles) => container;
+        public IContainer ApplySpacing(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
+
+        public IContainer ApplyMargin(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
+
+        public IContainer ApplyBorder(IContainer container, CssStyleMap styles)
+        {
+            return container;
+        }
     }
 
     #region Block Width Rules and Margin Collapsing Tests
@@ -286,10 +294,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -301,10 +306,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -324,10 +326,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(secondBlock);
 
         // Act & Assert - Should not throw (margin collapsing validation should pass)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -337,7 +336,8 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var sut = CreateSut();
         var container = CreateBlockDisplayNode(DocumentNodeType.Div);
 
-        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20).WithBorder(new BorderInfo(1, "solid", "#000000"));
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20)
+            .WithBorder(new BorderInfo(1, "solid", "#000000"));
         var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
 
         var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
@@ -347,10 +347,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(secondBlock);
 
         // Act & Assert - Should not throw (margins should not collapse due to border)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -360,7 +357,8 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var sut = CreateSut();
         var container = CreateBlockDisplayNode(DocumentNodeType.Div);
 
-        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20).WithPadding(BoxSpacing.FromAll(5));
+        var firstBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20)
+            .WithPadding(BoxSpacing.FromAll(5));
         var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block", firstBlockStyles);
 
         var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15);
@@ -370,10 +368,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(secondBlock);
 
         // Act & Assert - Should not throw (margins should not collapse due to padding)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -385,10 +380,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -400,10 +392,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
 
         // Act & Assert - Should not throw
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -412,10 +401,10 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         // Arrange
         var sut = CreateSut();
         var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
-            .WithMarginTop(10)      // Valid
-            .WithMarginRight(-5)    // Invalid
-            .WithMarginBottom(15)   // Valid
-            .WithMarginLeft(-8);    // Invalid
+            .WithMarginTop(10) // Valid
+            .WithMarginRight(-5) // Invalid
+            .WithMarginBottom(15) // Valid
+            .WithMarginLeft(-8); // Invalid
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert
@@ -434,10 +423,10 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         // Arrange
         var sut = CreateSut();
         var styles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block)
-            .WithPaddingTop(5)      // Valid
-            .WithPaddingRight(-3)   // Invalid
-            .WithPaddingBottom(8)   // Valid
-            .WithPaddingLeft(-2);  // Invalid
+            .WithPaddingTop(5) // Valid
+            .WithPaddingRight(-3) // Invalid
+            .WithPaddingBottom(8) // Valid
+            .WithPaddingLeft(-2); // Invalid
         var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
 
         // Act & Assert
@@ -466,10 +455,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Div, "Test content", styles);
 
         // Act & Assert - Should not throw and should apply all spacing correctly
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -485,10 +471,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Paragraph, "Test content", styles);
 
         // Act & Assert - Should not throw and should apply vertical spacing correctly
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -512,10 +495,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(thirdBlock);
 
         // Act & Assert - Should not throw (complex margin collapsing should be handled)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -528,10 +508,12 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var paragraphStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginBottom(20);
         var paragraph = new DocumentNode(DocumentNodeType.Paragraph, "Paragraph text", paragraphStyles);
 
-        var divStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15).WithPadding(BoxSpacing.FromAll(10));
+        var divStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(15)
+            .WithPadding(BoxSpacing.FromAll(10));
         var div = new DocumentNode(DocumentNodeType.Div, "Div content", divStyles);
 
-        var spanStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(10).WithBorder(new BorderInfo(1, "dashed", "#666666"));
+        var spanStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(10)
+            .WithBorder(new BorderInfo(1, "dashed", "#666666"));
         var span = new DocumentNode(DocumentNodeType.Span, "Span content", spanStyles);
 
         container.AddChild(paragraph);
@@ -539,10 +521,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(span);
 
         // Act & Assert - Should not throw (mixed element types with spacing should be handled)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -563,10 +542,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Div, "Asymmetric spacing test", styles);
 
         // Act & Assert - Should not throw and should apply asymmetric spacing correctly
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -588,10 +564,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         container.AddChild(secondBlock);
 
         // Act & Assert - Should not throw (borders should prevent margin collapsing)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     [Fact]
@@ -606,10 +579,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Div, "Large spacing test", styles);
 
         // Act & Assert - Should not throw even with large spacing values
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -633,10 +603,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         outerContainer.AddChild(innerContainer);
 
         // Act & Assert - Should not throw (nested blocks with spacing should be handled)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, outerContainer));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, outerContainer)); });
     }
 
     [Fact]
@@ -656,10 +623,7 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var node = new DocumentNode(DocumentNodeType.Paragraph, "Decimal spacing test", styles);
 
         // Act & Assert - Should not throw with decimal spacing values
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, node));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, node)); });
     }
 
     [Fact]
@@ -673,16 +637,14 @@ public class BlockComposerTests(ITestOutputHelper output) : PdfRenderTestBase(ou
         var firstBlock = new DocumentNode(DocumentNodeType.Paragraph, "First block with zero margin", firstBlockStyles);
 
         var secondBlockStyles = CssStyleMap.Empty.WithDisplay(CssDisplay.Block).WithMarginTop(0);
-        var secondBlock = new DocumentNode(DocumentNodeType.Paragraph, "Second block with zero margin", secondBlockStyles);
+        var secondBlock =
+            new DocumentNode(DocumentNodeType.Paragraph, "Second block with zero margin", secondBlockStyles);
 
         container.AddChild(firstBlock);
         container.AddChild(secondBlock);
 
         // Act & Assert - Should not throw (zero margins should be handled correctly)
-        Should.NotThrow(() =>
-        {
-            GenerateDocument(column => sut.Compose(column, container));
-        });
+        Should.NotThrow(() => { GenerateDocument(column => sut.Compose(column, container)); });
     }
 
     #endregion

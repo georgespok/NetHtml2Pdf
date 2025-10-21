@@ -7,16 +7,23 @@ public class WrapWithSpacingContractTests
 {
     // Note: These are contract tests that define the expected behavior of WrapWithSpacing
     // The actual WrapWithSpacing implementation will be created in T009
-    
+
     [Fact]
     public void ApplySpacing_Order_MarginParentThenBorderElementThenPaddingElement()
     {
+        var expected = new[]
+        {
+            "MarginTop:10", "MarginRight:10", "MarginBottom:10", "MarginLeft:10", // Parent margin first
+            "Border:2", // Element border second
+            "PaddingTop:5", "PaddingRight:5", "PaddingBottom:5", "PaddingLeft:5" // Element padding last
+        };
+
         // Arrange
         var parentStyles = CssStyleMap.Empty.WithMargin(BoxSpacing.FromAll(10));
         var elementStyles = CssStyleMap.Empty
             .WithBorder(new BorderInfo(2, "solid", "#000000"))
             .WithPadding(BoxSpacing.FromAll(5));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -24,43 +31,42 @@ public class WrapWithSpacingContractTests
         var result = ApplySpacing(parentContainer, elementContainer, parentStyles, elementStyles);
 
         // Assert - Order should be: margin(parent) → border(element) → padding(element)
-        result.Applications.ShouldBe(new[]
-        {
-            "MarginTop:10", "MarginRight:10", "MarginBottom:10", "MarginLeft:10", // Parent margin first
-            "Border:2", // Element border second
-            "PaddingTop:5", "PaddingRight:5", "PaddingBottom:5", "PaddingLeft:5" // Element padding last
-        });
+        result.Applications.ShouldBe(expected);
     }
 
     [Fact]
     public void ApplySpacing_NestedContainers_CumulativeParentPadding()
     {
+        var expected = new[] { "MarginTop:15", "MarginBottom:20" };
+
         // Arrange - Nested containers with cumulative parent padding
         var grandparentStyles = CssStyleMap.Empty.WithPadding(BoxSpacing.FromAll(20));
         var parentStyles = CssStyleMap.Empty.WithPadding(BoxSpacing.FromAll(10));
         var elementStyles = CssStyleMap.Empty.WithPadding(BoxSpacing.FromAll(5));
-        
+
         var grandparentContainer = new TestContainer();
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
         // Act
-        var result = ApplyNestedSpacing(grandparentContainer, parentContainer, elementContainer, 
+        var result = ApplyNestedSpacing(grandparentContainer, parentContainer, elementContainer,
             grandparentStyles, parentStyles, elementStyles);
 
         // Assert - Should accumulate padding from all levels (no clamping)
         result.Applications.ShouldContain("PaddingTop:20"); // Grandparent
         result.Applications.ShouldContain("PaddingTop:10"); // Parent  
-        result.Applications.ShouldContain("PaddingTop:5");  // Element
+        result.Applications.ShouldContain("PaddingTop:5"); // Element
     }
+
 
     [Fact]
     public void ApplySpacing_OnlyMargin_AppliesMarginOnly()
     {
+        var expected = new[] { "MarginTop:15", "MarginBottom:20" };
         // Arrange
         var parentStyles = CssStyleMap.Empty.WithMargin(BoxSpacing.FromSpecific(15, null, 20, null));
         var elementStyles = CssStyleMap.Empty;
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -68,16 +74,20 @@ public class WrapWithSpacingContractTests
         var result = ApplySpacing(parentContainer, elementContainer, parentStyles, elementStyles);
 
         // Assert
-        result.Applications.ShouldBe(new[] { "MarginTop:15", "MarginBottom:20" });
+        result.Applications.ShouldBe(expected);
     }
+
 
     [Fact]
     public void ApplySpacing_OnlyBorder_AppliesBorderOnly()
     {
+        var expected = new[] { "Border:3" };
+
+
         // Arrange
         var parentStyles = CssStyleMap.Empty;
         var elementStyles = CssStyleMap.Empty.WithBorder(new BorderInfo(3, "dashed", "#FF0000"));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -85,16 +95,19 @@ public class WrapWithSpacingContractTests
         var result = ApplySpacing(parentContainer, elementContainer, parentStyles, elementStyles);
 
         // Assert
-        result.Applications.ShouldBe(new[] { "Border:3" });
+        result.Applications.ShouldBe(expected);
     }
+
 
     [Fact]
     public void ApplySpacing_OnlyPadding_AppliesPaddingOnly()
     {
+        var expected = new[] { "PaddingRight:25", "PaddingLeft:30" };
+
         // Arrange
         var parentStyles = CssStyleMap.Empty;
         var elementStyles = CssStyleMap.Empty.WithPadding(BoxSpacing.FromSpecific(null, 25, null, 30));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -102,7 +115,7 @@ public class WrapWithSpacingContractTests
         var result = ApplySpacing(parentContainer, elementContainer, parentStyles, elementStyles);
 
         // Assert
-        result.Applications.ShouldBe(new[] { "PaddingRight:25", "PaddingLeft:30" });
+        result.Applications.ShouldBe(expected);
     }
 
     [Fact]
@@ -111,7 +124,7 @@ public class WrapWithSpacingContractTests
         // Arrange
         var parentStyles = CssStyleMap.Empty;
         var elementStyles = CssStyleMap.Empty;
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -131,7 +144,7 @@ public class WrapWithSpacingContractTests
         var elementStyles = CssStyleMap.Empty
             .WithBorder(new BorderInfo(1, "solid", "#00FF00"))
             .WithPadding(BoxSpacing.FromSpecific(25, 30, 35, 40));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -148,15 +161,22 @@ public class WrapWithSpacingContractTests
         result.Applications.ShouldBe(expected);
     }
 
+
     [Fact]
     public void ApplySpacing_BorderNotVisible_SkipsBorder()
     {
+        var expected = new[]
+        {
+            "MarginTop:10", "MarginRight:10", "MarginBottom:10", "MarginLeft:10",
+            "PaddingTop:5", "PaddingRight:5", "PaddingBottom:5", "PaddingLeft:5"
+        };
+
         // Arrange
         var parentStyles = CssStyleMap.Empty.WithMargin(BoxSpacing.FromAll(10));
         var elementStyles = CssStyleMap.Empty
             .WithBorder(new BorderInfo(2, "none", "#000000")) // Border with "none" style
             .WithPadding(BoxSpacing.FromAll(5));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -164,11 +184,7 @@ public class WrapWithSpacingContractTests
         var result = ApplySpacing(parentContainer, elementContainer, parentStyles, elementStyles);
 
         // Assert - Border should be skipped when not visible
-        result.Applications.ShouldBe(new[]
-        {
-            "MarginTop:10", "MarginRight:10", "MarginBottom:10", "MarginLeft:10",
-            "PaddingTop:5", "PaddingRight:5", "PaddingBottom:5", "PaddingLeft:5"
-        });
+        result.Applications.ShouldBe(expected);
     }
 
     [Fact]
@@ -179,7 +195,7 @@ public class WrapWithSpacingContractTests
         var elementStyles = CssStyleMap.Empty
             .WithBorder(new BorderInfo(1, "solid", "#000000"))
             .WithPadding(BoxSpacing.FromAll(8));
-        
+
         var parentContainer = new TestContainer();
         var elementContainer = new TestContainer();
 
@@ -199,11 +215,11 @@ public class WrapWithSpacingContractTests
 
     // Helper methods that simulate the WrapWithSpacing behavior
     // These will be replaced by actual WrapWithSpacing implementation in T009
-    private static TestResult ApplySpacing(TestContainer parent, TestContainer element, 
+    private static TestResult ApplySpacing(TestContainer parent, TestContainer element,
         CssStyleMap parentStyles, CssStyleMap elementStyles)
     {
         var result = new TestResult();
-        
+
         // Apply margin (parent) - affects positioning relative to siblings
         if (parentStyles.Margin.HasValue)
         {
@@ -219,9 +235,7 @@ public class WrapWithSpacingContractTests
 
         // Apply border (element) - adds border around element's content area
         if (elementStyles.Border.IsVisible)
-        {
             result.Applications.Add($"Border:{elementStyles.Border.GetWidthInPixels()}");
-        }
 
         // Apply padding (element) - affects content area inside the element
         if (elementStyles.Padding.HasValue)
@@ -243,12 +257,12 @@ public class WrapWithSpacingContractTests
         CssStyleMap grandparentStyles, CssStyleMap parentStyles, CssStyleMap elementStyles)
     {
         var result = new TestResult();
-        
+
         // Apply all levels of padding (cumulative, no clamping)
         ApplyPadding(grandparentStyles, "Grandparent", result);
         ApplyPadding(parentStyles, "Parent", result);
         ApplyPadding(elementStyles, "Element", result);
-        
+
         return result;
     }
 
@@ -257,7 +271,8 @@ public class WrapWithSpacingContractTests
         if (styles.Padding.HasValue)
         {
             if (styles.Padding.Top.HasValue)
-                result.Applications.Add($"PaddingTop:{styles.Padding.Top.Value}"); // {level}:{styles.Padding.Top.Value}");
+                result.Applications.Add(
+                    $"PaddingTop:{styles.Padding.Top.Value}"); // {level}:{styles.Padding.Top.Value}");
             if (styles.Padding.Right.HasValue)
                 result.Applications.Add($"PaddingRight:{styles.Padding.Right.Value}");
             if (styles.Padding.Bottom.HasValue)

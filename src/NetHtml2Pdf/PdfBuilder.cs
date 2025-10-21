@@ -2,23 +2,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NetHtml2Pdf.Core;
 using NetHtml2Pdf.Parser;
-using NetHtml2Pdf.Parser.Interfaces;
 using NetHtml2Pdf.Renderer;
 using NetHtml2Pdf.Renderer.Interfaces;
+using HtmlParser = AngleSharp.Html.Parser.HtmlParser;
+using IHtmlParser = NetHtml2Pdf.Parser.Interfaces.IHtmlParser;
 
 namespace NetHtml2Pdf;
 
 public class PdfBuilder : IPdfBuilder
 {
+    private readonly List<string> _fallbackElements;
+    private readonly ILogger _logger;
     private readonly List<string> _pages;
     private readonly IHtmlParser _parser;
     private readonly IPdfRendererFactory _rendererFactory;
     private readonly RendererOptions _rendererOptions;
-    private readonly ILogger _logger;
+    private string? _footer;
 
     private string? _header;
-    private string? _footer;
-    private readonly List<string> _fallbackElements;
 
     public PdfBuilder() : this(NullLogger<PdfBuilder>.Instance)
     {
@@ -41,12 +42,12 @@ public class PdfBuilder : IPdfBuilder
         _fallbackElements = [];
 
         // Centralized dependency instantiation
-        var angleSharpParser = new AngleSharp.Html.Parser.HtmlParser();
+        var angleSharpParser = new HtmlParser();
         var cssDeclarationParser = new CssDeclarationParser();
         var cssDeclarationUpdater = new CssStyleUpdater();
         var classStyleExtractor = new CssClassStyleExtractor(cssDeclarationParser, cssDeclarationUpdater);
 
-        _parser = new HtmlParser(
+        _parser = new Parser.HtmlParser(
             angleSharpParser,
             classStyleExtractor,
             TrackFallbackElement);
@@ -83,9 +84,7 @@ public class PdfBuilder : IPdfBuilder
         ArgumentNullException.ThrowIfNull(html);
 
         if (string.IsNullOrWhiteSpace(html))
-        {
             throw new ArgumentException("Header HTML cannot be empty or whitespace.", nameof(html));
-        }
 
         _header = html;
         return this;
@@ -96,12 +95,66 @@ public class PdfBuilder : IPdfBuilder
         ArgumentNullException.ThrowIfNull(html);
 
         if (string.IsNullOrWhiteSpace(html))
-        {
             throw new ArgumentException("Footer HTML cannot be empty or whitespace.", nameof(html));
-        }
 
         _footer = html;
         return this;
+    }
+
+    public IPdfBuilder AddPage(string htmlContent)
+    {
+        ArgumentNullException.ThrowIfNull(htmlContent);
+
+        if (string.IsNullOrWhiteSpace(htmlContent))
+            throw new ArgumentException("HTML content cannot be empty or whitespace.", nameof(htmlContent));
+
+        _pages.Add(htmlContent);
+        return this;
+    }
+
+    public byte[] Build(ConverterOptions? options = null)
+    {
+        if (_pages.Count == 0)
+            throw new InvalidOperationException("At least one page must be added before building PDF");
+
+        // Parse header if set
+        DocumentNode? headerNode = null;
+        if (!string.IsNullOrEmpty(_header)) headerNode = ParseWithWarnings(_header);
+
+        // Parse footer if set
+        DocumentNode? footerNode = null;
+        if (!string.IsNullOrEmpty(_footer)) footerNode = ParseWithWarnings(_footer);
+
+        // Parse all pages
+        var documentNodes = new List<DocumentNode>();
+        foreach (var html in _pages)
+        {
+            var documentNode = ParseWithWarnings(html);
+            documentNodes.Add(documentNode);
+        }
+
+        var rendererOptions = options != null
+            ? new RendererOptions
+            {
+                FontPath = options.FontPath,
+                EnableNewLayoutForTextBlocks = options.EnableNewLayoutForTextBlocks,
+                EnableLayoutDiagnostics = options.EnableLayoutDiagnostics,
+                EnablePagination = options.EnablePagination,
+                EnableQuestPdfAdapter = options.EnableQuestPdfAdapter,
+                EnablePaginationDiagnostics = options.EnablePaginationDiagnostics,
+                EnableInlineBlockContext = options.EnableInlineBlockContext,
+                EnableTableContext = options.EnableTableContext,
+                EnableTableBorderCollapse = options.EnableTableBorderCollapse,
+                EnableFlexContext = options.EnableFlexContext
+            }
+            : _rendererOptions;
+
+        var renderer = _rendererFactory.Create(rendererOptions);
+
+        // Render multi-page PDF with headers and footers
+        var pdfBytes = renderer.Render(documentNodes, headerNode, footerNode);
+
+        return pdfBytes;
     }
 
     public IPdfBuilder EnablePagination(bool enabled = true)
@@ -122,70 +175,32 @@ public class PdfBuilder : IPdfBuilder
         return this;
     }
 
-    public IPdfBuilder AddPage(string htmlContent)
+    public IPdfBuilder EnableInlineBlockContext(bool enabled = true)
     {
-        ArgumentNullException.ThrowIfNull(htmlContent);
-
-        if (string.IsNullOrWhiteSpace(htmlContent))
-        {
-            throw new ArgumentException("HTML content cannot be empty or whitespace.", nameof(htmlContent));
-        }
-
-        _pages.Add(htmlContent);
+        _rendererOptions.EnableInlineBlockContext = enabled;
         return this;
     }
 
-    public byte[] Build(ConverterOptions? options = null)
+    public IPdfBuilder EnableTableContext(bool enabled = true)
     {
-        if (_pages.Count == 0)
-        {
-            throw new InvalidOperationException("At least one page must be added before building PDF");
-        }
+        _rendererOptions.EnableTableContext = enabled;
+        return this;
+    }
 
-        // Parse header if set
-        DocumentNode? headerNode = null;
-        if (!string.IsNullOrEmpty(_header))
-        {
-            headerNode = ParseWithWarnings(_header);
-        }
+    public IPdfBuilder EnableTableBorderCollapse(bool enabled = true)
+    {
+        _rendererOptions.EnableTableBorderCollapse = enabled;
+        return this;
+    }
 
-        // Parse footer if set
-        DocumentNode? footerNode = null;
-        if (!string.IsNullOrEmpty(_footer))
-        {
-            footerNode = ParseWithWarnings(_footer);
-        }
-
-        // Parse all pages
-        var documentNodes = new List<DocumentNode>();
-        foreach (var html in _pages)
-        {
-            var documentNode = ParseWithWarnings(html);
-            documentNodes.Add(documentNode);
-        }
-
-        var rendererOptions = options != null
-            ? new RendererOptions
-            {
-                FontPath = options.FontPath,
-                EnableNewLayoutForTextBlocks = options.EnableNewLayoutForTextBlocks,
-                EnableLayoutDiagnostics = options.EnableLayoutDiagnostics,
-                EnablePagination = options.EnablePagination,
-                EnableQuestPdfAdapter = options.EnableQuestPdfAdapter,
-                EnablePaginationDiagnostics = options.EnablePaginationDiagnostics
-            }
-            : _rendererOptions;
-
-        var renderer = _rendererFactory.Create(rendererOptions);
-
-        // Render multi-page PDF with headers and footers
-        var pdfBytes = renderer.Render(documentNodes, headerNode, footerNode);
-
-        return pdfBytes;
+    public IPdfBuilder EnableFlexContext(bool enabled = true)
+    {
+        _rendererOptions.EnableFlexContext = enabled;
+        return this;
     }
 
     /// <summary>
-    /// Parses HTML with warning tracking for fallback elements.
+    ///     Parses HTML with warning tracking for fallback elements.
     /// </summary>
     /// <param name="html">The HTML content to parse.</param>
     /// <returns>The parsed document node.</returns>
@@ -195,19 +210,23 @@ public class PdfBuilder : IPdfBuilder
     }
 
     /// <summary>
-    /// Tracks a fallback element that was processed.
+    ///     Tracks a fallback element that was processed.
     /// </summary>
     /// <param name="elementName">The name of the fallback element.</param>
     internal void TrackFallbackElement(string elementName)
     {
-        _logger.LogWarning("FallbackRenderer: Unsupported element '<{ElementName}>' processed with best-effort rendering", elementName);
+        _logger.LogWarning(
+            "FallbackRenderer: Unsupported element '<{ElementName}>' processed with best-effort rendering",
+            elementName);
         _fallbackElements.Add(elementName);
     }
 
     /// <summary>
-    /// Gets the current fallback elements for telemetry purposes.
+    ///     Gets the current fallback elements for telemetry purposes.
     /// </summary>
     /// <returns>A read-only list of fallback element names.</returns>
-    internal IReadOnlyList<string> GetFallbackElements() => _fallbackElements.AsReadOnly();
+    internal IReadOnlyList<string> GetFallbackElements()
+    {
+        return _fallbackElements.AsReadOnly();
+    }
 }
-

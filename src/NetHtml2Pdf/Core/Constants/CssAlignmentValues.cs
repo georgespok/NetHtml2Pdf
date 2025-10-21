@@ -1,7 +1,7 @@
 namespace NetHtml2Pdf.Core.Constants;
 
 /// <summary>
-/// Provides CSS alignment-related value constants for use throughout the application.
+///     Provides CSS alignment-related value constants for use throughout the application.
 /// </summary>
 public static class CssAlignmentValues
 {

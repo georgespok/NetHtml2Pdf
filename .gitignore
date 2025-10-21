@@ -61,3 +61,11 @@ nunit-*.xml
 /nuget.config
 /.cursor
 /src/NetHtml2Pdf.Test/coveragereport/**
+/.offline-packages
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+.env*

@@ -3,16 +3,13 @@ using NetHtml2Pdf.Renderer.Interfaces;
 
 namespace NetHtml2Pdf.Renderer;
 
-internal sealed class PdfRendererFactory : IPdfRendererFactory
+internal sealed class PdfRendererFactory(IBlockComposer blockComposer, IRendererAdapterFactory? adapterFactory = null)
+    : IPdfRendererFactory
 {
-    private readonly IBlockComposer _blockComposer;
-    private readonly IRendererAdapterFactory _adapterFactory;
+    private readonly IRendererAdapterFactory _adapterFactory = adapterFactory ?? new RendererAdapterFactory();
 
-    public PdfRendererFactory(IBlockComposer blockComposer, IRendererAdapterFactory? adapterFactory = null)
-    {
-        _blockComposer = blockComposer ?? throw new ArgumentNullException(nameof(blockComposer));
-        _adapterFactory = adapterFactory ?? new RendererAdapterFactory();
-    }
+    private readonly IBlockComposer _blockComposer =
+        blockComposer ?? throw new ArgumentNullException(nameof(blockComposer));
 
     public IPdfRenderer Create(RendererOptions options)
     {

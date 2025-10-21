@@ -4,6 +4,12 @@
 
 This document provides practical guidance on what to test and what not to test, based on the complexity and business value of the code. **Theory tests (`[Theory]` with `[InlineData]`) are PRIORITY for parameterized testing scenarios.**
 
+### Foundational Practices
+
+- Code MUST be developed using incremental TDD: introduce one failing test at a time, implement the minimal passing code, and refactor before adding the next test. Trivial scaffolding (constructors, simple properties, passive DTOs) is exempt.
+- Tests MUST exercise observable behavior (e.g., rendered output, pagination results) and MUST NOT rely on reflection-based contract checks of internal types.
+- Reflection APIs (e.g., `Activator.CreateInstance`, `Type.GetType`, `MethodInfo.Invoke`) are explicitly prohibited in test code.
+
 ## Unit Test Coverage Strategy
 
 ### Coverage Scoring System
@@ -18,25 +24,24 @@ For each method of each class, calculate the "score" using the following formula
 Score = (0.5 x BusinessCriticality)
       + (0.3 x ChangeFrequency)
       + (0.2 x DefectHistory)
-      + (0.1 × DefectHistory)
 ```
 
 #### Score Components
 
-- **Business Criticality**: 5 (core CSS parsing functionality) - 5 points
-- **Change Frequency**: 3 (occasionally modified) - 3 points
-- **Defect History**: 2 (some parsing issues in past) - 2 points
- - High impact (core business logic): 5-6 points
+- **Business Criticality (50% weight)**: Impact on core business functionality
+  - Low impact (utility methods): 1-2 points
+  - Medium impact (feature methods): 3-4 points
+  - High impact (core business logic): 5-6 points
 
 - **Change Frequency (30% weight)**: How often the code is modified
- - Stable (rarely changed): 1-2 points
- - Moderate (occasionally changed): 3-4 points
- - Volatile (frequently changed): 5-6 points
+  - Stable (rarely changed): 1-2 points
+  - Moderate (occasionally changed): 3-4 points
+  - Volatile (frequently changed): 5-6 points
 
 - **Defect History (20% weight)**: Historical bug frequency
- - No known issues: 1 point
- - Some issues in past: 2-3 points
- - Problematic (multiple bugs): 4-6 points
+  - No known issues: 1 point
+  - Some issues in past: 2-3 points
+  - Problematic (multiple bugs): 4-6 points
 
 #### Testing Priority Thresholds
 
@@ -821,6 +826,4 @@ Simple data containers and property setters don't need extensive testing - they'
 
 
 
-
-- **Business Criticality**: 5 (core CSS parsing functionality) - 5 points
 

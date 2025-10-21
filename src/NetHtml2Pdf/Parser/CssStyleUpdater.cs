@@ -8,7 +8,7 @@ using NetHtml2Pdf.Parser.Interfaces;
 namespace NetHtml2Pdf.Parser;
 
 /// <summary>
-/// Updates a <see cref="CssStyleMap"/> with the values encoded in a single CSS declaration.
+///     Updates a <see cref="CssStyleMap" /> with the values encoded in a single CSS declaration.
 /// </summary>
 internal sealed class CssStyleUpdater : ICssDeclarationUpdater
 {
@@ -16,12 +16,15 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
     {
         return declaration.Name switch
         {
-            CssProperties.FontStyle => styles.WithFontStyle(IsItalic(declaration.Value) ? FontStyle.Italic : FontStyle.Normal),
+            CssProperties.FontStyle => styles.WithFontStyle(IsItalic(declaration.Value)
+                ? FontStyle.Italic
+                : FontStyle.Normal),
             CssProperties.FontWeight => styles.WithBold(IsBoldValue(declaration.Value)),
             CssProperties.TextDecoration => styles.WithTextDecoration(ParseTextDecoration(declaration.Value)),
             CssProperties.LineHeight => styles.WithLineHeight(ParseNumeric(declaration.Value)),
             CssProperties.Color => styles.WithColor(ColorNormalizer.NormalizeToHex(declaration.Value)),
-            CssProperties.BackgroundColor => styles.WithBackgroundColor(ColorNormalizer.NormalizeToHex(declaration.Value)),
+            CssProperties.BackgroundColor => styles.WithBackgroundColor(
+                ColorNormalizer.NormalizeToHex(declaration.Value)),
             CssProperties.Margin => styles.WithMargin(ParseBoxSpacing(declaration.Value)),
             CssProperties.MarginTop => styles.WithMarginTop(ParseNumeric(declaration.Value)),
             CssProperties.MarginRight => styles.WithMarginRight(ParseNumeric(declaration.Value)),
@@ -41,49 +44,50 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         };
     }
 
-    private static bool IsItalic(string value) => value.Trim().Equals(CssFontValues.Italic, StringComparison.OrdinalIgnoreCase);
+    private static bool IsItalic(string value)
+    {
+        return value.Trim().Equals(CssFontValues.Italic, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool IsBoldValue(string value)
     {
         var trimmed = value.Trim().ToLowerInvariant();
-        return trimmed is CssFontValues.Bold or CssFontValues.Bolder or CssFontValues.FontWeight600 or CssFontValues.FontWeight700 or CssFontValues.FontWeight800 or CssFontValues.FontWeight900;
+        return trimmed is CssFontValues.Bold or CssFontValues.Bolder or CssFontValues.FontWeight600
+            or CssFontValues.FontWeight700 or CssFontValues.FontWeight800 or CssFontValues.FontWeight900;
     }
 
     private static TextDecorationStyle ParseTextDecoration(string value)
     {
         var trimmed = value.Trim().ToLowerInvariant();
-        return trimmed.Contains(CssFontValues.Underline, StringComparison.Ordinal) ? TextDecorationStyle.Underline : TextDecorationStyle.None;
+        return trimmed.Contains(CssFontValues.Underline, StringComparison.Ordinal)
+            ? TextDecorationStyle.Underline
+            : TextDecorationStyle.None;
     }
 
     private static double? ParseNumeric(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(value)) return null;
 
         var trimmed = value.Trim().ToLowerInvariant();
         if (trimmed.EndsWith(CssUnits.Pixels, StringComparison.Ordinal))
-        {
             trimmed = trimmed[..^2];
-        }
-        else if (trimmed.EndsWith(CssUnits.Rem, StringComparison.Ordinal) || trimmed.EndsWith(CssUnits.Em, StringComparison.Ordinal))
-        {
-            trimmed = trimmed[..^3];
-        }
+        else if (trimmed.EndsWith(CssUnits.Rem, StringComparison.Ordinal) ||
+                 trimmed.EndsWith(CssUnits.Em, StringComparison.Ordinal)) trimmed = trimmed[..^3];
 
-        return double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+        return double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : null;
     }
 
     private static BoxSpacing ParseBoxSpacing(string value)
     {
         var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length == 0)
-        {
-            return BoxSpacing.Empty;
-        }
+        if (parts.Length == 0) return BoxSpacing.Empty;
 
-        double? ParsePart(string part) => ParseNumeric(part);
+        double? ParsePart(string part)
+        {
+            return ParseNumeric(part);
+        }
 
         return parts.Length switch
         {
@@ -105,10 +109,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             var horizontal = ParsePart(horizontalPart);
 
             // If any part is invalid, reject entire declaration (CSS contract requirement)
-            if (!vertical.HasValue || !horizontal.HasValue)
-            {
-                return BoxSpacing.Empty;
-            }
+            if (!vertical.HasValue || !horizontal.HasValue) return BoxSpacing.Empty;
 
             return BoxSpacing.FromSpecific(vertical, horizontal, vertical, horizontal);
         }
@@ -120,10 +121,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             var bottom = ParsePart(bottomPart);
 
             // If any part is invalid, reject entire declaration (CSS contract requirement)
-            if (!top.HasValue || !horizontal.HasValue || !bottom.HasValue)
-            {
-                return BoxSpacing.Empty;
-            }
+            if (!top.HasValue || !horizontal.HasValue || !bottom.HasValue) return BoxSpacing.Empty;
 
             return BoxSpacing.FromSpecific(top, horizontal, bottom, horizontal);
         }
@@ -136,10 +134,7 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
             var left = ParsePart(leftPart);
 
             // If any part is invalid, reject entire declaration (CSS contract requirement)
-            if (!top.HasValue || !right.HasValue || !bottom.HasValue || !left.HasValue)
-            {
-                return BoxSpacing.Empty;
-            }
+            if (!top.HasValue || !right.HasValue || !bottom.HasValue || !left.HasValue) return BoxSpacing.Empty;
 
             return BoxSpacing.FromSpecific(top, right, bottom, left);
         }
@@ -147,16 +142,10 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
 
     private static BorderInfo ParseBorderShorthand(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return BorderInfo.Empty;
-        }
+        if (string.IsNullOrWhiteSpace(value)) return BorderInfo.Empty;
 
         var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length == 0)
-        {
-            return BorderInfo.Empty;
-        }
+        if (parts.Length == 0) return BorderInfo.Empty;
 
         double? width = null;
         string? style = null;
@@ -168,24 +157,16 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
 
             // Check if it's a width value (numeric or keyword)
             if (IsWidthValue(trimmedPart, out var parsedWidth))
-            {
                 width = parsedWidth;
-            }
             // Check if it's a style value
             else if (IsStyleValue(trimmedPart))
-            {
                 style = trimmedPart.ToLowerInvariant();
-            }
             // Check if it's a color value
             else if (IsColorValue(trimmedPart))
-            {
                 color = ColorNormalizer.NormalizeToHex(trimmedPart);
-            }
             else
-            {
                 // Invalid token found - reject entire declaration
                 return BorderInfo.Empty;
-            }
         }
 
         return new BorderInfo(width, style, color);
@@ -223,7 +204,8 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
     private static bool IsStyleValue(string value)
     {
         var lowerValue = value.ToLowerInvariant();
-        return lowerValue is CssBorderValues.Solid or CssBorderValues.Dashed or CssBorderValues.Dotted or CssBorderValues.None or CssBorderValues.Hidden;
+        return lowerValue is CssBorderValues.Solid or CssBorderValues.Dashed or CssBorderValues.Dotted
+            or CssBorderValues.None or CssBorderValues.Hidden;
     }
 
     private static bool IsColorValue(string value)
@@ -234,33 +216,25 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         var lowerValue = value.ToLowerInvariant();
 
         // Named colors (basic set)
-        if (lowerValue is CssColorNames.Black or CssColorNames.White or CssColorNames.Red or CssColorNames.Green or CssColorNames.Blue or CssColorNames.Yellow or
-            CssColorNames.Orange or CssColorNames.Purple or CssColorNames.Pink or CssColorNames.Brown or CssColorNames.Gray or CssColorNames.Grey or CssColorNames.Cyan or CssColorNames.Magenta)
-        {
+        if (lowerValue is CssColorNames.Black or CssColorNames.White or CssColorNames.Red or CssColorNames.Green
+            or CssColorNames.Blue or CssColorNames.Yellow or
+            CssColorNames.Orange or CssColorNames.Purple or CssColorNames.Pink or CssColorNames.Brown
+            or CssColorNames.Gray or CssColorNames.Grey or CssColorNames.Cyan or CssColorNames.Magenta)
             return true;
-        }
 
         // Hex colors (#fff, #ffffff)
-        if (value.StartsWith(CssUnits.HexPrefix) && (value.Length == 4 || value.Length == 7))
-        {
-            return true;
-        }
+        if (value.StartsWith(CssUnits.HexPrefix) && (value.Length == 4 || value.Length == 7)) return true;
 
         // RGB colors (rgb(255, 0, 0))
-        if (value.StartsWith(CssUnits.RgbFunction, StringComparison.OrdinalIgnoreCase) && value.EndsWith(CssUnits.RgbFunctionEnd))
-        {
-            return true;
-        }
+        if (value.StartsWith(CssUnits.RgbFunction, StringComparison.OrdinalIgnoreCase) &&
+            value.EndsWith(CssUnits.RgbFunctionEnd)) return true;
 
         return false;
     }
 
     private static CssDisplay ParseDisplay(string value, ILogger? logger)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return CssDisplay.Default;
-        }
+        if (string.IsNullOrWhiteSpace(value)) return CssDisplay.Default;
 
         var trimmed = value.Trim().ToLowerInvariant();
         var result = trimmed switch
@@ -272,10 +246,11 @@ internal sealed class CssStyleUpdater : ICssDeclarationUpdater
         };
 
         // Emit warning for unsupported display values
-        if (result == CssDisplay.Default && trimmed != "default" && trimmed != "initial" && trimmed != "inherit" && trimmed != "unset")
-        {
-            logger?.LogWarning("Unsupported CSS display value '{DisplayValue}' encountered. Falling back to HTML semantic default.", trimmed);
-        }
+        if (result == CssDisplay.Default && trimmed != "default" && trimmed != "initial" && trimmed != "inherit" &&
+            trimmed != "unset")
+            logger?.LogWarning(
+                "Unsupported CSS display value '{DisplayValue}' encountered. Falling back to HTML semantic default.",
+                trimmed);
 
         return result;
     }

@@ -5,5 +5,6 @@ public enum DisplayClass
     Block,
     Inline,
     InlineBlock,
+    Flex,
     None
 }
