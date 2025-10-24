@@ -43,9 +43,7 @@ public class FeatureFlagCombinationTests
 
     private static IPdfRenderer CreateRenderer(RendererOptions options)
     {
-        var blockComposer = PdfRenderer.CreateDefaultBlockComposer(options);
-        var rendererFactory = new PdfRendererFactory(blockComposer);
-        return rendererFactory.Create(options);
+        return RendererComposition.CreateRenderer(options);
     }
 }
 

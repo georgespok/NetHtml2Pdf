@@ -20,8 +20,8 @@ public class FormattingContextRegressionTests(ITestOutputHelper output) : PdfRen
         var disabledOptions = CreateRendererOptions(false, false);
         var enabledOptions = CreateRendererOptions(true, false);
 
-        var disabledRenderer = new PdfRenderer(disabledOptions);
-        var enabledRenderer = new PdfRenderer(enabledOptions);
+        var disabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(disabledOptions);
+        var enabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(enabledOptions);
 
         var disabledPdf = disabledRenderer.Render(doc);
         var enabledPdf = enabledRenderer.Render(doc);
@@ -41,8 +41,8 @@ public class FormattingContextRegressionTests(ITestOutputHelper output) : PdfRen
         var disabledOptions = CreateRendererOptions(false, false);
         var enabledOptions = CreateRendererOptions(false, true);
 
-        var disabledRenderer = new PdfRenderer(disabledOptions);
-        var enabledRenderer = new PdfRenderer(enabledOptions);
+        var disabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(disabledOptions);
+        var enabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(enabledOptions);
 
         var disabledPdf = disabledRenderer.Render(doc);
         var enabledPdf = enabledRenderer.Render(doc);

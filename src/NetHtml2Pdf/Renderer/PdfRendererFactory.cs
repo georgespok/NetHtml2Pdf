@@ -15,7 +15,7 @@ internal sealed class PdfRendererFactory(IBlockComposer blockComposer, IRenderer
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        var adapter = _adapterFactory.Create(options);
-        return new PdfRenderer(options, _blockComposer, rendererAdapter: adapter);
+        // Use composition root to create the renderer with all dependencies
+        return RendererComposition.CreateRenderer(options);
     }
 }

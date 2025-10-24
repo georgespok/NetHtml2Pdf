@@ -24,7 +24,7 @@ internal class HtmlParser : IHtmlParser
         _onFallbackElement = onFallbackElement;
     }
 
-    public DocumentNode Parse(string html, ILogger? logger = null)
+    public DocumentNode Parse(string html, ILogger? logger = null, Action<string>? onFallbackElement = null)
     {
         if (string.IsNullOrWhiteSpace(html))
             throw new ArgumentException("HTML content cannot be null or empty", nameof(html));
@@ -33,7 +33,10 @@ internal class HtmlParser : IHtmlParser
         var classStyles = _classStyleExtractor.Extract(angleSharpDocument, logger);
         var styleResolver = new CssStyleResolver(classStyles, _classStyleExtractor.DeclarationParser,
             _classStyleExtractor.DeclarationUpdater);
-        var nodeConverter = new HtmlNodeConverter(styleResolver, _onFallbackElement);
+        
+        // Use the provided callback or the one from constructor
+        var fallbackCallback = onFallbackElement ?? _onFallbackElement;
+        var nodeConverter = new HtmlNodeConverter(styleResolver, fallbackCallback);
 
         var root = new DocumentNode(DocumentNodeType.Document);
         var body = angleSharpDocument.Body;

@@ -36,17 +36,23 @@ internal class PdfRenderer : IPdfRenderer
     private readonly IRendererAdapter _rendererAdapter;
 
     internal PdfRenderer(
-        RendererOptions? options = null,
-        IBlockComposer? blockComposer = null,
-        PaginationService? paginationService = null,
-        IRendererAdapter? rendererAdapter = null,
-        ILayoutEngine? layoutEngine = null)
+        RendererOptions options,
+        IBlockComposer blockComposer,
+        PaginationService paginationService,
+        IRendererAdapter rendererAdapter,
+        ILayoutEngine layoutEngine)
     {
-        _options = options ?? RendererOptions.CreateDefault();
-        _blockComposer = blockComposer ?? CreateDefaultBlockComposer(_options);
-        _paginationService = paginationService ?? new PaginationService();
-        _rendererAdapter = rendererAdapter ?? new QuestPdfAdapter();
-        _layoutEngine = layoutEngine ?? CreateDefaultLayoutEngine(_options);
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _blockComposer = blockComposer ?? throw new ArgumentNullException(nameof(blockComposer));
+        _paginationService = paginationService ?? throw new ArgumentNullException(nameof(paginationService));
+        _rendererAdapter = rendererAdapter ?? throw new ArgumentNullException(nameof(rendererAdapter));
+        _layoutEngine = layoutEngine ?? throw new ArgumentNullException(nameof(layoutEngine));
+        
+        // Validate that adapter is not enabled without pagination
+        if (_options.EnableQuestPdfAdapter && !_options.EnablePagination)
+        {
+            throw new InvalidOperationException("QuestPdfAdapter cannot be enabled without pagination. Set EnablePagination to true when using EnableQuestPdfAdapter.");
+        }
     }
 
     public byte[] Render(DocumentNode document, DocumentNode? header = null, DocumentNode? footer = null)
@@ -118,38 +124,6 @@ internal class PdfRenderer : IPdfRenderer
         return stream.ToArray();
     }
 
-    internal static IBlockComposer CreateDefaultBlockComposer(RendererOptions? options = null)
-    {
-        options ??= RendererOptions.CreateDefault();
-
-        var spacingApplier = new BlockSpacingApplier();
-        var inlineFlowLayoutEngine = new InlineFlowLayoutEngine();
-        var displayClassifier = new DisplayClassifier(options: options);
-        var inlineComposer = new InlineComposer(displayClassifier, inlineFlowLayoutEngine);
-        var listComposer = new ListComposer(inlineComposer, spacingApplier);
-        var tableComposer = new TableComposer(inlineComposer, spacingApplier);
-
-        var layoutEngineOptions = LayoutEngineOptions.FromRendererOptions(options);
-        var formattingContextFactory =
-            FormattingContextFactory.CreateDefault(layoutEngineOptions, inlineFlowLayoutEngine);
-        var layoutEngine = new LayoutEngine(
-            displayClassifier,
-            formattingContextFactory.GetBlockFormattingContext(),
-            formattingContextFactory.GetInlineFormattingContext(),
-            formattingContextFactory.GetInlineBlockFormattingContext(),
-            formattingContextFactory.GetTableFormattingContext(),
-            formattingContextFactory.GetFlexFormattingContext(),
-            formattingContextFactory.Options);
-
-        return new BlockComposer(
-            inlineComposer,
-            listComposer,
-            tableComposer,
-            spacingApplier,
-            options,
-            displayClassifier,
-            layoutEngine);
-    }
 
     private void ConfigureQuestPdf()
     {
@@ -343,23 +317,6 @@ internal class PdfRenderer : IPdfRenderer
             diagnostics);
     }
 
-    internal static ILayoutEngine CreateDefaultLayoutEngine(RendererOptions? options = null)
-    {
-        options ??= RendererOptions.CreateDefault();
-
-        var layoutOptions = LayoutEngineOptions.FromRendererOptions(options);
-        var formattingContextFactory = FormattingContextFactory.CreateDefault(layoutOptions);
-        var displayClassifier = new DisplayClassifier(options: options);
-
-        return new LayoutEngine(
-            displayClassifier,
-            formattingContextFactory.GetBlockFormattingContext(),
-            formattingContextFactory.GetInlineFormattingContext(),
-            formattingContextFactory.GetInlineBlockFormattingContext(),
-            formattingContextFactory.GetTableFormattingContext(),
-            formattingContextFactory.GetFlexFormattingContext(),
-            formattingContextFactory.Options);
-    }
 
     private static PageConstraints CreateDefaultPageConstraints()
     {

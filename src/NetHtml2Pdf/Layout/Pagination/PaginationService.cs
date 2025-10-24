@@ -8,6 +8,7 @@ internal class PaginationService
 {
     private const float Epsilon = 0.01f;
 
+
     public virtual PaginatedDocument Paginate(
         IReadOnlyList<LayoutFragment> fragments,
         PageConstraints pageConstraints,

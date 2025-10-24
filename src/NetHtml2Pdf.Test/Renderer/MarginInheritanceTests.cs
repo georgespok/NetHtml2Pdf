@@ -9,7 +9,7 @@ namespace NetHtml2Pdf.Test.Renderer;
 [Collection("PdfRendering")]
 public class MarginInheritanceTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    private readonly PdfRenderer _renderer = new();
+    private readonly PdfRenderer _renderer = (PdfRenderer)RendererComposition.CreateRenderer(RendererOptions.CreateDefault());
 
     [Fact]
     public async Task Margin_ShouldOnlyApplyToParentElement_NotChildren()
