@@ -10,7 +10,7 @@ namespace NetHtml2Pdf.Test.Renderer;
 [Collection("PdfRendering")]
 public class BlockBorderRenderingTests(ITestOutputHelper output) : PdfRenderTestBase(output)
 {
-    private readonly PdfRenderer _renderer = new();
+    private readonly PdfRenderer _renderer = (PdfRenderer)RendererComposition.CreateRenderer(RendererOptions.CreateDefault());
 
     [Fact]
     public async Task Div_WithBorder_ShouldRenderBorderInPdf()

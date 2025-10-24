@@ -6,8 +6,7 @@ var html = @"<section>
 <p>Timestamp:" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + @"</p>
 </section>";
 
-var converter = new PdfBuilder();
-var pdfBytes = converter
+var pdfBytes = new PdfBuilder()
     .AddPage(html)
     .Build();
 

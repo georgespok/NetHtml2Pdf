@@ -4,286 +4,218 @@ namespace NetHtml2Pdf.Core;
 
 internal sealed class CssStyleMap
 {
-    private CssStyleMap(
-        FontStyle fontStyle,
-        bool fontStyleSet,
-        bool bold,
-        bool boldSet,
-        TextDecorationStyle textDecoration,
-        bool textDecorationSet,
-        double? lineHeight,
-        BoxSpacing margin,
-        BoxSpacing padding,
-        string? color,
-        string? backgroundColor,
-        string? textAlign,
-        string? verticalAlign,
-        BorderInfo border,
-        string? borderCollapse,
-        CssDisplay display,
-        bool displaySet,
-        string? unsupportedDisplay)
+    private readonly CssStyleState _state;
+
+    private CssStyleMap(CssStyleState state)
     {
-        FontStyle = fontStyle;
-        FontStyleSet = fontStyleSet;
-        Bold = bold;
-        BoldSet = boldSet;
-        TextDecoration = textDecoration;
-        TextDecorationSet = textDecorationSet;
-        LineHeight = lineHeight;
-        Margin = margin;
-        Padding = padding;
-        Color = color;
-        BackgroundColor = backgroundColor;
-        TextAlign = textAlign;
-        VerticalAlign = verticalAlign;
-        Border = border;
-        BorderCollapse = borderCollapse;
-        Display = display;
-        DisplaySet = displaySet;
-        UnsupportedDisplay = unsupportedDisplay;
+        _state = state;
     }
 
-    public static CssStyleMap Empty { get; } = new(FontStyle.Normal, false, false, false, TextDecorationStyle.None,
-        false, null, BoxSpacing.Empty, BoxSpacing.Empty, null, null, null, null, BorderInfo.Empty, null,
-        CssDisplay.Default, false, null);
+    public static CssStyleMap Empty { get; } = new(
+        new CssStyleState(
+        new Typography(FontStyle.Normal, false, false, false, TextDecorationStyle.None, false, null),
+        new BoxModel(BoxSpacing.Empty, BoxSpacing.Empty, BorderInfo.Empty, null),
+        new ColorStyle(null, null),
+        new AlignmentStyle(null, null),
+        new DisplayStyle(CssDisplay.Default, false, null)));
 
-    public FontStyle FontStyle { get; }
+    public FontStyle FontStyle => _state.Typography.FontStyle;
 
-    public bool FontStyleSet { get; }
+    public bool FontStyleSet => _state.Typography.FontStyleSet;
 
-    public bool Bold { get; }
+    public bool Bold => _state.Typography.Bold;
 
-    public bool BoldSet { get; }
+    public bool BoldSet => _state.Typography.BoldSet;
 
-    public TextDecorationStyle TextDecoration { get; }
+    public TextDecorationStyle TextDecoration => _state.Typography.TextDecoration;
 
-    public bool TextDecorationSet { get; }
+    public bool TextDecorationSet => _state.Typography.TextDecorationSet;
 
-    public double? LineHeight { get; }
+    public double? LineHeight => _state.Typography.LineHeight;
 
-    public BoxSpacing Margin { get; }
+    public BoxSpacing Margin => _state.Box.Margin;
 
-    public BoxSpacing Padding { get; }
+    public BoxSpacing Padding => _state.Box.Padding;
 
-    public string? Color { get; }
+    public string? Color => _state.Colors.Color;
 
-    public string? BackgroundColor { get; }
+    public string? BackgroundColor => _state.Colors.BackgroundColor;
 
-    public string? TextAlign { get; }
+    public string? TextAlign => _state.Alignment.TextAlign;
 
-    public string? VerticalAlign { get; }
+    public string? VerticalAlign => _state.Alignment.VerticalAlign;
 
-    public BorderInfo Border { get; }
+    public BorderInfo Border => _state.Box.Border;
 
-    public string? BorderCollapse { get; }
+    public string? BorderCollapse => _state.Box.BorderCollapse;
 
-    public CssDisplay Display { get; }
+    public CssDisplay Display => _state.DisplayInfo.Display;
 
-    public bool DisplaySet { get; }
+    public bool DisplaySet => _state.DisplayInfo.DisplaySet;
 
-    public string? UnsupportedDisplay { get; }
+    public string? UnsupportedDisplay => _state.DisplayInfo.UnsupportedDisplay;
 
     public CssStyleMap WithFontStyle(FontStyle fontStyle)
     {
-        return new CssStyleMap(fontStyle, true, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight, Margin,
-            Padding,
-            Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Typography = _state.Typography with { FontStyle = fontStyle, FontStyleSet = true } });
     }
 
     public CssStyleMap WithBold(bool value = true)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, value, true, TextDecoration, TextDecorationSet, LineHeight,
-            Margin, Padding,
-            Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Typography = _state.Typography with { Bold = value, BoldSet = true } });
     }
 
     public CssStyleMap WithTextDecoration(TextDecorationStyle decoration)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, decoration, true, LineHeight, Margin, Padding,
-            Color,
-            BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Typography = _state.Typography with { TextDecoration = decoration, TextDecorationSet = true } });
     }
 
     public CssStyleMap WithLineHeight(double? lineHeight)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, lineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Typography = _state.Typography with { LineHeight = lineHeight } });
     }
 
     public CssStyleMap WithMargin(BoxSpacing spacing)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            BoxSpacing.Merge(Margin, spacing), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border,
-            BorderCollapse, Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Margin = BoxSpacing.Merge(_state.Box.Margin, spacing) } });
     }
 
     public CssStyleMap WithPadding(BoxSpacing spacing)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            BoxSpacing.Merge(Padding, spacing), Color, BackgroundColor, TextAlign, VerticalAlign, Border,
-            BorderCollapse, Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Padding = BoxSpacing.Merge(_state.Box.Padding, spacing) } });
     }
 
     public CssStyleMap WithMarginTop(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin.WithTop(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse,
-            Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Margin = _state.Box.Margin.WithTop(value) } });
     }
 
     public CssStyleMap WithMarginRight(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin.WithRight(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse,
-            Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Margin = _state.Box.Margin.WithRight(value) } });
     }
 
     public CssStyleMap WithMarginBottom(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin.WithBottom(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse,
-            Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Margin = _state.Box.Margin.WithBottom(value) } });
     }
 
     public CssStyleMap WithMarginLeft(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin.WithLeft(value), Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse,
-            Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Margin = _state.Box.Margin.WithLeft(value) } });
     }
 
     public CssStyleMap WithPaddingTop(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding.WithTop(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display,
-            DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Padding = _state.Box.Padding.WithTop(value) } });
     }
 
     public CssStyleMap WithPaddingRight(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding.WithRight(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display,
-            DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Padding = _state.Box.Padding.WithRight(value) } });
     }
 
     public CssStyleMap WithPaddingBottom(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding.WithBottom(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse,
-            Display, DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Padding = _state.Box.Padding.WithBottom(value) } });
     }
 
     public CssStyleMap WithPaddingLeft(double? value)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding.WithLeft(value), Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display,
-            DisplaySet, UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Padding = _state.Box.Padding.WithLeft(value) } });
     }
 
     public CssStyleMap WithColor(string? color)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Colors = _state.Colors with { Color = color } });
     }
 
     public CssStyleMap WithBackgroundColor(string? backgroundColor)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, backgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Colors = _state.Colors with { BackgroundColor = backgroundColor } });
     }
 
     public CssStyleMap WithTextAlign(string? textAlign)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, textAlign, VerticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Alignment = _state.Alignment with { TextAlign = textAlign } });
     }
 
     public CssStyleMap WithVerticalAlign(string? verticalAlign)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, verticalAlign, Border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Alignment = _state.Alignment with { VerticalAlign = verticalAlign } });
     }
 
     public CssStyleMap WithBorder(BorderInfo border)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, VerticalAlign, border, BorderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { Border = border } });
     }
 
     public CssStyleMap WithBorderCollapse(string? borderCollapse)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, borderCollapse, Display, DisplaySet,
-            UnsupportedDisplay);
+        return new CssStyleMap(_state with { Box = _state.Box with { BorderCollapse = borderCollapse } });
     }
 
     public CssStyleMap WithDisplay(CssDisplay display)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, display, true, null);
+        return new CssStyleMap(_state with { DisplayInfo = _state.DisplayInfo with { Display = display, DisplaySet = true, UnsupportedDisplay = null } });
     }
 
     public CssStyleMap WithUnsupportedDisplay(string rawDisplay)
     {
-        return new CssStyleMap(FontStyle, FontStyleSet, Bold, BoldSet, TextDecoration, TextDecorationSet, LineHeight,
-            Margin,
-            Padding, Color, BackgroundColor, TextAlign, VerticalAlign, Border, BorderCollapse, CssDisplay.Default, true,
-            rawDisplay);
+        return new CssStyleMap(_state with { DisplayInfo = _state.DisplayInfo with { Display = CssDisplay.Default, DisplaySet = true, UnsupportedDisplay = rawDisplay } });
     }
 
     public CssStyleMap Merge(CssStyleMap? other)
     {
         if (other is null) return this;
 
-        var fontStyle = other.FontStyleSet ? other.FontStyle : FontStyle;
-        var fontStyleSet = FontStyleSet || other.FontStyleSet;
+        var newTypography = new Typography(
+            other.FontStyleSet ? other.FontStyle : FontStyle,
+            FontStyleSet || other.FontStyleSet,
+            other.BoldSet ? other.Bold : Bold,
+            BoldSet || other.BoldSet,
+            other.TextDecorationSet ? other.TextDecoration : TextDecoration,
+            TextDecorationSet || other.TextDecorationSet,
+            other.LineHeight ?? LineHeight);
 
-        var bold = other.BoldSet ? other.Bold : Bold;
-        var boldSet = BoldSet || other.BoldSet;
+        var newBox = new BoxModel(
+            BoxSpacing.Merge(Margin, other.Margin),
+            BoxSpacing.Merge(Padding, other.Padding),
+            other.Border.HasValue ? other.Border : Border,
+            other.BorderCollapse ?? BorderCollapse);
 
-        var decoration = other.TextDecorationSet ? other.TextDecoration : TextDecoration;
-        var decorationSet = TextDecorationSet || other.TextDecorationSet;
+        var newColors = new ColorStyle(other.Color ?? Color, other.BackgroundColor ?? BackgroundColor);
+        var newAlign = new AlignmentStyle(other.TextAlign ?? TextAlign, other.VerticalAlign ?? VerticalAlign);
+        var newDisplay = new DisplayStyle(other.DisplaySet ? other.Display : Display, DisplaySet || other.DisplaySet, other.UnsupportedDisplay ?? UnsupportedDisplay);
 
-        var lineHeight = other.LineHeight ?? LineHeight;
-
-        var margin = BoxSpacing.Merge(Margin, other.Margin);
-        var padding = BoxSpacing.Merge(Padding, other.Padding);
-        var border = other.Border.HasValue ? other.Border : Border;
-
-        // Other properties (color, font, etc.) should be inherited from parent
-        var color = other.Color ?? Color;
-        var backgroundColor = other.BackgroundColor ?? BackgroundColor;
-        var textAlign = other.TextAlign ?? TextAlign;
-        var verticalAlign = other.VerticalAlign ?? VerticalAlign;
-        var borderCollapse = other.BorderCollapse ?? BorderCollapse;
-        var display = other.DisplaySet ? other.Display : Display;
-        var displaySet = DisplaySet || other.DisplaySet;
-        var unsupportedDisplay = other.UnsupportedDisplay ?? UnsupportedDisplay;
-
-        return new CssStyleMap(fontStyle, fontStyleSet, bold, boldSet, decoration, decorationSet, lineHeight, margin,
-            padding, color, backgroundColor, textAlign, verticalAlign, border, borderCollapse, display, displaySet,
-            unsupportedDisplay);
+        return new CssStyleMap(new CssStyleState(newTypography, newBox, newColors, newAlign, newDisplay));
     }
+
+    private readonly record struct CssStyleState(
+        Typography Typography,
+        BoxModel Box,
+        ColorStyle Colors,
+        AlignmentStyle Alignment,
+        DisplayStyle DisplayInfo);
+
+    private readonly record struct Typography(
+        FontStyle FontStyle,
+        bool FontStyleSet,
+        bool Bold,
+        bool BoldSet,
+        TextDecorationStyle TextDecoration,
+        bool TextDecorationSet,
+        double? LineHeight);
+
+    private readonly record struct BoxModel(
+        BoxSpacing Margin,
+        BoxSpacing Padding,
+        BorderInfo Border,
+        string? BorderCollapse);
+
+    private readonly record struct ColorStyle(string? Color, string? BackgroundColor);
+
+    private readonly record struct AlignmentStyle(string? TextAlign, string? VerticalAlign);
+
+    private readonly record struct DisplayStyle(CssDisplay Display, bool DisplaySet, string? UnsupportedDisplay);
 }

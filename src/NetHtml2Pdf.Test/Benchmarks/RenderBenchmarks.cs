@@ -56,7 +56,7 @@ public class RenderBenchmarks
     {
         // Off
         var offOptions = createOptionsOff();
-        var offRenderer = new PdfRenderer(offOptions);
+        var offRenderer = (PdfRenderer)RendererComposition.CreateRenderer(offOptions);
         var sw = Stopwatch.StartNew();
         var offBytes = offRenderer.Render(document);
         sw.Stop();
@@ -65,7 +65,7 @@ public class RenderBenchmarks
 
         // On
         var onOptions = createOptionsOn();
-        var onRenderer = new PdfRenderer(onOptions);
+        var onRenderer = (PdfRenderer)RendererComposition.CreateRenderer(onOptions);
         sw.Restart();
         var onBytes = onRenderer.Render(document);
         sw.Stop();

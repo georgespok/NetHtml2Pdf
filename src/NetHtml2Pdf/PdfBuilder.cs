@@ -41,19 +41,10 @@ public class PdfBuilder : IPdfBuilder
         _pages = [];
         _fallbackElements = [];
 
-        // Centralized dependency instantiation
-        var angleSharpParser = new HtmlParser();
-        var cssDeclarationParser = new CssDeclarationParser();
-        var cssDeclarationUpdater = new CssStyleUpdater();
-        var classStyleExtractor = new CssClassStyleExtractor(cssDeclarationParser, cssDeclarationUpdater);
-
-        _parser = new Parser.HtmlParser(
-            angleSharpParser,
-            classStyleExtractor,
-            TrackFallbackElement);
-
-        var blockComposer = PdfRenderer.CreateDefaultBlockComposer();
-        _rendererFactory = new PdfRendererFactory(blockComposer);
+        // Use composition root for dependency creation
+        var (parser, rendererFactory) = RendererComposition.CreatePdfBuilderDependencies(_rendererOptions, null, _logger);
+        _parser = parser;
+        _rendererFactory = rendererFactory;
     }
 
     internal PdfBuilder(
@@ -206,7 +197,7 @@ public class PdfBuilder : IPdfBuilder
     /// <returns>The parsed document node.</returns>
     private DocumentNode ParseWithWarnings(string html)
     {
-        return _parser.Parse(html, _logger);
+        return _parser.Parse(html, _logger, TrackFallbackElement);
     }
 
     /// <summary>

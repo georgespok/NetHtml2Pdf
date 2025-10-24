@@ -27,7 +27,7 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
 
         var adapter = new RecordingAdapter();
 
-        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: adapter);
+        var renderer = (PdfRenderer)RendererComposition.CreateRenderer(rendererOptions, RendererServices.ForTests().With(rendererAdapter: adapter));
         var document = CreateDocument();
 
         var result = renderer.Render(document);
@@ -49,8 +49,9 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
             FontPath = string.Empty
         };
 
-        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: new RecordingAdapter(),
-            paginationService: new ThrowingPaginationService());
+        var renderer = (PdfRenderer)RendererComposition.CreateRenderer(rendererOptions, RendererServices.ForTests().With(
+            rendererAdapter: new RecordingAdapter(),
+            pagination: new ThrowingPaginationService()));
         var document = CreateDocument();
 
         Assert.Throws<PaginationException>(() => renderer.Render(document));
@@ -69,7 +70,9 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
 
         var paginationService = new CapturingPaginationService();
         var adapter = new RecordingAdapter();
-        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: adapter, paginationService: paginationService);
+        var renderer = (PdfRenderer)RendererComposition.CreateRenderer(rendererOptions, RendererServices.ForTests().With(
+            rendererAdapter: adapter,
+            pagination: paginationService));
         var document = CreateDocument();
 
         renderer.Render(document);
@@ -92,7 +95,7 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
         };
 
         var adapter = new RecordingAdapter();
-        var renderer = new PdfRenderer(rendererOptions, rendererAdapter: adapter);
+        var renderer = (PdfRenderer)RendererComposition.CreateRenderer(rendererOptions, RendererServices.ForTests().With(rendererAdapter: adapter));
         var document = CreateDocument();
 
         renderer.Render(document);
@@ -117,8 +120,9 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
 
         var enabledPagination = new CapturingPaginationService();
         var enabledAdapter = new RecordingAdapter();
-        var enabledRenderer = new PdfRenderer(enabledOptions, rendererAdapter: enabledAdapter,
-            paginationService: enabledPagination);
+        var enabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(enabledOptions, RendererServices.ForTests().With(
+            rendererAdapter: enabledAdapter,
+            pagination: enabledPagination));
 
         enabledRenderer.Render(CreateInlineBlockDocument());
 
@@ -139,8 +143,9 @@ public class PdfRendererAdapterTests(ITestOutputHelper output) : PdfRenderTestBa
         };
 
         var disabledAdapter = new RecordingAdapter();
-        var disabledRenderer = new PdfRenderer(disabledOptions, rendererAdapter: disabledAdapter,
-            paginationService: new CapturingPaginationService());
+        var disabledRenderer = (PdfRenderer)RendererComposition.CreateRenderer(disabledOptions, RendererServices.ForTests().With(
+            rendererAdapter: disabledAdapter,
+            pagination: new CapturingPaginationService()));
 
         disabledRenderer.Render(CreateInlineBlockDocument());
 

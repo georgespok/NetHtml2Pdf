@@ -18,6 +18,7 @@ internal sealed class QuestPdfAdapter : IRendererAdapter
     private RendererContext? _context;
     private bool _documentBegun;
 
+
     public void BeginDocument(PaginatedDocument document, RendererContext context)
     {
         ArgumentNullException.ThrowIfNull(document);
